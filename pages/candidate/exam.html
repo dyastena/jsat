@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard - J-SAT</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans antialiased">
+    <div class="flex min-h-screen">
+        
+        <!-- ===== SIDEBAR ===== -->
+    <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-gray-800">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-white">J-SAT</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-3">
+                    Recruiter Navigation
+                </div>
+                
+                <!-- Dashboard - Active -->
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-500/30 transition-all duration-200 hover:bg-emerald-600">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <!-- Candidates -->
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium transition-all duration-200 hover:bg-gray-800 hover:text-gray-200">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span>Candidates</span>
+                </a>
+            </nav>
+
+            <!-- Logout Button -->
+            <div class="p-4 border-t border-gray-800">
+                <button class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500 text-white font-semibold transition-all duration-200 hover:bg-red-600 shadow-lg shadow-red-500/20 transform hover:scale-[1.02]">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span>Logout</span>
+                </button>
+                
+                <!-- Footer -->
+                <div class="mt-4 text-center">
+                    <p class="text-xs text-gray-600">© 2024 J-SAT App</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="flex-1 flex flex-col min-h-screen bg-gray-950">
+            
+            <!-- ===== HEADER ===== -->
+            <header class="bg-gray-900/50 backdrop-blur-sm border-b border-gray-800 px-6 lg:px-8 py-6 sticky top-0 z-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <!-- Page Title -->
+                        <h1 class="text-3xl lg:text-4xl font-bold text-white mb-2">Candidate Dashboard</h1>
+                        <p class="text-sm text-gray-400">View your exam details, progress, and results here.</p>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <button class="lg:hidden p-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-750 transition-colors">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </header>
+        </main>
+
+    </div>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
