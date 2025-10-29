@@ -11,7 +11,7 @@
 CREATE TYPE user_role AS ENUM ('admin', 'recruiter', 'candidate');
 
 -- Question difficulty levels enum
-CREATE TYPE difficulty_level AS ENUM ('beginner', 'intermediate', 'advanced');
+CREATE TYPE difficulty_level AS ENUM ('beginner', 'novice', 'intermediate', 'advanced', 'expert');
 
 -- Test status enum
 CREATE TYPE test_status AS ENUM ('not_started', 'in_progress', 'completed', 'expired');

@@ -45,7 +45,7 @@
 - Search and filter by role
 
 ### Question Management Page
-- Question list table with filters (Beginner, Intermediate, Advanced)
+- Question list table with filters (Beginner, Novice, Intermediate, Advanced, Expert)
 - Question ID, title, difficulty, date created
 - Buttons: “Add Question”, “Edit”, “Delete”
 - Randomize question sets
@@ -65,7 +65,7 @@
 
 ### Assign Test Page
 - Candidate list with selection checkboxes
-- Drop-down to select difficulty level (Beginner, Intermediate, Advanced)
+- Drop-down to select difficulty level (Beginner, Novice, Intermediate, Advanced, Expert)
 - Button: “Generate Test”
 - Option to randomize questions
 - Test schedule (start and end time)
