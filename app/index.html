@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J-SAT - Assess Java Skills in Minutes</title>
-    <link href="./dist/output.css" rel="stylesheet">
+    <link href="../dist/output.css" rel="stylesheet">
 </head>
 <body class="bg-slate-900 text-gray-100 min-h-screen">
     
@@ -19,10 +19,10 @@
                 
                 <!-- Navigation Links -->
                 <div class="flex items-center gap-4">
-                    <a href="login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">
+                    <a href="auth/login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">
                         Login
                     </a>
-                    <a href="signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">
+                    <a href="auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">
                         Sign Up
                     </a>
                 </div>
@@ -72,7 +72,7 @@
                     <a href="#exam" class="bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 w-full sm:w-auto">
                         Take Exam
                     </a>
-                    <a href="signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-105 w-full sm:w-auto">
+                    <a href="auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-105 w-full sm:w-auto">
                         Get Started Free
                     </a>
                 </div>
@@ -141,7 +141,7 @@
                 <p class="text-xl text-gray-400 mb-10">
                     Start your first assessment today and discover where you stand.
                 </p>
-                <a href="./pages/candidate/exam.html" class="inline-block bg-slate-700 hover:bg-slate-600 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105">
+                <a href="candidate/exam.html" class="inline-block bg-slate-700 hover:bg-slate-600 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105">
                     Take Exam Now
                 </a>
             </div>
@@ -177,7 +177,7 @@
             </div>
         </div>
     </footer>
-    <script src="config.js"></script>
+    <script src="../config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -192,11 +192,11 @@
                 let dashboardLink = '/';
 
                 if (userRole === 'admin') {
-                    dashboardLink = '/pages/admin/users.html';
+                    dashboardLink = 'admin/users.html';
                 } else if (userRole === 'recruiter') {
-                    dashboardLink = '/pages/recruiter/dashboard.html';
+                    dashboardLink = 'recruiter/dashboard.html';
                 } else {
-                    dashboardLink = '/pages/candidate/exam.html';
+                    dashboardLink = 'candidate/exam.html';
                 }
 
                 navLinks.innerHTML = `
@@ -210,8 +210,8 @@
                 });
             } else {
                 navLinks.innerHTML = `
-                    <a href="login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Login</a>
-                    <a href="signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">Sign Up</a>
+                    <a href="auth/login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Login</a>
+                    <a href="auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">Sign Up</a>
                 `;
             }
         });

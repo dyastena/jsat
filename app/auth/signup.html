@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - J-SAT</title>
-    <link href="./dist/output.css" rel="stylesheet">
+    <link href="../../dist/output.css" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -217,7 +217,7 @@
     </div>
 
     <!-- ===== JAVASCRIPT FOR STEP NAVIGATION & SIGNUP ===== -->
-    <script src="config.js"></script>
+    <script src="../../config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         // Defensive icon init
@@ -302,8 +302,7 @@
                 password,
                 options: {
                     data: {
-                        full_name: fullname,
-                        role: 'candidate' // Default role for signup
+                        full_name: fullname
                     }
                 }
             });
@@ -311,9 +310,8 @@
             if (error) {
                 showSignupMessage(`Error: ${error.message}`, 'error');
             } else {
-                showSignupMessage('Signup successful! Check your email to verify your account.', 'success');
-                signupForm.reset();
-                goToStep1();
+                // Redirect to role selection page
+                window.location.href = 'role_selection.html';
             }
         });
     </script>

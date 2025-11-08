@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - J-SAT</title>
-    <link href="./dist/output.css" rel="stylesheet">
+    <link href="../../dist/output.css" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -172,7 +172,7 @@
         }
     </script>
 
-    <script src="config.js"></script>
+    <script src="../../config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         // Initialize Supabase client and wire login form (defensive)
@@ -217,11 +217,11 @@
                 showLoginMessage('Login successful — redirecting...', 'success');
                 setTimeout(() => {
                     if (userRole === 'admin') {
-                        window.location.href = './pages/admin/users.html';
+                        window.location.href = '../admin/users.html';
                     } else if (userRole === 'recruiter') {
-                        window.location.href = './pages/recruiter/dashboard.html';
+                        window.location.href = '../recruiter/dashboard.html';
                     } else {
-                        window.location.href = './pages/candidate/exam.html';
+                        window.location.href = '../candidate/exam.html';
                     }
                 }, 900);
             });

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Verification - J-SAT</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-950 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center gap-2 mb-2">
+                <div class="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                    <i data-lucide="briefcase" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-2xl font-bold text-white">J-SAT Recruiter Verification</span>
+            </div>
+            <p class="text-gray-400 text-sm">Please provide your verification documents to activate your account.</p>
+        </div>
+
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="mb-6">
+                    <div class="flex border-b border-gray-800">
+                        <button id="individual-tab" class="flex-1 py-3 text-sm font-semibold text-white border-b-2 border-cyan-500 transition-colors">Individual</button>
+                        <button id="organization-tab" class="flex-1 py-3 text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-gray-300 transition-colors">Organization</button>
+                    </div>
+                </div>
+
+                <form id="verification-form" class="space-y-4">
+                    <!-- Individual Form -->
+                    <div id="individual-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Government-Issued ID</label>
+                            <input type="file" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Proof of Tax Registration</label>
+                            <input type="file" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Business Email Verification</label>
+                            <input type="email" placeholder="your.business@email.com" class="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"/>
+                        </div>
+                    </div>
+
+                    <!-- Organization Form -->
+                    <div id="organization-form" class="hidden space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Business Registration Certificate</label>
+                            <input type="file" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Company Tax ID</label>
+                            <input type="file" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Company Website URL</label>
+                            <input type="url" placeholder="https://yourcompany.com" class="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Authorized Representative's ID</label>
+                            <input type="file" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-gray-300 hover:file:bg-gray-700"/>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 px-4 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg shadow-lg shadow-cyan-500/30 transition-all duration-200">Submit for Verification</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
+        const individualTab = document.getElementById('individual-tab');
+        const organizationTab = document.getElementById('organization-tab');
+        const individualForm = document.getElementById('individual-form');
+        const organizationForm = document.getElementById('organization-form');
+
+        individualTab.addEventListener('click', () => {
+            individualForm.classList.remove('hidden');
+            organizationForm.classList.add('hidden');
+            individualTab.classList.add('text-white', 'border-cyan-500');
+            individualTab.classList.remove('text-gray-500', 'border-transparent');
+            organizationTab.classList.add('text-gray-500', 'border-transparent');
+            organizationTab.classList.remove('text-white', 'border-cyan-500');
+        });
+
+        organizationTab.addEventListener('click', () => {
+            organizationForm.classList.remove('hidden');
+            individualForm.classList.add('hidden');
+            organizationTab.classList.add('text-white', 'border-cyan-500');
+            organizationTab.classList.remove('text-gray-500', 'border-transparent');
+            individualTab.classList.add('text-gray-500', 'border-transparent');
+            individualTab.classList.remove('text-white', 'border-cyan-500');
+        });
+
+        document.getElementById('verification-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Here you would handle the form submission, e.g., via FormData and fetch
+            console.log('Submitting verification documents...');
+            alert('Your documents have been submitted for verification. You will be redirected to the recruiter panel.');
+            window.location.href = '../recruiter/dashboard.html';
+        });
+    </script>
+</body>
+</html>
