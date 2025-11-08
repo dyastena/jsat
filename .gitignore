@@ -1,0 +1,10 @@
+# Node / build artifacts (if any)
+node_modules/
+/dist/
+
+# Local Supabase credentials
+config.js
+
+# OS files
+.DS_Store
+Thumbs.db

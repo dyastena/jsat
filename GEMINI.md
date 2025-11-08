@@ -28,7 +28,7 @@
 - Option to update profile picture
 - Logout button
 - On first login, users must link their LinkedIn and GitHub profiles.
-- The system will fetch details from LinkedIn and GitHub, format them, and automatically generate a resume with the system's branding.
+- The system will automatically generate a resume with the system's branding.
 - Users can see their information in this system-generated resume.
 
 ## 2. ADMIN DASHBOARD
@@ -150,7 +150,7 @@
 - Expert: Mastery of concepts, highly efficient and optimized code
 
 ### User Level Progression:
-- Users start at the "Beginner" level.
+- Users start at the "Beginge" level.
 - Point thresholds for each level:
     - Beginner: 100 points
     - Novice: 150 points

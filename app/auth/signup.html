@@ -42,6 +42,8 @@
             <!-- ===== FORM CONTAINER ===== -->
             <div class="p-6">
                 <form id="signup-form" class="space-y-4">
+                    <!-- Inline message area -->
+                    <div id="signup-form-message" class="hidden px-4 py-3 rounded-lg text-sm" role="alert"></div>
                     
                     <!-- ===== STEP 1: PERSONAL INFO ===== -->
                     <div id="step-1" class="space-y-4">
@@ -214,86 +216,105 @@
 
     </div>
 
-    <!-- ===== JAVASCRIPT FOR STEP NAVIGATION ===== -->
+    <!-- ===== JAVASCRIPT FOR STEP NAVIGATION & SIGNUP ===== -->
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
+        // Defensive icon init
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 
-        // Step Navigation Functions
+        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Step Navigation Functions (defensive)
         function goToStep2() {
-            // Validate Step 1 fields
             const fullname = document.getElementById('fullname');
             const email = document.getElementById('email');
-            
-            if (!fullname.value || !email.value) {
-                fullname.reportValidity();
-                email.reportValidity();
+            if (!fullname?.value || !email?.value) {
+                fullname?.reportValidity();
+                email?.reportValidity();
                 return;
             }
 
-            // Hide Step 1, Show Step 2
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('step-2').classList.remove('hidden');
-            
-            // Update Progress
             document.getElementById('progress-bar').style.width = '100%';
             document.getElementById('step-label').textContent = 'Step 2 of 2';
             document.getElementById('step-title').textContent = 'Security';
-            
-            // Smooth scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            // Re-initialize icons
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
         function goToStep1() {
-            // Show Step 1, Hide Step 2
             document.getElementById('step-2').classList.add('hidden');
             document.getElementById('step-1').classList.remove('hidden');
-            
-            // Update Progress
             document.getElementById('progress-bar').style.width = '50%';
             document.getElementById('step-label').textContent = 'Step 1 of 2';
             document.getElementById('step-title').textContent = 'Personal Information';
-            
-            // Smooth scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            // Re-initialize icons
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        // Password Toggle Function
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
-            const icon = input.nextElementSibling.querySelector('i');
-            
+            const icon = input?.nextElementSibling?.querySelector('i');
+            if (!input) return;
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.setAttribute('data-lucide', 'eye-off');
+                icon?.setAttribute('data-lucide', 'eye-off');
             } else {
                 input.type = 'password';
-                icon.setAttribute('data-lucide', 'eye');
+                icon?.setAttribute('data-lucide', 'eye');
             }
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        // Form Submission Handler
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
+        // Form Submission Handler (defensive)
+        const signupForm = document.getElementById('signup-form');
+        signupForm?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            
+
+            const fullname = document.getElementById('fullname')?.value;
+            const email = document.getElementById('email')?.value;
+            const password = document.getElementById('password')?.value;
+            const confirmPassword = document.getElementById('confirm-password')?.value;
+
             if (password !== confirmPassword) {
                 alert('Passwords do not match!');
                 return;
             }
-            
-            // Here you would typically send the data to your backend
-            console.log('Form submitted successfully!');
-            alert('Account created successfully!');
+
+            const messageEl = document.getElementById('signup-form-message');
+            function showSignupMessage(text, type = 'error') {
+                if (!messageEl) return;
+                messageEl.textContent = text;
+                messageEl.className = '';
+                messageEl.classList.add('px-4','py-3','rounded-lg','text-sm');
+                if (type === 'error') {
+                    messageEl.classList.add('bg-red-500/10','text-red-300','border','border-red-600/30');
+                } else {
+                    messageEl.classList.add('bg-emerald-500/10','text-emerald-300','border','border-emerald-500/30');
+                }
+                messageEl.classList.remove('hidden');
+            }
+
+            const { data, error } = await supabase_client.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullname,
+                        role: 'candidate' // Default role for signup
+                    }
+                }
+            });
+
+            if (error) {
+                showSignupMessage(`Error: ${error.message}`, 'error');
+            } else {
+                showSignupMessage('Signup successful! Check your email to verify your account.', 'success');
+                signupForm.reset();
+                goToStep1();
+            }
         });
     </script>
 </body>

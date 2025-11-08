@@ -72,7 +72,7 @@
                     <a href="#exam" class="bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 w-full sm:w-auto">
                         Take Exam
                     </a>
-                    <a href="./pages/auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-105 w-full sm:w-auto">
+                    <a href="signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-105 w-full sm:w-auto">
                         Get Started Free
                     </a>
                 </div>
@@ -141,7 +141,7 @@
                 <p class="text-xl text-gray-400 mb-10">
                     Start your first assessment today and discover where you stand.
                 </p>
-                <a href="/exam.html" class="inline-block bg-slate-700 hover:bg-slate-600 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105">
+                <a href="./pages/candidate/exam.html" class="inline-block bg-slate-700 hover:bg-slate-600 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105">
                     Take Exam Now
                 </a>
             </div>
@@ -177,6 +177,44 @@
             </div>
         </div>
     </footer>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase_client.auth.getSession();
+            const navLinks = document.querySelector('.flex.items-center.gap-4');
+
+            if (session) {
+                const { data: { user } } = await supabase_client.auth.getUser();
+                const userRole = user?.user_metadata?.role ?? 'candidate';
+                let dashboardLink = '/';
+
+                if (userRole === 'admin') {
+                    dashboardLink = '/pages/admin/users.html';
+                } else if (userRole === 'recruiter') {
+                    dashboardLink = '/pages/recruiter/dashboard.html';
+                } else {
+                    dashboardLink = '/pages/candidate/exam.html';
+                }
+
+                navLinks.innerHTML = `
+                    <a href="${dashboardLink}" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Dashboard</a>
+                    <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200">Logout</button>
+                `;
+
+                document.getElementById('logout-button').addEventListener('click', async () => {
+                    await supabase_client.auth.signOut();
+                    window.location.reload();
+                });
+            } else {
+                navLinks.innerHTML = `
+                    <a href="login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Login</a>
+                    <a href="signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">Sign Up</a>
+                `;
+            }
+        });
+    </script>
 </body>
 </html>

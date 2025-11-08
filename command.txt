@@ -1,0 +1,49 @@
+
+# Backend Developer Task: Supabase Login & Signup System
+
+## Role
+
+You are an expert backend developer.
+
+## Objective
+
+Build a login and signup system using Supabase as the backend, based on the provided `database_schema.sql` file.
+
+## Task
+
+Create a clear, step-by-step plan that explains exactly how to make the login and signup work based on the schema.
+
+## Requirements
+
+### 1. Analysis and Integration
+- **Read and analyze:** `database_schema.sql`
+- **Identify:** Tables and fields for user information.
+- **Explain:** How to integrate these tables with Supabase Authentication.
+
+### 2. Implementation Plan
+Create a full plan for:
+- **Signup Process:**
+    - Collecting user info.
+    - Validating input.
+    - Hashing passwords (if custom auth).
+    - Inserting into Supabase.
+- **Login Process:**
+    - Verifying credentials.
+    - Managing sessions or JWT tokens.
+    - Retrieving user data.
+- **Supabase Setup:**
+    - Auth policies.
+    - Row-level security.
+    - Additional tables.
+
+### 3. Frontend and Code
+- **Show:** How to connect Supabase to the frontend for signup and login.
+- **Include:** Sample code or pseudocode for Supabase API calls.
+
+### 4. Security and Session Management
+- **Recommend:** Security best practices (password storage, email verification, input validation, RLS setup).
+- **Explain:** How to handle user sessions, sign-out, and password reset.
+
+### 5. Output
+- Use clear, simple explanations.
+- Structure the output as an actionable implementation plan.
