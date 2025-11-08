@@ -11,7 +11,6 @@ create extension if not exists "pgcrypto";
 -- ENUM TYPES
 -- ============================================
 
-create type user_role as enum ('admin', 'recruiter', 'candidate');
 create type difficulty_level as enum ('beginner', 'intermediate', 'advanced');
 create type test_status as enum ('not_started', 'in_progress', 'completed', 'expired');
 create type submission_status as enum ('pending', 'running', 'passed', 'failed', 'error');
@@ -41,7 +40,6 @@ create table skill_levels (
 create table users (
     id uuid primary key references auth.users(id) on delete cascade,
     email varchar(255) unique not null,
-    role user_role not null default 'candidate',
     full_name varchar(255) not null,
     status account_status default 'active',
     profile_picture_url text,
@@ -52,7 +50,6 @@ create table users (
 );
 
 create index idx_users_email on users(email);
-create index idx_users_role on users(role);
 create index idx_users_status on users(status);
 
 -- Candidate profiles
@@ -540,70 +537,59 @@ end;
 $$;
 
 -- Function to handle new user registration
-create or replace function handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-    user_role user_role;
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
     user_full_name text;
-    skill_level_id uuid;
-begin
-    -- Extract metadata with proper defaults
-    user_full_name := coalesce(
+BEGIN
+    user_full_name := COALESCE(
         new.raw_user_meta_data->>'full_name',
-        split_part(new.email, '@', 1), -- Use email prefix as fallback
+        SPLIT_PART(new.email, '@', 1),
         'New User'
     );
     
-    -- Extract and cast role with proper error handling
-    begin
-        user_role := coalesce(
-            (new.raw_user_meta_data->>'role')::user_role,
-            'candidate'
-        );
-    exception when others then
-        user_role := 'candidate'; -- Default to candidate if cast fails
-    end;
-    
-    -- Insert into users table
-    insert into users (id, email, full_name, role, status)
-    values (
+    INSERT INTO users (id, email, full_name, status)
+    VALUES (
         new.id,
         new.email,
         user_full_name,
-        user_role,
         'active'
     )
-    on conflict (id) do nothing; -- Prevent duplicate key errors
+    ON CONFLICT (id) DO NOTHING;
     
-    -- If user is a candidate, create profile and leaderboard entry
-    if user_role = 'candidate' then
-        -- Get the beginner skill level
-        select id into skill_level_id
-        from skill_levels
-        where level_name = 'Beginner'
-        limit 1;
-        
-        -- Create candidate profile
-        insert into candidate_profiles (user_id, current_skill_level_id, total_points)
-        values (new.id, skill_level_id, 0)
-        on conflict (user_id) do nothing;
-        
-        -- Initialize leaderboard entry
-        insert into leaderboard (candidate_id, total_practice_points, problems_solved)
-        values (new.id, 0, 0)
-        on conflict (candidate_id) do nothing;
-    end if;
+    RETURN new;
+EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'Error in handle_new_user for user %: %', new.id, SQLERRM;
+    RETURN new;
+END;
+$$;
+
+-- Function to create candidate profile
+CREATE OR REPLACE FUNCTION public.create_candidate_profile()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    skill_level_id uuid;
+BEGIN
+    SELECT id INTO skill_level_id
+    FROM skill_levels
+    WHERE level_name = 'Beginner'
+    LIMIT 1;
     
-    return new;
-exception when others then
-    -- Log the error but don't fail the auth signup
-    raise warning 'Error in handle_new_user for user %: %', new.id, SQLERRM;
-    return new;
-end;
+    INSERT INTO candidate_profiles (user_id, current_skill_level_id, total_points)
+    VALUES (auth.uid(), skill_level_id, 0)
+    ON CONFLICT (user_id) DO NOTHING;
+    
+    INSERT INTO leaderboard (candidate_id, total_practice_points, problems_solved)
+    VALUES (auth.uid(), 0, 0)
+    ON CONFLICT (candidate_id) DO NOTHING;
+END;
 $$;
 
 -- Function to update candidate skill level based on points
@@ -670,9 +656,9 @@ security definer
 as $$
 begin
     return exists (
-        select 1 from users
-        where users.id = uid
-        and users.role = 'admin'
+        select 1 from auth.users
+        where id = uid
+        and raw_user_meta_data->>'role' = 'admin'
     );
 end;
 $$;
@@ -684,9 +670,9 @@ security definer
 as $$
 begin
     return exists (
-        select 1 from users
-        where users.id = uid
-        and users.role in ('recruiter', 'admin')
+        select 1 from auth.users
+        where id = uid
+        and raw_user_meta_data->>'role' in ('recruiter', 'admin')
     );
 end;
 $$;
@@ -698,9 +684,9 @@ security definer
 as $$
 begin
     return exists (
-        select 1 from users
-        where users.id = uid
-        and users.role = 'candidate'
+        select 1 from auth.users
+        where id = uid
+        and raw_user_meta_data->>'role' = 'candidate'
     );
 end;
 $$;
@@ -1262,28 +1248,27 @@ create policy "Admins have full access to proctoring screenshots"
 -- ============================================
 
 -- View for candidate dashboard overview
-create or replace view candidate_dashboard_view as
-select 
-    u.id as candidate_id,
+CREATE OR REPLACE VIEW public.candidate_dashboard_view AS
+SELECT
+    u.id AS candidate_id,
     u.full_name,
     u.email,
     cp.current_skill_level_id,
-    sl.level_name as current_skill_level,
+    sl.level_name AS current_skill_level,
     cp.total_points,
     cp.consecutive_perfect_scores,
-    count(distinct ct.id) as total_tests_taken,
-    count(distinct case when ct.status = 'completed' then ct.id end) as completed_tests,
-    avg(case when ct.status = 'completed' then ct.total_score end) as average_score,
-    l.current_rank as leaderboard_rank,
+    COUNT(DISTINCT ct.id) AS total_tests_taken,
+    COUNT(DISTINCT CASE WHEN ct.status = 'completed' THEN ct.id END) AS completed_tests,
+    AVG(CASE WHEN ct.status = 'completed' THEN ct.total_score END) AS average_score,
+    l.current_rank AS leaderboard_rank,
     l.total_practice_points,
     l.problems_solved
-from users u
-left join candidate_profiles cp on u.id = cp.user_id
-left join skill_levels sl on cp.current_skill_level_id = sl.id
-left join candidate_tests ct on u.id = ct.candidate_id
-left join leaderboard l on u.id = l.candidate_id
-where u.role = 'candidate'
-group by u.id, u.full_name, u.email, cp.current_skill_level_id, sl.level_name, 
+FROM users u
+LEFT JOIN candidate_profiles cp ON u.id = cp.user_id
+LEFT JOIN skill_levels sl ON cp.current_skill_level_id = sl.id
+LEFT JOIN candidate_tests ct ON u.id = ct.candidate_id
+LEFT JOIN leaderboard l ON u.id = l.candidate_id
+GROUP BY u.id, u.full_name, u.email, cp.current_skill_level_id, sl.level_name, 
          cp.total_points, cp.consecutive_perfect_scores, l.current_rank,
          l.total_practice_points, l.problems_solved;
 
@@ -1320,16 +1305,16 @@ group by ct.id, t.test_name, t.test_type, u.full_name, u.email, ct.status,
          ct.assigned_by, assigner.full_name, rf.overall_comments, eo.outcome;
 
 -- View for admin dashboard statistics
-create or replace view admin_dashboard_stats as
-select 
-    (select count(*) from users where role = 'admin') as total_admins,
-    (select count(*) from users where role = 'recruiter') as total_recruiters,
-    (select count(*) from users where role = 'candidate') as total_candidates,
-    (select count(*) from candidate_tests where status = 'completed') as total_tests_completed,
-    (select avg(total_score) from candidate_tests where status = 'completed') as avg_candidate_score,
-    (select count(*) from questions where is_active = true) as total_active_questions,
-    (select count(*) from tests) as total_tests_created,
-    (select count(*) from submissions) as total_submissions;
+CREATE OR REPLACE VIEW public.admin_dashboard_stats AS
+SELECT 
+    (SELECT COUNT(*) FROM auth.users WHERE (raw_user_meta_data->>'role') = 'admin') AS total_admins,
+    (SELECT COUNT(*) FROM auth.users WHERE (raw_user_meta_data->>'role') = 'recruiter') AS total_recruiters,
+    (SELECT COUNT(*) FROM auth.users WHERE (raw_user_meta_data->>'role') = 'candidate') AS total_candidates,
+    (SELECT COUNT(*) FROM candidate_tests WHERE status = 'completed') AS total_tests_completed,
+    (SELECT AVG(total_score) FROM candidate_tests WHERE status = 'completed') AS avg_candidate_score,
+    (SELECT COUNT(*) FROM questions WHERE is_active = true) AS total_active_questions,
+    (SELECT COUNT(*) FROM tests) AS total_tests_created,
+    (SELECT COUNT(*) FROM submissions) AS total_submissions;
 
 -- ============================================
 -- REALTIME SUBSCRIPTIONS (Optional)
