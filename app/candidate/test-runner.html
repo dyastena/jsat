@@ -124,10 +124,43 @@
                 consoleEl.textContent += 'Compilation: OK\nOutput:\n[Simulated] No backend available to execute code.\nTo enable real execution, add a server-side runner (Judge0 or a sandbox).';
             });
 
-            // Submit (simulated): navigate back to dashboard with a message
-           
+            // Submit: show a small confirmation modal. If confirmed, navigate to completion page.
+            document.getElementById('submitBtn').addEventListener('click', () => {
+                // prevent duplicate modals
+                if (document.getElementById('submit-modal')) return;
 
-            // Init
+                const modal = document.createElement('div');
+                modal.id = 'submit-modal';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-gray-900 text-gray-100 p-6 rounded-lg w-[90%] max-w-md text-center">
+                        <h3 class="text-lg font-semibold mb-2">Submit Test</h3>
+                        <p class="text-sm text-gray-300 mb-4">Are you sure you want to submit? You won't be able to change answers after submission.</p>
+                        <div class="flex items-center justify-center gap-3">
+                            <button id="confirmSubmit" class="px-4 py-2 bg-emerald-500 rounded-md text-white font-semibold">Confirm</button>
+                            <button id="cancelSubmit" class="px-4 py-2 bg-gray-700 rounded-md text-gray-200">Go Back</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const confirmBtn = document.getElementById('confirmSubmit');
+                const cancelBtn = document.getElementById('cancelSubmit');
+                // focus confirm for keyboard users
+                try { confirmBtn.focus(); } catch(e){}
+
+                confirmBtn.addEventListener('click', () => {
+                    const dest = new URL('completion.html', location.href).href;
+                    window.location.href = dest;
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    modal.remove();
+                });
+            });
+            
+
+        
             (function init() {
                 renderQuestion();
                 displayTimer(instance.durationMinutes || 30);
