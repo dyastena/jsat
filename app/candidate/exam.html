@@ -94,7 +94,9 @@
     // Sample data - replace with real API calls when available
         const user = {
             name: 'Jane Doe',
-            level: 'Novice'
+            level: 'Novice',
+            // total points earned so far (use absolute points instead of percent)
+            points: 63
         };
 
         const tests = [
@@ -117,13 +119,38 @@
             // Level display
             const levelEl = document.createElement('div');
             levelEl.className = 'p-6 bg-gray-900 rounded-xl shadow-md flex items-center justify-between';
-            levelEl.innerHTML = `
-                <div>
-                    <div class="text-sm lg:text-base text-gray-400">Current Level</div>
-                    <div class="text-2xl lg:text-3xl font-bold text-white">${user.level}</div>
-                </div>
-                <div class="text-sm lg:text-base text-gray-300">Welcome, ${user.name}</div>
-            `;
+                        // Level thresholds from GEMINI.md (points required to reach each level)
+                        const levelThresholds = {
+                                'Beginner': 100,
+                                'Novice': 150,
+                                'Intermediate': 200,
+                                'Advanced': 250,
+                                'Expert': 300
+                        };
+                        // Determine next threshold for the user's current level
+                        const nextThreshold = levelThresholds[user.level] || 150;
+                        const progressRatio = Math.min(1, (user.points || 0) / nextThreshold);
+                        const ratioPct = Math.round(progressRatio * 100);
+
+                        levelEl.innerHTML = `
+                                <div class="flex items-center gap-6">
+                                    <div>
+                                        <div class="text-sm lg:text-base text-gray-400">Current Level</div>
+                                        <div class="text-3xl lg:text-4xl font-extrabold text-white">${user.level}</div>
+                                    </div>
+
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between gap-4">
+                                            <div class="text-xs text-gray-400">Progress to next level </div>
+                                            <div class="text-lg lg:text-xl font-semibold text-white"> ${ user.points} / ${nextThreshold} pts</div>
+                                        </div>
+                                        <div class="mt-2 w-full bg-gray-800 rounded-full h-4 overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="${nextThreshold}" aria-valuenow="${user.points}">
+                                            <div class="bg-emerald-500 h-4 rounded-full" style="width: ${ratioPct}%; transition: width 500ms ease;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-sm lg:text-base text-gray-300">Welcome, ${user.name}</div>
+                        `;
 
             // Tests lists
             const upcoming = tests.filter(t => t.status !== 'Completed');
