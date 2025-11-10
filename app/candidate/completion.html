@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Completion - J-SAT</title>
+  <link href="../../dist/output.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans antialiased">
+  <div class="flex min-h-screen">
+    <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+      <div class="p-6 border-b border-gray-800">
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
+          </div>
+          <span class="text-2xl font-bold text-white">J-SAT</span>
+        </div>
+      </div>
+      <nav class="flex-1 p-4 space-y-1">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-3">Candidate Navigation</div>
+        <a href="exam.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium hover:bg-gray-800 hover:text-gray-200">
+          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+          <span>Dashboard</span>
+        </a>
+         <a href="leaderboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-500/30">
+          <i data-lucide="award" class="w-5 h-5"></i>
+          <span>Leaderboard</span>
+        </a>
+        <a href="practice.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium hover:bg-gray-800 hover:text-gray-200">
+          <i data-lucide="code" class="w-5 h-5"></i>
+          <span>Practice</span>
+        </a>
+        <a href="results.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium hover:bg-gray-800 hover:text-gray-200">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+          <span>Results</span>
+        </a>
+   
+      </nav>
+      <div class="p-4 border-t border-gray-800">
+        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600">
+          <i data-lucide="log-out" class="w-5 h-5"></i>
+          <span>Logout</span>
+        </button>
+        <div class="mt-4 text-center text-xs text-gray-600">© 2025 J-SAT</div>
+      </div>
+    </aside>
+
+    <main class="flex-1">
+      <header class="bg-gray-900/50 backdrop-blur-sm border-b border-gray-800 px-6 lg:px-8 py-6 sticky top-0 z-10">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-4xl lg:text-5xl font-bold text-white mb-3">Submission Completed</h1>
+            <p class="text-base lg:text-lg text-gray-300">Thank you — your submission has been recorded (mock).</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="p-6 lg:px-12 lg:py-8">
+        <div class="bg-gray-900 rounded-xl p-6 shadow-md text-center">
+          <div class="text-6xl text-emerald-400 mb-4">✓</div>
+          <h2 class="text-2xl font-semibold mb-2">Submission Received</h2>
+          <p class="text-gray-400 mb-4">We've recorded your answers. You'll be notified when results are available.</p>
+          <a href="results.html" class="inline-block px-6 py-3 rounded-md bg-emerald-500 text-white font-semibold hover:bg-emerald-600">View Results</a>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
