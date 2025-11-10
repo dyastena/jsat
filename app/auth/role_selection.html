@@ -36,24 +36,53 @@
         </div>
     </div>
 
+    <script src="../../config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
         }
 
-        document.getElementById('candidate-card').addEventListener('click', function(e) {
-            e.preventDefault();
-            // Here you would typically make an API call to set the user's role
-            console.log('Candidate role selected');
-            // Redirect to candidate panel
-            window.location.href = '../candidate/exam.html';
+        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Check for current user on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { user } } = await supabase_client.auth.getUser();
+            if (!user) {
+                // Redirect to login if not authenticated
+                window.location.href = 'login.html';
+            }
         });
 
-        document.getElementById('recruiter-card').addEventListener('click', function(e) {
+        async function updateUserRole(role) {
+            const { data, error } = await supabase_client.auth.updateUser({
+                data: { role: role }
+            });
+
+            if (error) {
+                alert(`Error updating role: ${error.message}`);
+                return false;
+            }
+            return true;
+        }
+
+        document.getElementById('candidate-card').addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('Recruiter role selected');
-            // Redirect to recruiter verification page
-            window.location.href = 'recruiter_verification.html';
+            if (await updateUserRole('candidate')) {
+                const { error } = await supabase_client.rpc('create_candidate_profile');
+                if (error) {
+                    alert(`Error creating candidate profile: ${error.message}`);
+                } else {
+                    window.location.href = '../candidate/exam.html';
+                }
+            }
+        });
+
+        document.getElementById('recruiter-card').addEventListener('click', async function(e) {
+            e.preventDefault();
+            if (await updateUserRole('recruiter')) {
+                window.location.href = 'recruiter_verification.html';
+            }
         });
     </script>
 </body>
