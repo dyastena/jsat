@@ -267,53 +267,6 @@
             }
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
-
-        // Form Submission Handler (defensive)
-        const signupForm = document.getElementById('signup-form');
-        signupForm?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const fullname = document.getElementById('fullname')?.value;
-            const email = document.getElementById('email')?.value;
-            const password = document.getElementById('password')?.value;
-            const confirmPassword = document.getElementById('confirm-password')?.value;
-
-            if (password !== confirmPassword) {
-                alert('Passwords do not match!');
-                return;
-            }
-
-            const messageEl = document.getElementById('signup-form-message');
-            function showSignupMessage(text, type = 'error') {
-                if (!messageEl) return;
-                messageEl.textContent = text;
-                messageEl.className = '';
-                messageEl.classList.add('px-4','py-3','rounded-lg','text-sm');
-                if (type === 'error') {
-                    messageEl.classList.add('bg-red-500/10','text-red-300','border','border-red-600/30');
-                } else {
-                    messageEl.classList.add('bg-emerald-500/10','text-emerald-300','border','border-emerald-500/30');
-                }
-                messageEl.classList.remove('hidden');
-            }
-
-            const { data, error } = await supabase_client.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: {
-                        full_name: fullname
-                    }
-                }
-            });
-
-            if (error) {
-                showSignupMessage(`Error: ${error.message}`, 'error');
-            } else {
-                // Redirect to role selection page
-                window.location.href = 'role_selection.html';
-            }
-        });
     </script>
 </body>
 </html>
