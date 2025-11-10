@@ -153,10 +153,14 @@
     </div>
 
     <!-- Initialize Lucide Icons & Password Toggle -->
-    <script>
-        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    <script type="module">
+        import { login } from '../js/auth.js';
 
-        function togglePassword(inputId) {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
+        window.togglePassword = function(inputId) {
             const input = document.getElementById(inputId);
             const icon = input?.nextElementSibling?.querySelector('i');
             if (!input) return;
@@ -168,8 +172,47 @@
                 input.type = 'password';
                 icon?.setAttribute('data-lucide', 'eye');
             }
-            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
+
+        const loginForm = document.querySelector('form');
+        const messageEl = document.getElementById('login-form-message');
+
+        function showLoginMessage(text, type = 'error') {
+            if (!messageEl) return;
+            messageEl.textContent = text;
+            messageEl.className = 'px-4 py-3 rounded-lg text-sm'; // Reset classes
+            if (type === 'error') {
+                messageEl.classList.add('bg-red-500/10', 'text-red-300', 'border', 'border-red-600/30');
+            } else {
+                messageEl.classList.add('bg-emerald-500/10', 'text-emerald-300', 'border', 'border-emerald-500/30');
+            }
+            messageEl.classList.remove('hidden');
+        }
+
+        loginForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email')?.value;
+            const password = document.getElementById('password')?.value;
+
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span>Signing In...</span>';
+
+            const { error } = await login(email, password);
+
+            if (error) {
+                showLoginMessage(error.message);
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<span>Sign In</span><i data-lucide="arrow-right" class="w-5 h-5"></i>';
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
+                }
+            }
+            // On success, the login function handles the redirection automatically.
+        });
     </script>
 </body>
 </html>

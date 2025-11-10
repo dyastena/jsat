@@ -12,7 +12,7 @@ JSAT is a full-stack web application designed for assessing Java programming ski
 
 ## 2. Tech Stack & Standards
 
-* **Backend:** Node.js with a **Supabase (PostgreSQL)** database.
+*   **Backend:** Serverless via **Supabase (PostgreSQL)**. The client interacts directly with the Supabase API, with security enforced by Row Level Security (RLS) policies.
 * **Frontend:** HTML, JavaScript, and **Tailwind CSS**.
 * **Database Schema:** The single source of truth is `database_schema.sql`.
 * **TDD Standard:** All new features must follow a **Test-Driven Development (TDD)** cycle. Tests must be written first.

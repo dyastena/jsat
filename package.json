@@ -10,9 +10,10 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
+        "dotenv": "^17.2.3",
         "tailwindcss": "^3.3.5"
     },
     "dependencies": {
-        "@playwright/mcp": "^0.0.46"
+        "@supabase/supabase-js": "^2.80.0"
     }
 }

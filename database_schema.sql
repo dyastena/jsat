@@ -21,9 +21,12 @@ CREATE TABLE profiles (
     -- PK is a FK to the built-in auth.users table
     id UUID REFERENCES auth.users NOT NULL PRIMARY KEY, 
     
-    -- Role is essential for RLS and app logic
-    role TEXT NOT NULL CHECK (role IN ('Candidate', 'Recruiter', 'Admin')), 
+    -- Role is essential for RLS and app logic. Defaults to 'candidate' on creation.
+    role TEXT NOT NULL DEFAULT 'candidate' CHECK (role IN ('candidate', 'recruiter', 'admin')),
     
+    -- The gatekeeper flag. FALSE until the user finalizes their role.
+    is_role_finalized BOOLEAN NOT NULL DEFAULT FALSE,
+
     first_name TEXT,
     last_name TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -31,7 +34,6 @@ CREATE TABLE profiles (
 
 -- Ensure RLS is enabled on all security-critical tables
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE results ENABLE ROW LEVEL SECURITY; -- Assuming 'results' table definition follows
 
 -- ====================================================================
 -- 3. ASSESSMENT TABLES
@@ -46,6 +48,7 @@ CREATE TABLE exams (
     required_skill_level difficulty_level NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+ALTER TABLE exams ENABLE ROW LEVEL SECURITY; -- Enable RLS for Exams
 
 -- QUESTIONS TABLE
 CREATE TABLE questions (
@@ -56,6 +59,7 @@ CREATE TABLE questions (
     test_case_data JSONB, -- Flexible storage for multiple test cases
     difficulty difficulty_level NOT NULL
 );
+ALTER TABLE questions ENABLE ROW LEVEL SECURITY; -- Enable RLS for Questions
 
 -- RESULTS TABLE (Must be after profiles and exams)
 CREATE TABLE results (
@@ -67,7 +71,7 @@ CREATE TABLE results (
     submitted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     UNIQUE (candidate_id, exam_id)
 );
-
+ALTER TABLE results ENABLE ROW LEVEL SECURITY; -- Enable RLS for Results
 
 -- ====================================================================
 -- 4. RLS POLICIES
@@ -78,22 +82,28 @@ CREATE TABLE results (
 CREATE POLICY "Allow public insert on own profile" ON profiles 
     FOR INSERT WITH CHECK (auth.uid() = id);
 
--- 2. Allow Admin/Recruiter to view all profiles
-CREATE POLICY "Admin/Recruiter can view all profiles" ON profiles 
-    FOR SELECT USING (EXISTS(SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('Admin', 'Recruiter')));
+-- 2. Allow users to view their own profile
+CREATE POLICY "Users can view own profile" ON profiles
+    FOR SELECT USING (auth.uid() = id);
 
--- 3. Allow user to update only their own profile data (e.g., first/last name)
-CREATE POLICY "Users can update own profile" ON profiles 
-    FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+-- 3. Allow Admin/Recruiter to view all profiles
+CREATE POLICY "Admin/Recruiter can view all profiles" ON profiles
+    FOR SELECT USING (public.is_admin_or_recruiter());
+
+-- 4. Allow user to update only their own profile metadata (first_name, last_name)
+-- IMPORTANT: Role and is_role_finalized can only be changed via the finalize_role() RPC
+CREATE POLICY "Users can update own profile metadata only" ON profiles
+    FOR UPDATE USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
 
 -- --- RESULTS POLICIES ---
 -- 1. Allow Admin/Recruiter to view all results
 CREATE POLICY "Admin/Recruiter can view all results" ON results
-    FOR SELECT USING (EXISTS(SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('Admin', 'Recruiter')));
+    FOR SELECT USING (public.is_admin_or_recruiter());
 
 -- 2. Allow Candidates to view only their own results
 CREATE POLICY "Candidates can view own results" ON results
-    FOR SELECT USING (auth.uid() = candidate_id);
+    FOR SELECT USING (auth.uid() = candidate_id AND NOT public.is_admin_or_recruiter());
 
 -- --- EXAMS POLICIES ---
 -- 1. Allow everyone to view exams (Recruiters/Candidates need this)
@@ -102,19 +112,55 @@ CREATE POLICY "Allow all authenticated users to view exams" ON exams
     
 -- 2. Allow Admin/Recruiter to manage (INSERT/UPDATE/DELETE) exams
 CREATE POLICY "Admin/Recruiter can manage exams" ON exams
-    FOR ALL USING (EXISTS(SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('Admin', 'Recruiter')));
+    FOR ALL USING (public.is_admin_or_recruiter());
+
+-- --- QUESTIONS POLICIES ---
+-- 1. Allow all authenticated users to view questions (candidates need to see exam questions)
+CREATE POLICY "Allow all authenticated users to view questions" ON questions
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 2. Allow Admin/Recruiter to manage (INSERT/UPDATE/DELETE) questions
+CREATE POLICY "Admin/Recruiter can manage questions" ON questions
+    FOR ALL USING (public.is_admin_or_recruiter());
 
 -- ====================================================================
--- 5. AUTH TRIGGER
+-- 5. AUTH TRIGGER & RPC
 -- ====================================================================
 
--- Function to automatically create a profile row when a new user signs up
+-- Function to automatically create a profile row when a new user signs up.
+-- Relies on the table's DEFAULT values for 'role' and 'is_role_finalized'.
+-- Splits full_name from user metadata into first_name and last_name.
 CREATE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
+DECLARE
+  full_name TEXT;
+  name_parts TEXT[];
 BEGIN
-  INSERT INTO public.profiles (id, role)
-  VALUES (NEW.id, 'Candidate'); -- Default role for new signups is 'Candidate'
-  RETURN new;
+  -- Extract full_name from raw_user_meta_data
+  full_name := NEW.raw_user_meta_data->>'full_name';
+  
+  -- Split name into parts if it exists
+  IF full_name IS NOT NULL AND full_name != '' THEN
+    name_parts := string_to_array(trim(full_name), ' ');
+    
+    -- Insert profile with split names
+    INSERT INTO public.profiles (id, first_name, last_name)
+    VALUES (
+      NEW.id,
+      name_parts[1],
+      CASE 
+        WHEN array_length(name_parts, 1) > 1 
+        THEN array_to_string(name_parts[2:array_length(name_parts, 1)], ' ')
+        ELSE NULL
+      END
+    );
+  ELSE
+    -- Insert profile without names
+    INSERT INTO public.profiles (id)
+    VALUES (NEW.id);
+  END IF;
+  
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -123,5 +169,30 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
+-- RPC function to allow a user to finalize their role choice.
+CREATE FUNCTION public.finalize_role(new_role TEXT)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.profiles
+  SET
+    role = new_role,
+    is_role_finalized = TRUE
+  WHERE id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to check if current user is admin/recruiter (avoids RLS recursion)
+CREATE FUNCTION public.is_admin_or_recruiter()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS(
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+    AND role IN ('admin', 'recruiter')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Disable RLS temporarily to allow the trigger to run (best practice)
 ALTER FUNCTION public.handle_new_user() SET search_path = public, ext_http;
+ALTER FUNCTION public.finalize_role(TEXT) SET search_path = public, ext_http;

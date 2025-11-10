@@ -1,0 +1,78 @@
+### Access the Application
+
+Open your web browser and navigate to:
+
+- __Main page__: [](http://localhost:3000/app/index.html)<http://localhost:3000/app/index.html>
+- __Signup page__: [](http://localhost:3000/app/auth/signup.html)<http://localhost:3000/app/auth/signup.html>
+- __Login page__: [](http://localhost:3000/app/auth/login.html)<http://localhost:3000/app/auth/login.html>
+
+### 3. Test the Signup Flow
+
+1. Go to [](http://localhost:3000/app/auth/signup.html)<http://localhost:3000/app/auth/signup.html>
+
+2. Fill in the signup form:
+
+   - Full Name: (your test name)
+   - Email: (use a valid email format)
+   - Password: (create a password)
+
+3. Click the signup button
+
+4. You should be redirected after successful signup
+
+### 4. Test the Login Flow
+
+1. Go to [](http://localhost:3000/app/auth/login.html)<http://localhost:3000/app/auth/login.html>
+
+2. Enter the credentials you just created
+
+3. Click the login button
+
+4. __First-time login__: You should be redirected to the role selection page (/app/auth/role_selection.html)
+
+5. Select a role (Candidate or Recruiter)
+
+6. You should be redirected to the appropriate dashboard:
+
+   - Candidate → /app/candidate/practice.html
+   - Recruiter → /app/recruiter/dashboard.html
+
+### 5. Test the Gatekeeper (Direct Access)
+
+1. Log out from your dashboard (use the logout button)
+2. Log back in with the same credentials
+3. __Expected behavior__: You should bypass the role selection page and go directly to your dashboard
+
+### 6. Test Security Features
+
+__Route Guarding:__
+
+1. Log in as a Candidate
+2. Try to manually navigate to: [](http://localhost:3000/app/admin/users.html)<http://localhost:3000/app/admin/users.html>
+3. __Expected__: You should be redirected back to the candidate dashboard (route guard prevents access)
+
+### 7. Browser Developer Console
+
+Open Developer Tools (F12) to:
+
+- Check the Console tab for any JavaScript errors
+- Check the Network tab to see API requests to Supabase
+- Check Application/Storage tab to see authentication tokens
+
+### Important Notes
+
+- Make sure your `.env` file has valid Supabase credentials (SUPABASE_URL and SUPABASE_ANON_KEY)
+- The application connects to a real Supabase backend, so signups create actual user accounts
+- If you encounter rate limits, wait a few minutes before trying again
+- Check the browser console for any error messages
+
+### Quick Testing Checklist
+
+- [ ] Can sign up a new user
+- [ ] New user is redirected to role selection
+- [ ] Can select a role (Candidate/Recruiter)
+- [ ] User is redirected to correct dashboard
+- [ ] Can log out successfully
+- [ ] Can log back in
+- [ ] Second login bypasses role selection (goes directly to dashboard)
+- [ ] Cannot access unauthorized routes (e.g., candidate accessing admin pages)

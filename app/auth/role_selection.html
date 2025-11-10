@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Role - J-SAT</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-950 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl text-center">
+        <div class="inline-flex items-center gap-2 mb-4">
+            <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
+            </div>
+            <span class="text-2xl font-bold text-white">J-SAT</span>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-2">One Last Step! What's Your Role?</h1>
+        <p class="text-gray-400 mb-8">Choose your path to get started. This can't be changed later.</p>
+
+        <div id="role-selection-message" class="hidden px-4 py-3 rounded-lg text-sm mb-6" role="alert"></div>
+
+        <!-- Role Selection Cards -->
+        <div id="role-cards" class="grid md:grid-cols-2 gap-6">
+            <!-- Candidate Card -->
+            <a href="#" id="candidate-card" class="role-card bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-emerald-500/50 hover:bg-gray-850 transition-all duration-300 group transform hover:-translate-y-1">
+                <i data-lucide="user" class="w-12 h-12 text-emerald-400 mx-auto mb-4 group-hover:text-emerald-300 transition-colors"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">I'm a Candidate</h2>
+                <p class="text-gray-400">I'm here to test my skills and find opportunities.</p>
+            </a>
+
+            <!-- Recruiter Card -->
+            <a href="#" id="recruiter-card" class="role-card bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-cyan-500/50 hover:bg-gray-850 transition-all duration-300 group transform hover:-translate-y-1">
+                <i data-lucide="briefcase" class="w-12 h-12 text-cyan-400 mx-auto mb-4 group-hover:text-cyan-300 transition-colors"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">I'm a Recruiter</h2>
+                <p class="text-gray-400">I'm here to find and assess top talent.</p>
+            </a>
+        </div>
+
+        <!-- Recruiter Verification Modal (Hidden by Default) -->
+        <div id="recruiter-verification-modal" class="hidden">
+            <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 max-w-md mx-auto">
+                <div class="text-center mb-6">
+                    <i data-lucide="shield-check" class="w-16 h-16 text-cyan-400 mx-auto mb-4"></i>
+                    <h2 class="text-2xl font-bold text-white mb-2">Recruiter Verification</h2>
+                    <p class="text-gray-400">Please enter your organization's recruiter access code</p>
+                </div>
+
+                <div id="verification-message" class="hidden px-4 py-3 rounded-lg text-sm mb-4" role="alert"></div>
+
+                <form id="verification-form" class="space-y-4">
+                    <div>
+                        <label for="recruiter-code" class="block text-sm font-medium text-gray-300 mb-2">
+                            Access Code
+                        </label>
+                        <div class="relative">
+                            <i data-lucide="key" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                            <input 
+                                type="text" 
+                                id="recruiter-code" 
+                                placeholder="Enter code"
+                                class="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all uppercase"
+                                required
+                            >
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Contact your organization admin to get your access code</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button 
+                            type="button"
+                            id="back-to-selection"
+                            class="flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 text-gray-300 font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                        >
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            <span>Back</span>
+                        </button>
+                        <button 
+                            type="submit"
+                            class="flex-1 py-3 px-4 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg shadow-lg shadow-cyan-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                        >
+                            <span>Verify Code</span>
+                            <i data-lucide="check" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase, redirectUser } from '../js/auth.js';
+
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
+        const messageEl = document.getElementById('role-selection-message');
+
+        function showMessage(text, type = 'error') {
+            if (!messageEl) return;
+            messageEl.textContent = text;
+            messageEl.className = 'px-4 py-3 rounded-lg text-sm mb-6'; // Reset classes
+            if (type === 'error') {
+                messageEl.classList.add('bg-red-500/10', 'text-red-300', 'border', 'border-red-600/30');
+            } else {
+                messageEl.classList.add('bg-emerald-500/10', 'text-emerald-300', 'border', 'border-emerald-500/30');
+            }
+            messageEl.classList.remove('hidden');
+        }
+
+        async function handleRoleSelection(role) {
+            // Disable cards to prevent multiple clicks
+            document.querySelectorAll('.role-card').forEach(card => card.style.pointerEvents = 'none');
+            
+            showMessage('Finalizing your role...', 'success');
+
+            const { error } = await supabase.rpc('finalize_role', { new_role: role });
+
+            if (error) {
+                showMessage(`Error: ${error.message}`);
+                document.querySelectorAll('.role-card').forEach(card => card.style.pointerEvents = 'auto');
+            } else {
+                // On success, redirect to the correct dashboard
+                redirectUser(role);
+            }
+        }
+
+        // Candidate selection - direct finalization
+        document.getElementById('candidate-card').addEventListener('click', (e) => {
+            e.preventDefault();
+            handleRoleSelection('candidate');
+        });
+
+        // Recruiter selection - show verification modal
+        document.getElementById('recruiter-card').addEventListener('click', (e) => {
+            e.preventDefault();
+            showRecruiterVerification();
+        });
+
+        // Back to role selection from verification
+        document.getElementById('back-to-selection').addEventListener('click', () => {
+            hideRecruiterVerification();
+        });
+
+        // Verification form submission
+        document.getElementById('verification-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('recruiter-code').value.trim().toUpperCase();
+            await verifyRecruiterCode(code);
+        });
+
+        function showRecruiterVerification() {
+            document.getElementById('role-cards').classList.add('hidden');
+            document.getElementById('role-selection-message').classList.add('hidden');
+            document.getElementById('recruiter-verification-modal').classList.remove('hidden');
+            document.getElementById('recruiter-code').value = '';
+            document.getElementById('verification-message').classList.add('hidden');
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
+
+        function hideRecruiterVerification() {
+            document.getElementById('recruiter-verification-modal').classList.add('hidden');
+            document.getElementById('role-cards').classList.remove('hidden');
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
+
+        function showVerificationMessage(text, type = 'error') {
+            const msgEl = document.getElementById('verification-message');
+            if (!msgEl) return;
+            msgEl.textContent = text;
+            msgEl.className = 'px-4 py-3 rounded-lg text-sm mb-4';
+            if (type === 'error') {
+                msgEl.classList.add('bg-red-500/10', 'text-red-300', 'border', 'border-red-600/30');
+            } else {
+                msgEl.classList.add('bg-emerald-500/10', 'text-emerald-300', 'border', 'border-emerald-500/30');
+            }
+            msgEl.classList.remove('hidden');
+        }
+
+        async function verifyRecruiterCode(code) {
+            // Disable form to prevent multiple submissions
+            const form = document.getElementById('verification-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Verifying...</span>';
+
+            // TODO: In production, validate code against a secure backend endpoint or Supabase function
+            // For now, we'll use a simple hardcoded validation (replace with actual validation)
+            const validCodes = ['RECRUIT2024', 'JSAT-RECRUITER', 'ADMIN-ACCESS'];
+
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            if (validCodes.includes(code)) {
+                showVerificationMessage('Code verified successfully! Finalizing your role...', 'success');
+                // Wait a moment then finalize
+                setTimeout(() => {
+                    handleRoleSelection('recruiter');
+                }, 1000);
+            } else {
+                showVerificationMessage('Invalid access code. Please check and try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Verify Code</span><i data-lucide="check" class="w-5 h-5"></i>';
+                if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+            }
+        }
+
+        // Security check: if user lands here but their role is already finalized, send them away.
+        (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = '/jsat/app/auth/login.html'; // Not logged in, go to login
+                return;
+            }
+            const { data: profile } = await supabase.from('profiles').select('is_role_finalized, role').single();
+            if (profile && profile.is_role_finalized) {
+                redirectUser(profile.role); // Already finalized, go to your dashboard
+            }
+        })();
+
+    </script>
+</body>
+</html>

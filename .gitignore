@@ -3,7 +3,7 @@ node_modules/
 /dist/
 
 # Local Supabase credentials
-config.js
+**/config.js
 
 # OS files
 .DS_Store
