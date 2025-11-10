@@ -8,3 +8,6 @@ config.js
 # OS files
 .DS_Store
 Thumbs.db
+
+.gemini/
+gha-creds-*.json
