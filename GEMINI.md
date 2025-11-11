@@ -1,186 +1,36 @@
-# SYSTEM MODULES OVERVIEW
+# Gemini AI Agent Context: JSAT (Java Skill Assessment Tool)
 
-- Authentication and User Management Module
-- Question Generator Module
-- Candidate Test Manager Module
-- Execution Sandbox Module
-- Feature Extractor and CART Evaluation Engine
-- Feedback and Reporting Module
-- Admin Management Module
-- System Monitoring and Maintenance Module
+## 1. Project Overview
 
-## 1. AUTHENTICATION AND USER MANAGEMENT
-### Login Page
-- Email and password fields
-- Role selection (Admin, Recruiter, Candidate)
-- “Forgot Password” link
-- Login button
-- Error message for invalid credentials
+You are an expert full-stack developer assistant. Your goal is to help me understand, debug, and add new features to the **JSAT (Java Skill Assessment Tool)** repository.
 
-### Registration Page (Admin Controlled)
-- Name, email, role, and password fields
-- Role assignment (Admin, Recruiter, Candidate)
-- Account creation confirmation
+JSAT is a full-stack web application designed for assessing Java programming skills. It is **not** a a simple Java library; it is a complete platform with a frontend, backend, and database.
 
-### User Profile Page
-- Display name, email, and role
-- Option to edit password
-- Option to update profile picture
-- Logout button
-- On first login, users must link their LinkedIn and GitHub profiles.
-- The system will automatically generate a resume with the system's branding.
-- Users can see their information in this system-generated resume.
+**Core Features:**
+* **Role-Based Access:** Admin, Recruiter, and Candidate dashboards.
+* **Key Logic:** CART Engine for skill evaluation and a Secure Sandbox for code execution.
 
-## 2. ADMIN DASHBOARD
-### Dashboard Overview
-- Total users (Admins, Recruiters, Candidates)
-- Total tests conducted
-- Average candidate performance (pie or bar chart)
-- System logs summary
-- Button: “Manage Users”, “Manage Questions”, “System Settings”
+## 2. Tech Stack & Standards
 
-### User Management Page
-- List of all users with roles and status
-- Buttons: “Add User”, “Edit”, “Deactivate”, “Delete”
-- Search and filter by role
+*   **Backend:** Serverless via **Supabase (PostgreSQL)**. The client interacts directly with the Supabase API, with security enforced by Row Level Security (RLS) policies.
+* **Frontend:** HTML, JavaScript, and **Tailwind CSS**.
+* **Database Schema:** The single source of truth is `database_schema.sql`.
+* **TDD Standard:** All new features must follow a **Test-Driven Development (TDD)** cycle. Tests must be written first.
+* **Commits:** All commit messages must follow the **Conventional Commits** standard.
 
-### Question Management Page
-- Question list table with filters (Beginner, Novice, Intermediate, Advanced, Expert)
-- Question ID, title, difficulty, date created
-- Buttons: “Add Question”, “Edit”, “Delete”
-- Randomize question sets
-- Upload bulk questions (CSV or JSON)
+## 3. Key Files & Directory Structure
 
-### System Monitoring Page
-- CPU and memory usage
-- Database health check
-- Recent error logs
-- Backup and restore buttons
+| File / Directory | Purpose |
+| :--- | :--- |
+| `src/` | Main source code directory for the web app's frontend assets. |
+| `app/` | Likely contains the backend (server-side) logic and API routes. |
+| `database_schema.sql` | **Crucial:** PostgreSQL database structure definitions. |
+| `package.json` | Defines all Node.js dependencies and helper scripts. |
+| `tailwind.config.js` | The configuration file for Tailwind CSS. |
 
-## 3. RECRUITER DASHBOARD
-### Dashboard Overview
-- Total candidates tested
-- Average skill levels (chart view)
-- Quick access to “Assign Test” and “View Reports”
+## 4. Tool Preferences
 
-### Assign Test Page
-- Candidate list with selection checkboxes
-- Drop-down to select difficulty level (Beginner, Novice, Intermediate, Advanced, Expert)
-- Button: “Generate Test”
-- Option to randomize questions
-- Test schedule (start and end time)
-
-### Reports Page
-- List of candidates with scores and skill classification
-- Buttons: “View Detailed Report”, “Download PDF”
-- Filter by test date or skill level
-
-### Candidate Feedback Page
-- View detailed candidate performance
-- Strengths and weaknesses summary
-- Feedback notes text area for recruiter input
-
-### Employability Exam
-- Recruiters can email candidates to offer an interview-like exam.
-- Recruiters can create custom exams by selecting a set of questions from the question bank.
-- The exam invitation email will contain a unique link to the exam.
-- The exam will have a time limit and will be proctored (e.g., webcam monitoring, tab switching detection).
-- After the exam, the recruiter will receive a detailed report with the candidate's score, code playback, and proctoring flags.
-- The recruiter can then mark the candidate as "Hired" or "Rejected" based on the exam results.
-
-## 4. CANDIDATE DASHBOARD
-### Dashboard Overview
-- Upcoming and completed tests list
-- Status indicators (Not Started, In Progress, Completed)
-- Button: “Start Test”
-- Current user level displayed (e.g., Beginner, Novice, Intermediate, Advanced, Expert)
-
-### Practice Ground
-- A dedicated area for candidates to practice and hone their skills.
-- Leaderboard ranking based on performance in the practice ground.
-- Challenges and exercises tailored to the candidate's skill level.
-
-### Test Interface
-- Timer (countdown)
-- Question panel (one question at a time)
-- Code editor with syntax highlighting
-- “Run Code” and “Submit” buttons
-- Output console (runtime output, error logs)
-- Progress tracker (e.g., Question 3 of 10)
-
-### Test Completion Page
-- Confirmation message
-- “View Results” button (after recruiter review)
-
-### Results Page
-- Test score summary (accuracy, runtime, code quality)
-- Skill level: Beginner / Intermediate / Advanced
-- Visual chart of performance metrics
-- Feedback section
-
-## 5. EXECUTION SANDBOX
-- Secure containerized environment for running Java code
-- Input and output panels
-- Runtime duration display
-- Error log viewer
-- Result validation (pass/fail test cases)
-
-## 6. FEATURE EXTRACTOR & CART EVALUATION ENGINE
-### Extracted features:
-- Accuracy (% of passed test cases)
-- Runtime performance (execution time)
-- Code efficiency (lines of code, complexity)
-- Error count
-- Code conciseness and style.
-
-### Dynamic Point Allocation:
-- The CART engine will analyze the extracted features to allocate points for each question.
-- Maximum of 10 points per question.
-- **10 points:** Perfect solution - fast, concise, and correct.
-- **5-9 points:** Correct solution with minor issues in efficiency or style.
-- **1-4 points:** Partially correct solution, demonstrating some understanding of the problem.
-- **0 points:** Incorrect or no solution.
-
-### CART engine classifies skill levels:
-- 5 Levels: Beginner, Novice, Intermediate, Advanced, Expert
-- Beginner: Low accuracy, high runtime, frequent errors
-- Novice: Basic understanding, some errors
-- Intermediate: Moderate accuracy, balanced runtime
-- Advanced: High accuracy, optimized runtime, clean code
-- Expert: Mastery of concepts, highly efficient and optimized code
-
-### User Level Progression:
-- Users start at the "Beginge" level.
-- Point thresholds for each level:
-    - Beginner: 100 points
-    - Novice: 150 points
-    - Intermediate: 200 points
-    - Advanced: 250 points
-    - Expert: 300 points
-- After 3 or 5 consecutive 10-point answers, the system will prompt the user to advance to the next level.
-- The user can choose to stay at the current level to "master" it.
-
-## 7. FEEDBACK AND REPORTING MODULE
-### Recruiter Report View
-- Candidate name and ID
-- Overall skill level
-- Performance breakdown by metric
-- Code submission history
-- Option to export as PDF
-
-### Candidate Feedback View
-- Summary of performance
-- Individual question feedback (score and output correctness)
-- Suggested topics for improvement
-
-## 8. SYSTEM SETTINGS AND MAINTENANCE
-### Settings Page (Admin Only)
-- Manage site logo and system info
-- Email configuration (for notifications)
-- Toggle question randomization
-- Security settings (JWT token refresh rate)
-
-### Maintenance Page
-- Scheduled backups
-- System version and update history
-- Log viewer (download logs)
+* **Debugging:** Always prioritize using context from **Chrome DevTools** when analyzing frontend issues or screenshots, especially for layout and performance problems.
+* **Search:** For finding code, use the `grep` tool command (`terminal: "grep -r ..."`).
+* **Code Modification:** For applying changes, use the `file write` tool.
+* **External Search:** Do not use `web_fetch` for documentation; prefer the context provided in attached files (`@filename`).

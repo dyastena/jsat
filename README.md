@@ -51,8 +51,9 @@ JSAT is a comprehensive platform for assessing Java programming skills. It provi
 
 ### Prerequisites
 
-- XAMPP for Apache and MySQL
-- Node.js and npm
+- Node.js and npm (for frontend tooling like Tailwind CSS)
+- A Supabase Project: You'll need your Supabase Project URL and Anon Key.
+- A static file server (e.g., Live Server VS Code extension, `serve` npm package, or any web server like Apache/Nginx for production).
 
 ### Installation
 
@@ -64,8 +65,18 @@ JSAT is a comprehensive platform for assessing Java programming skills. It provi
     ```sh
     npm install
     ```
-3.  Start the XAMPP server.
-4.  Open the `index.html` file in your browser.
+3.  **Configure Supabase Environment Variables:**
+    Create a `.env` file in the root directory of the project and add your Supabase credentials:
+    ```
+    SUPABASE_URL="YOUR_SUPABASE_URL"
+    SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
+    ```
+    *Note: For client-side applications, these keys are often directly embedded or served via a build process. For local development, ensure your `auth.js` file correctly references these or has placeholders.*
+4.  Serve the application using a static file server. For example, if using `serve`:
+    ```sh
+    npx serve .
+    ```
+    Then open your browser to the address provided (e.g., `http://localhost:5000`).
 
 ## Usage
 

@@ -217,36 +217,33 @@
     </div>
 
     <!-- ===== JAVASCRIPT FOR STEP NAVIGATION & SIGNUP ===== -->
-    <script src="../../config.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script>
+    <script type="module">
+        import { signup } from '../js/auth.js';
+
         // Defensive icon init
-        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
-
-        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Step Navigation Functions (defensive)
-        function goToStep2() {
-            const fullname = document.getElementById('fullname');
-            const email = document.getElementById('email');
-            if (!fullname?.value || !email?.value) {
-                fullname?.reportValidity();
-                email?.reportValidity();
-                return;
-            }
-
-            document.getElementById('step-1').classList.add('hidden');
-            document.getElementById('step-2').classList.remove('hidden');
-            document.getElementById('progress-bar').style.width = '100%';
-            document.getElementById('step-label').textContent = 'Step 2 of 2';
-            document.getElementById('step-title').textContent = 'Security';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
         }
 
-        function goToStep1() {
-            document.getElementById('step-2').classList.add('hidden');
-            document.getElementById('step-1').classList.remove('hidden');
+        const signupForm = document.getElementById('signup-form');
+        const messageEl = document.getElementById('signup-form-message');
+
+        function showSignupMessage(text, type = 'error') {
+            if (!messageEl) return;
+            messageEl.textContent = text;
+            messageEl.className = 'px-4 py-3 rounded-lg text-sm'; // Reset classes
+            if (type === 'error') {
+                messageEl.classList.add('bg-red-500/10', 'text-red-300', 'border', 'border-red-600/30');
+            } else {
+                messageEl.classList.add('bg-emerald-500/10', 'text-emerald-300', 'border', 'border-emerald-500/30');
+            }
+            messageEl.classList.remove('hidden');
+        }
+
+        // --- Step Navigation ---
+        window.goToStep1 = function() {
+            document.getElementById('step-2')?.classList.add('hidden');
+            document.getElementById('step-1')?.classList.remove('hidden');
             document.getElementById('progress-bar').style.width = '50%';
             document.getElementById('step-label').textContent = 'Step 1 of 2';
             document.getElementById('step-title').textContent = 'Personal Information';
@@ -254,7 +251,24 @@
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        function togglePassword(inputId) {
+        window.goToStep2 = function() {
+            const fullname = document.getElementById('fullname');
+            const email = document.getElementById('email');
+            if (!fullname?.value || !email?.value) {
+                fullname?.reportValidity();
+                email?.reportValidity();
+                return;
+            }
+            document.getElementById('step-1')?.classList.add('hidden');
+            document.getElementById('step-2')?.classList.remove('hidden');
+            document.getElementById('progress-bar').style.width = '100%';
+            document.getElementById('step-label').textContent = 'Step 2 of 2';
+            document.getElementById('step-title').textContent = 'Security';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }
+
+        window.togglePassword = function(inputId) {
             const input = document.getElementById(inputId);
             const icon = input?.nextElementSibling?.querySelector('i');
             if (!input) return;
@@ -268,50 +282,35 @@
             if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        // Form Submission Handler (defensive)
-        const signupForm = document.getElementById('signup-form');
-        signupForm?.addEventListener('submit', async function(e) {
+        // --- Form Submission ---
+        signupForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const fullname = document.getElementById('fullname')?.value;
             const email = document.getElementById('email')?.value;
             const password = document.getElementById('password')?.value;
             const confirmPassword = document.getElementById('confirm-password')?.value;
 
             if (password !== confirmPassword) {
-                alert('Passwords do not match!');
+                showSignupMessage('Passwords do not match!');
                 return;
             }
 
-            const messageEl = document.getElementById('signup-form-message');
-            function showSignupMessage(text, type = 'error') {
-                if (!messageEl) return;
-                messageEl.textContent = text;
-                messageEl.className = '';
-                messageEl.classList.add('px-4','py-3','rounded-lg','text-sm');
-                if (type === 'error') {
-                    messageEl.classList.add('bg-red-500/10','text-red-300','border','border-red-600/30');
-                } else {
-                    messageEl.classList.add('bg-emerald-500/10','text-emerald-300','border','border-emerald-500/30');
-                }
-                messageEl.classList.remove('hidden');
-            }
+            // Disable button to prevent multiple submissions
+            const submitButton = signupForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Creating Account...';
 
-            const { data, error } = await supabase_client.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: {
-                        full_name: fullname
-                    }
-                }
-            });
+            const { data, error } = await signup(email, password, fullname);
 
             if (error) {
-                showSignupMessage(`Error: ${error.message}`, 'error');
+                showSignupMessage(error.message);
+                submitButton.disabled = false;
+                submitButton.textContent = 'Create Account';
             } else {
-                // Redirect to role selection page
-                window.location.href = 'role_selection.html';
+                showSignupMessage('Account created successfully! Please check your email for verification. Redirecting to login...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
             }
         });
     </script>
