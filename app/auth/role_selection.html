@@ -24,18 +24,26 @@
         <!-- Role Selection Cards -->
         <div id="role-cards" class="grid md:grid-cols-2 gap-6">
             <!-- Candidate Card -->
-            <a href="#" id="candidate-card" class="role-card bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-emerald-500/50 hover:bg-gray-850 transition-all duration-300 group transform hover:-translate-y-1">
+            <a href="#" id="candidate-card" class="role-card bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-emerald-500/50 hover:bg-gray-850 transition-all duration-300 group transform hover:-translate-y-1 pointer-events-none opacity-50">
                 <i data-lucide="user" class="w-12 h-12 text-emerald-400 mx-auto mb-4 group-hover:text-emerald-300 transition-colors"></i>
                 <h2 class="text-2xl font-bold text-white mb-2">I'm a Candidate</h2>
                 <p class="text-gray-400">I'm here to test my skills and find opportunities.</p>
             </a>
 
             <!-- Recruiter Card -->
-            <a href="#" id="recruiter-card" class="role-card bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-cyan-500/50 hover:bg-gray-850 transition-all duration-300 group transform hover:-translate-y-1">
+            <a href="#" id="recruiter-card" class="role-card bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-cyan-500/50 hover:bg-gray-850 transition-all duration-300 group transform hover:-translate-y-1 pointer-events-none opacity-50">
                 <i data-lucide="briefcase" class="w-12 h-12 text-cyan-400 mx-auto mb-4 group-hover:text-cyan-300 transition-colors"></i>
                 <h2 class="text-2xl font-bold text-white mb-2">I'm a Recruiter</h2>
                 <p class="text-gray-400">I'm here to find and assess top talent.</p>
             </a>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-gray-950 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 text-center">
+                <div class="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p class="text-white font-medium">Checking your account status...</p>
+            </div>
         </div>
 
         <!-- Recruiter Verification Modal (Hidden by Default) -->
@@ -209,14 +217,41 @@
 
         // Security check: if user lands here but their role is already finalized, send them away.
         (async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                window.location.href = '/jsat/app/auth/login.html'; // Not logged in, go to login
-                return;
-            }
-            const { data: profile } = await supabase.from('profiles').select('is_role_finalized, role').single();
-            if (profile && profile.is_role_finalized) {
-                redirectUser(profile.role); // Already finalized, go to your dashboard
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    window.location.href = '/jsat/app/auth/login.html'; // Not logged in, go to login
+                    return;
+                }
+
+                const { data: profile, error } = await supabase.from('profiles').select('is_role_finalized, role').single();
+
+                if (error) {
+                    console.error('Error fetching profile:', error);
+                    showMessage('Error loading your profile. Please try again.', 'error');
+                    return;
+                }
+
+                if (profile && profile.is_role_finalized) {
+                    // Role already finalized - show message and redirect
+                    showMessage(`Your role is already set as ${profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}. Redirecting to your dashboard...`, 'success');
+                    // Keep cards disabled and redirect after delay
+                    setTimeout(() => {
+                        redirectUser(profile.role);
+                    }, 2000);
+                } else {
+                    // Role not finalized - enable interactions
+                    document.querySelectorAll('.role-card').forEach(card => {
+                        card.style.pointerEvents = 'auto';
+                        card.style.opacity = '1';
+                    });
+                }
+            } catch (error) {
+                console.error('Security check failed:', error);
+                showMessage('An error occurred. Please refresh the page.', 'error');
+            } finally {
+                // Always hide the loading overlay
+                document.getElementById('loading-overlay').classList.add('hidden');
             }
         })();
 
