@@ -3,74 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Runner - J-SAT</title>
+    <title>Test Runner - JSAT</title>
     <link href="../../dist/output.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .timer-warning { animation: pulse 1s ease-in-out infinite; }
+        .code-editor {
+            font-family: 'Courier New', monospace;
+            tab-size: 4;
+        }
+    </style>
 </head>
-<body class="bg-gray-950 text-gray-100 font-sans antialiased">
-
-<div class="min-h-screen flex flex-col p-6">
-
-    <!-- Header -->
-    <header class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-3xl lg:text-4xl font-bold">Test Runner</h1>
-            <p class="text-sm text-gray-400">Answer questions, run code, and submit when ready.</p>
-        </div>
-        <div class="flex items-center gap-4">
-            <a href="exam.html" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-200 hover:bg-gray-700">Back to Dashboard</a>
-            <div id="timer" class="text-lg font-semibold text-emerald-400">00:00:00</div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Question Panel -->
-        <section class="lg:col-span-1 bg-gray-900 rounded-xl p-6 shadow-md flex flex-col">
-            <div class="flex items-center justify-between mb-4">
-                <div class="text-lg font-semibold">Question</div>
-                <div id="progress" class="text-sm text-gray-400">Question 1 of 1</div>
-            </div>
-            <div id="question-panel" class="prose max-w-none text-gray-100 flex-1 overflow-auto"></div>
-            <div class="mt-6 flex items-center gap-3">
-                <button id="prevBtn" class="px-3 py-2 rounded-md bg-gray-800 text-gray-200 hover:bg-gray-700">Previous</button>
-                <button id="nextBtn" class="px-3 py-2 rounded-md bg-gray-800 text-gray-200 hover:bg-gray-700">Next</button>
-            </div>
-        </section>
-
-        <!-- Code Editor Panel -->
-        <section class="lg:col-span-2 bg-gray-900 rounded-xl p-6 shadow-md flex flex-col">
-            <!-- Editor Header -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="text-lg font-semibold">Code Editor</div>
-                <div class="flex items-center gap-3">
-                    <button id="runBtn" class="px-4 py-2 rounded-md bg-emerald-500 text-white font-semibold hover:bg-emerald-600">
-                        Run Code
-                    </button>
-                    <button id="submitBtn" class="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700">
-                        Submit
-                    </button>
+<body class="bg-gray-950 text-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+            <div class="p-6 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="code-2" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">J-SAT</h1>
+                        <p class="text-xs text-gray-400">Skills Assessment</p>
+                    </div>
                 </div>
             </div>
-
-            <!-- Editor -->
-            <textarea id="editor"
-                class="w-full bg-gray-800 text-white p-4 rounded-lg font-mono text-sm lg:text-base resize-none overflow-auto"
-                placeholder="Write your Java code here..."
-                style="height: 50vh;"></textarea>
-
-            <!-- Output Console -->
-            <div class="mt-4">
-                <div class="text-sm text-gray-400 mb-2">Output Console</div>
-                <pre id="console" class="bg-black bg-opacity-40 text-gray-100 p-4 rounded-lg h-40 overflow-auto text-sm"></pre>
+            
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="practice.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="target" class="w-5 h-5"></i>
+                    <span class="font-medium">Practice Ground</span>
+                </a>
+                <a href="test-runner.html" class="flex items-center space-x-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-lg">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span class="font-medium">Active Tests</span>
+                </a>
+                <a href="results.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span class="font-medium">Results</span>
+                </a>
+                <a href="leaderboard.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="trophy" class="w-5 h-5"></i>
+                    <span class="font-medium">Leaderboard</span>
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-gray-800">
+                <button id="logout-btn" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-red-400 rounded-lg transition">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-medium">Logout</span>
+                </button>
             </div>
-        </section>
+        </aside>
 
-    </main>
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header with Timer -->
+            <header class="bg-gray-900 border-b border-gray-800 px-8 py-4 sticky top-0 z-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Java Fundamentals Assessment</h2>
+                        <p class="text-sm text-gray-400 mt-1">Question 3 of 20</p>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <!-- Timer -->
+                        <div class="bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
+                            <div class="flex items-center space-x-3">
+                                <i data-lucide="clock" class="w-5 h-5 text-emerald-500"></i>
+                                <div>
+                                    <p class="text-xs text-gray-400">Time Remaining</p>
+                                    <p id="timer" class="text-2xl font-bold text-white">32:45</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Progress -->
+                        <div class="text-right">
+                            <p class="text-sm text-gray-400">Progress</p>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <div class="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full" style="width: 15%"></div>
+                                </div>
+                                <span class="text-sm font-bold text-white">15%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-</div>
+            <div class="p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Question Navigation Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Question Status -->
+                        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                            <h3 class="text-lg font-bold text-white mb-4">Questions</h3>
+                            <div class="grid grid-cols-5 gap-2">
+                                <button class="w-10 h-10 rounded-lg bg-green-500 text-white font-bold text-sm flex items-center justify-center">
+                                    1
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-green-500 text-white font-bold text-sm flex items-center justify-center">
+                                    2
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-emerald-500 ring-2 ring-emerald-400 text-white font-bold text-sm flex items-center justify-center">
+                                    3
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    4
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    5
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    6
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    7
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    8
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    9
+                                </button>
+                                <button class="w-10 h-10 rounded-lg bg-gray-800 text-gray-400 font-bold text-sm flex items-center justify-center hover:bg-gray-700">
+                                    10
+                                </button>
+                            </div>
+                            <div class="mt-4 space-y-2 text-xs">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-green-500"></div>
+                                    <span class="text-gray-400">Answered (2)</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-emerald-500 ring-2 ring-emerald-400"></div>
+                                    <span class="text-gray-400">Current (1)</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-4 h-4 rounded bg-gray-800"></div>
+                                    <span class="text-gray-400">Not Answered (17)</span>
+                                </div>
+                            </div>
+                        </div>
 
-<script src="../js/test-runner.js"></script>
+                        <!-- Test Info -->
+                        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                            <h3 class="text-lg font-bold text-white mb-4">Test Information</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Total Questions</span>
+                                    <span class="text-white font-semibold">20</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Duration</span>
+                                    <span class="text-white font-semibold">45 min</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Answered</span>
+                                    <span class="text-emerald-500 font-semibold">2</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-400">Remaining</span>
+                                    <span class="text-orange-500 font-semibold">18</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warning -->
+                        <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                            <div class="flex items-start space-x-3">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500 flex-shrink-0"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-orange-400">Auto-save enabled</p>
+                                    <p class="text-xs text-gray-400 mt-1">Your progress is automatically saved every 30 seconds</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question and Code Editor Area -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Question Panel -->
+                        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                            <div class="flex items-start justify-between mb-4">
+                                <h3 class="text-xl font-bold text-white">Question 3: Array Manipulation</h3>
+                                <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">Medium</span>
+                            </div>
+                            
+                            <div class="prose prose-invert max-w-none">
+                                <p class="text-gray-300 mb-4">
+                                    Write a method that takes an integer array and returns a new array containing only the even numbers from the original array, in the same order.
+                                </p>
+
+                                <h4 class="text-white font-semibold mb-2">Example:</h4>
+                                <div class="bg-gray-800 p-4 rounded-lg text-sm mb-4">
+                                    <p class="text-gray-300">Input: [1, 2, 3, 4, 5, 6, 7, 8]</p>
+                                    <p class="text-gray-300">Output: [2, 4, 6, 8]</p>
+                                </div>
+
+                                <h4 class="text-white font-semibold mb-2">Requirements:</h4>
+                                <ul class="text-gray-400 text-sm space-y-1">
+                                    <li>Method signature must be: <code class="bg-gray-800 px-2 py-1 rounded text-emerald-400">public static int[] filterEvenNumbers(int[] arr)</code></li>
+                                    <li>Return an empty array if input is null or empty</li>
+                                    <li>Preserve the original order of elements</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Code Editor -->
+                        <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                            <div class="flex items-center justify-between px-6 py-3 bg-gray-800 border-b border-gray-700">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-sm font-medium text-white">Solution.java</span>
+                                    <span class="text-xs text-gray-400">Auto-saved 2 min ago</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-xs px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition">
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="relative">
+                                <textarea class="code-editor w-full h-96 bg-gray-950 text-gray-100 p-6 font-mono text-sm focus:outline-none resize-none" spellcheck="false">public class Solution {
+    public static int[] filterEvenNumbers(int[] arr) {
+        // Write your solution here
+        
+        
+        
+        return new int[0];
+    }
+    
+    // Test cases will be run automatically
+    public static void main(String[] args) {
+        // You can test your solution here
+    }
+}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <button id="runTest" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center space-x-2">
+                                <i data-lucide="play" class="w-5 h-5"></i>
+                                <span>Run Code</span>
+                            </button>
+                            <button id="submitAnswer" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center space-x-2">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                                <span>Submit Answer</span>
+                            </button>
+                        </div>
+
+                        <!-- Output Console -->
+                        <div id="console" class="bg-gray-900 rounded-xl border border-gray-800 hidden">
+                            <div class="flex items-center justify-between px-6 py-3 bg-gray-800 border-b border-gray-700">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="terminal" class="w-4 h-4 text-emerald-500"></i>
+                                    <span class="text-sm font-medium text-white">Test Results</span>
+                                </div>
+                                <button onclick="document.getElementById('console').classList.add('hidden')">
+                                    <i data-lucide="x" class="w-4 h-4 text-gray-400 hover:text-white"></i>
+                                </button>
+                            </div>
+                            <div class="p-6 space-y-3">
+                                <div class="flex items-start space-x-2">
+                                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-white font-medium">Test Case 1: Passed</p>
+                                        <div class="mt-2 text-xs bg-gray-800 p-3 rounded">
+                                            <p class="text-gray-400">Input: [1, 2, 3, 4, 5, 6]</p>
+                                            <p class="text-gray-400">Expected: [2, 4, 6]</p>
+                                            <p class="text-emerald-400">Your Output: [2, 4, 6]</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i data-lucide="x-circle" class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-white font-medium">Test Case 2: Failed</p>
+                                        <div class="mt-2 text-xs bg-gray-800 p-3 rounded">
+                                            <p class="text-gray-400">Input: [7, 9, 11]</p>
+                                            <p class="text-gray-400">Expected: []</p>
+                                            <p class="text-red-400">Your Output: null</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                                    <p class="text-sm text-orange-400">2 of 3 test cases passed. Review your solution and try again.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex items-center justify-between pt-4">
+                            <button class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition flex items-center space-x-2">
+                                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                <span>Previous</span>
+                            </button>
+                            <button class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition flex items-center space-x-2">
+                                <span>Next Question</span>
+                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { protectPage } from '../js/guard.js';
+        import { logout } from '../js/auth.js';
+
+        // Protect this page, only 'candidate' role is authorized
+        protectPage(['candidate']).then(({ user, profile }) => {
+            if (user && profile) {
+                // User is authorized, proceed with rendering the test runner
+                lucide.createIcons();
+
+                // Timer countdown
+                let timeInSeconds = 1965; // 32:45
+                const timerElement = document.getElementById('timer');
+
+                setInterval(() => {
+                    timeInSeconds--;
+                    const minutes = Math.floor(timeInSeconds / 60);
+                    const seconds = timeInSeconds % 60;
+                    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                    if (timeInSeconds < 300) {
+                        timerElement.classList.add('timer-warning', 'text-orange-500');
+                    }
+                }, 1000);
+
+                // Existing event listeners
+                document.getElementById('runTest').addEventListener('click', () => {
+                    document.getElementById('console').classList.remove('hidden');
+                });
+
+                document.getElementById('submitAnswer').addEventListener('click', () => {
+                    if (confirm('Are you sure you want to submit this answer? You cannot change it later.')) {
+                        document.getElementById('console').classList.remove('hidden');
+                    }
+                });
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await logout();
+            window.location.href = '/jsat/app/auth/login.html';
+        });
+    </script>
 </body>
 </html>

@@ -1,135 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Results - J-SAT</title>
-  <link href="../../dist/output.css" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - JSAT</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+    </style>
 </head>
-<body class="bg-gray-950 text-gray-100 font-sans antialiased">
-  <div class="flex min-h-screen">
-    <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
-      <div class="p-6 border-b border-gray-800">
-        <div class="flex items-center gap-2">
-          <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
-          </div>
-          <span class="text-2xl font-bold text-white">J-SAT</span>
-        </div>
-      </div>
-      <nav class="flex-1 p-4 space-y-1">
-        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-3">Candidate Navigation</div>
-        <a href="exam.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium hover:bg-gray-800 hover:text-gray-200">
-          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-          <span>Dashboard</span>
-        </a>
-        <a href="leaderboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium hover:bg-gray-800 hover:text-gray-200">
-          <i data-lucide="award" class="w-5 h-5"></i>
-          <span>Leaderboard</span>
-        </a>
-        <a href="practice.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 font-medium hover:bg-gray-800 hover:text-gray-200">
-          <i data-lucide="code" class="w-5 h-5"></i>
-          <span>Practice</span>
-        </a>
-        <a href="results.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium shadow-lg shadow-emerald-500/30">
-          <i data-lucide="file-text" class="w-5 h-5"></i>
-          <span>Results</span>
-        </a>
-      </nav>
-      <div class="p-4 border-t border-gray-800">
-        <button class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600">
-          <i data-lucide="log-out" class="w-5 h-5"></i>
-          <span>Logout</span>
-        </button>
-        <div class="mt-4 text-center text-xs text-gray-600">© 2025 J-SAT</div>
-      </div>
-    </aside>
+<body class="bg-gray-950 text-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+            <div class="p-6 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="code-2" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">J-SAT</h1>
+                        <p class="text-xs text-gray-400">Skills Assessment</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="practice.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="target" class="w-5 h-5"></i>
+                    <span class="font-medium">Practice Ground</span>
+                </a>
+                <a href="test-runner.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span class="font-medium">Active Tests</span>
+                </a>
+                <a href="results.html" class="flex items-center space-x-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-lg">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span class="font-medium">Results</span>
+                </a>
+                <a href="leaderboard.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="trophy" class="w-5 h-5"></i>
+                    <span class="font-medium">Leaderboard</span>
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-gray-800">
+                <button id="logout-btn" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-red-400 rounded-lg transition">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-medium">Logout</span>
+                </button>
+            </div>
+        </aside>
 
-    <main class="flex-1">
-      <header class="bg-gray-900/50 backdrop-blur-sm border-b border-gray-800 px-6 lg:px-8 py-6 sticky top-0 z-10">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-4xl lg:text-5xl font-bold text-white mb-3">Results</h1>
-            <p class="text-base lg:text-lg text-gray-300">View a breakdown of your recent test attempts.</p>
-          </div>
-        </div>
-      </header>
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="bg-gray-900 border-b border-gray-800 px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white">Test Results</h2>
+                        <p class="text-gray-400 mt-1">Java Fundamentals Assessment</p>
+                    </div>
+                    <button class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition flex items-center space-x-2">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        <span>Download Report</span>
+                    </button>
+                </div>
+            </header>
 
-      <div class="p-6 lg:px-12 lg:py-8">
-        <div class="bg-gray-900 rounded-xl p-6 shadow-md">
-          <h2 class="text-xl font-semibold mb-4">Recent Test Results</h2>
-          <div class="space-y-4">
-            <div class="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
-              <div>
-                <div class="font-semibold text-white">Algorithms - Sorting</div>
-                <div class="text-sm text-gray-400">Completed: 2025-10-20</div>
-              </div>
-              <div class="text-right">
-                <div class="text-lg font-bold text-emerald-400">82%</div>
-                <a href="#" data-test-id="algorithms-sorting" class="view-details text-sm text-gray-300 underline">View details</a>
-              </div>
-            </div>
-            <div class="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
-              <div>
-                <div class="font-semibold text-white">OOP Concepts</div>
-                <div class="text-sm text-gray-400">Completed: 2025-11-02</div>
-              </div>
-              <div class="text-right">
-                <div class="text-lg font-bold text-amber-400">73%</div>
-                <a href="#" data-test-id="oop-concepts" class="view-details text-sm text-gray-300 underline">View details</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-  <script>lucide.createIcons();</script>
-  <script>
-    // Show a details frame/modal when clicking View details
-    document.addEventListener('click', function(e){
-      const a = e.target.closest && e.target.closest('a.view-details');
-      if (!a) return;
-      e.preventDefault();
-      const testId = a.getAttribute('data-test-id') || 'unknown';
+            <div class="p-8 space-y-8">
+                <!-- Score Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="md:col-span-1 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-8 text-white fade-in">
+                        <div class="flex flex-col items-center text-center">
+                            <i data-lucide="award" class="w-16 h-16 mb-4"></i>
+                            <p class="text-sm opacity-90 mb-2">Overall Score</p>
+                            <p class="text-6xl font-bold mb-2">87%</p>
+                            <p class="text-sm opacity-90">17/20 Correct</p>
+                        </div>
+                    </div>
 
-      // create modal
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center z-50 p-6';
-      modal.innerHTML = `
-        <div class="bg-gray-900 text-gray-100 rounded-xl w-full max-w-3xl shadow-lg overflow-hidden">
-          <div class="flex items-center justify-between p-4 border-b border-gray-800">
-            <div>
-              <h3 class="text-xl font-semibold">Test details</h3>
-              <div class="text-sm text-gray-400">ID: ${testId}</div>
-            </div>
-            <div>
-              <button id="close-details" class="px-3 py-2 rounded-md bg-gray-800 text-gray-200">Close</button>
-            </div>
-          </div>
-          <div class="p-6 space-y-4">
-            <div class="text-sm text-gray-300">This is a placeholder for the detailed report for the test <strong>${testId}</strong>. Replace with API-driven content showing per-question breakdown, outputs, runtime, and feedback.</div>
-            <div class="bg-gray-800 p-4 rounded-lg">
-              <div class="font-semibold">Question 1</div>
-              <div class="text-sm text-gray-300">Status: Passed</div>
-              <div class="text-sm text-gray-400 mt-2">Output: 42</div>
-            </div>
-            <div class="bg-gray-800 p-4 rounded-lg">
-              <div class="font-semibold">Question 2</div>
-              <div class="text-sm text-gray-300">Status: Failed</div>
-              <div class="text-sm text-gray-400 mt-2">Error: IndexOutOfBoundsException (simulated)</div>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-      document.getElementById('close-details').addEventListener('click', () => modal.remove());
+                    <div class="md:col-span-3 grid grid-cols-3 gap-6">
+                        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="target" class="w-6 h-6 text-blue-500"></i>
+                                </div>
+                                <span class="text-2xl font-bold text-white">92%</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Accuracy</p>
+                            <p class="text-xs text-gray-500 mt-1">Above average</p>
+                        </div>
 
-      // close on Esc
-      function onKey(e){ if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', onKey); } }
-      document.addEventListener('keydown', onKey);
-    });
-  </script>
+                        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="zap" class="w-6 h-6 text-purple-500"></i>
+                                </div>
+                                <span class="text-2xl font-bold text-white">8.5/10</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Code Efficiency</p>
+                            <p class="text-xs text-gray-500 mt-1">Excellent</p>
+                        </div>
+
+                        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-6 h-6 text-orange-500"></i>
+                                </div>
+                                <span class="text-2xl font-bold text-white">38m</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Time Taken</p>
+                            <p class="text-xs text-gray-500 mt-1">of 45 minutes</p>
+                        </div>
+
+                        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="code" class="w-6 h-6 text-green-500"></i>
+                                </div>
+                                <span class="text-2xl font-bold text-white">7.8/10</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Code Style</p>
+                            <p class="text-xs text-gray-500 mt-1">Good practices</p>
+                        </div>
+
+                        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+                                </div>
+                                <span class="text-2xl font-bold text-white">2</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Errors</p>
+                            <p class="text-xs text-gray-500 mt-1">Runtime errors</p>
+                        </div>
+
+                        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="star" class="w-6 h-6 text-yellow-500"></i>
+                                </div>
+                                <span class="text-2xl font-bold text-white">+18</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Points Earned</p>
+                            <p class="text-xs text-gray-500 mt-1">Total: 165 pts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CART Evaluation & Level -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- CART Classification -->
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                        <h3 class="text-xl font-bold text-white mb-4">CART Skill Classification</h3>
+                        <div class="bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-lg p-6 border border-emerald-500/30 mb-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-400 mb-1">Your Classification</p>
+                                    <p class="text-3xl font-bold text-emerald-400">INTERMEDIATE</p>
+                                </div>
+                                <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center">
+                                    <i data-lucide="trending-up" class="w-10 h-10 text-white"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-300">Based on multi-factor analysis including accuracy, efficiency, and code quality</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-400">Problem Solving</span>
+                                    <span class="text-sm font-semibold text-white">8.5/10</span>
+                                </div>
+                                <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-400">Algorithm Design</span>
+                                    <span class="text-sm font-semibold text-white">7.8/10</span>
+                                </div>
+                                <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full" style="width: 78%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-400">Code Quality</span>
+                                    <span class="text-sm font-semibold text-white">7.2/10</span>
+                                </div>
+                                <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-500 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-400">Error Handling</span>
+                                    <span class="text-sm font-semibold text-white">6.5/10</span>
+                                </div>
+                                <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Radar Chart -->
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                        <h3 class="text-xl font-bold text-white mb-4">Performance Analysis</h3>
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Feedback Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Strengths -->
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <i data-lucide="thumbs-up" class="w-5 h-5 text-green-500"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Strengths</h3>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start space-x-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-white font-medium">Excellent Array Manipulation</p>
+                                    <p class="text-sm text-gray-400">Strong understanding of array operations and iteration patterns</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-white font-medium">Efficient Algorithm Selection</p>
+                                    <p class="text-sm text-gray-400">Chose optimal time complexity solutions for most problems</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-white font-medium">Clean Code Structure</p>
+                                    <p class="text-sm text-gray-400">Well-organized code with meaningful variable names</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Areas for Improvement -->
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                                <i data-lucide="lightbulb" class="w-5 h-5 text-orange-500"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Areas for Improvement</h3>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start space-x-3">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-white font-medium">Edge Case Handling</p>
+                                    <p class="text-sm text-gray-400">Consider null checks and boundary conditions more carefully</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-white font-medium">Exception Management</p>
+                                    <p class="text-sm text-gray-400">Implement proper try-catch blocks for robust error handling</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-white font-medium">Code Documentation</p>
+                                    <p class="text-sm text-gray-400">Add comments for complex logic to improve code maintainability</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Question Breakdown -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <h3 class="text-xl font-bold text-white mb-6">Question-by-Question Breakdown</h3>
+                    <div class="space-y-3">
+                        <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4 flex-1">
+                                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-white font-semibold">Q1: String Reversal</h4>
+                                        <p class="text-sm text-gray-400">Array manipulation, String methods</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-emerald-500 font-bold text-lg">10/10</p>
+                                    <p class="text-xs text-gray-400">Perfect score</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4 flex-1">
+                                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="check" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-white font-semibold">Q2: Two Sum Problem</h4>
+                                        <p class="text-sm text-gray-400">Hash maps, Array searching</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-emerald-500 font-bold text-lg">9/10</p>
+                                    <p class="text-xs text-gray-400">Excellent</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4 flex-1">
+                                    <div class="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="minus" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-white font-semibold">Q3: Array Filtering</h4>
+                                        <p class="text-sm text-gray-400">Loops, Conditionals</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-yellow-500 font-bold text-lg">7/10</p>
+                                    <p class="text-xs text-gray-400">Partial credit</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 pl-14 text-sm text-gray-400">
+                                <p class="text-orange-400">Note: Edge case for empty arrays not handled</p>
+                            </div>
+                        </div>
+
+                        <button class="w-full text-center py-3 text-emerald-500 hover:text-emerald-400 font-medium transition">
+                            View All 20 Questions →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recommended Actions -->
+                <div class="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-6 border border-blue-500/30">
+                    <h3 class="text-xl font-bold text-white mb-4">Recommended Next Steps</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button class="bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg p-4 text-left transition">
+                            <i data-lucide="book-open" class="w-8 h-8 text-blue-500 mb-3"></i>
+                            <h4 class="text-white font-semibold mb-1">Study Resources</h4>
+                            <p class="text-sm text-gray-400">Review exception handling tutorials</p>
+                        </button>
+                        <button class="bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg p-4 text-left transition">
+                            <i data-lucide="target" class="w-8 h-8 text-purple-500 mb-3"></i>
+                            <h4 class="text-white font-semibold mb-1">Practice Mode</h4>
+                            <p class="text-sm text-gray-400">Try edge case challenges</p>
+                        </button>
+                        <button class="bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-lg p-4 text-left transition">
+                            <i data-lucide="trophy" class="w-8 h-8 text-yellow-500 mb-3"></i>
+                            <h4 class="text-white font-semibold mb-1">Next Test</h4>
+                            <p class="text-sm text-gray-400">Advanced Data Structures</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { protectPage } from '../js/guard.js';
+        import { logout } from '../js/auth.js';
+
+        // Protect this page, only 'candidate' role is authorized
+        protectPage(['candidate']).then(({ user, profile }) => {
+            if (user && profile) {
+                // User is authorized, proceed with rendering the results page
+                lucide.createIcons();
+
+                // Radar Chart
+                const ctx = document.getElementById('radarChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime'],
+                        datasets: [{
+                            label: 'Your Performance',
+                            data: [92, 85, 78, 65, 88],
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)'
+                        }, {
+                            label: 'Average Performance',
+                            data: [75, 70, 72, 68, 75],
+                            backgroundColor: 'rgba(100, 116, 139, 0.2)',
+                            borderColor: 'rgba(100, 116, 139, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(100, 116, 139, 1)'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    color: '#9ca3af',
+                                    backdropColor: 'transparent'
+                                },
+                                grid: {
+                                    color: '#374151'
+                                },
+                                pointLabels: {
+                                    color: '#d1d5db',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#d1d5db'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await logout();
+            window.location.href = '/jsat/app/auth/login.html';
+        });
+    </script>
 </body>
 </html>

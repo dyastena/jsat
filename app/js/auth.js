@@ -88,7 +88,7 @@ function redirectUser(role) {
     const rolePaths = {
         admin: '/jsat/app/admin/users.html',
         recruiter: '/jsat/app/recruiter/dashboard.html',
-        candidate: '/jsat/app/candidate/exam.html',
+        candidate: '/jsat/app/candidate/dashboard.html',
     };
     // Use lowercase role from DB
     const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
