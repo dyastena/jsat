@@ -6,6 +6,7 @@
     <title>Settings - JSAT</title>
     <link href="../../dist/output.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+     
     <style>
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -38,10 +39,6 @@
                 <a href="practice.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="target" class="w-5 h-5"></i>
                     <span class="font-medium">Practice Ground</span>
-                </a>
-                <a href="test-runner.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
-                    <i data-lucide="file-text" class="w-5 h-5"></i>
-                    <span class="font-medium">Active Tests</span>
                 </a>
                 <a href="results.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
@@ -77,9 +74,9 @@
                 </div>
             </header>
 
-            <div class="p-8 max-w-4xl">
+            <div class="p-8  flex-1">
                 <!-- Settings Tabs -->
-                <div class="mb-8">
+                <div class="mb-8" >
                     <div class="border-b border-gray-800">
                         <nav class="flex space-x-8">
                             <button class="px-1 py-4 border-b-2 border-emerald-500 text-emerald-500 font-medium text-sm">
@@ -431,5 +428,6 @@
             }
         });
     </script>
+     <script>lucide.createIcons();</script>
 </body>
 </html>

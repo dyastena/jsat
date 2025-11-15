@@ -51,18 +51,14 @@
                 </div>
             </div>
             
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="exam.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+           <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-lg">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
                 <a href="practice.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="target" class="w-5 h-5"></i>
                     <span class="font-medium">Practice Ground</span>
-                </a>
-                <a href="test-runner.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
-                    <i data-lucide="file-text" class="w-5 h-5"></i>
-                    <span class="font-medium">Active Tests</span>
                 </a>
                 <a href="results.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
@@ -71,6 +67,10 @@
                 <a href="leaderboard.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="trophy" class="w-5 h-5"></i>
                     <span class="font-medium">Leaderboard</span>
+                </a>
+                <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="font-medium">Settings</span>
                 </a>
             </nav>
             
@@ -299,5 +299,66 @@
             window.location.href = '/jsat/app/auth/login.html';
         });
     </script>
+      <script>lucide.createIcons();</script>
+
+      <script src="../js/evaluation.js"></script> <!-- Load your evaluation.js first -->
+
+<script>
+    // Mock user results; replace with actual test-runner data
+    const lastJudge0Result = JSON.parse(localStorage.getItem('lastJudge0Result')) || {
+        stdout: btoa("Hello, World!"),
+        time: 0.08,
+        memory: 1024,
+        stderr: null,
+        compile_output: null
+    };
+
+    const userCode = localStorage.getItem('userCode') || 'public class Main { public static void main(String[] args){ System.out.println("Hello, World!"); }}';
+    const timeTaken = parseFloat(localStorage.getItem('timeTaken')) || 25; // in minutes
+    const totalErrors = parseInt(localStorage.getItem('totalErrors')) || 0;
+    const totalRuns = parseInt(localStorage.getItem('totalRuns')) || 1;
+    const expectedOutput = "Hello, World!";
+    const userLevel = parseInt(localStorage.getItem('userLevel')) || 1; 
+
+    // Evaluate using CART-like scoring
+    const evaluation = Evaluation.evaluateLevel(
+        userLevel,
+        lastJudge0Result,
+        userCode,
+        timeTaken,
+        totalErrors,
+        totalRuns,
+        expectedOutput
+    );
+
+    console.log("Evaluation Result:", evaluation);
+
+    // Update Preliminary Score Section
+    const prelimScoreEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-4xl');
+    const prelimDetailsEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-sm');
+
+    if(prelimScoreEl && prelimDetailsEl){
+        prelimScoreEl.textContent = `${Math.round(evaluation.percentage)}%`;
+        prelimDetailsEl.textContent = `${evaluation.details.correctness} out of ${evaluation.maxScore} factors correct`;
+    }
+
+    // Update Level Progress Section
+    const levelNameEl = document.querySelector('.bg-gray-900\\/50 span.text-emerald-400') || document.querySelector('.bg-gray-900\\/50 span.text-emerald-400');
+    const levelScoreEl = document.querySelector('.bg-gray-900\\/50 span.text-white');
+
+    if(levelNameEl && levelScoreEl){
+        let nextLevel = evaluation.level + 1;
+        let levelName = ["BEGINNER","NOVICE","INTERMEDIATE","ADVANCED","EXPERT"][evaluation.level-1] || "UNKNOWN";
+        levelNameEl.textContent = levelName;
+        levelScoreEl.textContent = `${evaluation.score} / ${evaluation.maxScore} pts`;
+
+        const progressBar = document.querySelector('.bg-gray-900\\/50 .h-full');
+        if(progressBar){
+            const widthPercent = (evaluation.score / evaluation.maxScore) * 100;
+            progressBar.style.width = widthPercent + "%";
+        }
+    }
+</script>
+
 </body>
 </html>

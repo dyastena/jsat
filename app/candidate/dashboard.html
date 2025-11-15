@@ -39,17 +39,13 @@
             </div>
             
             <nav class="flex-1 p-4 space-y-2">
-                <a href="exam.html" class="flex items-center space-x-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-lg">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-lg">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span class="font-medium">Dashboard</span>
                 </a>
                 <a href="practice.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="target" class="w-5 h-5"></i>
                     <span class="font-medium">Practice Ground</span>
-                </a>
-                <a href="test-runner.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
-                    <i data-lucide="file-text" class="w-5 h-5"></i>
-                    <span class="font-medium">Active Tests</span>
                 </a>
                 <a href="results.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
@@ -191,20 +187,16 @@
                     </div>
                 </div>
 
-                <!-- Upcoming Tests & Quick Actions -->
+                <!-- Upcoming Tests -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Upcoming Tests -->
-                    <div class="lg:col-span-2 bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="lg:col-span-3 bg-gray-900 rounded-xl p-6 border border-gray-800">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-xl font-bold text-white">Upcoming Tests</h3>
-                            <button class="text-emerald-500 hover:text-emerald-400 text-sm font-medium flex items-center space-x-1">
-                                <span>View All</span>
-                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                            </button>
                         </div>
 
                         <div class="space-y-4">
-                            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-emerald-500/50 transition cursor-pointer">
+                            <!-- Test 1 -->
+                            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-emerald-500/50 transition">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
                                         <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -212,19 +204,22 @@
                                         </div>
                                         <div>
                                             <h4 class="text-white font-semibold">Java Fundamentals Assessment</h4>
-                                            <p class="text-sm text-gray-400">20 questions • 45 minutes</p>
+                                            <p class="text-sm text-gray-400">45 minutes</p>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-500">
-                                            Not Started
-                                        </span>
-                                        <p class="text-xs text-gray-400 mt-1">Due in 3 days</p>
-                                    </div>
+
+                                    <button 
+                                        onclick="window.location.href='test-runner.html?test=java-fundamentals'"
+                                        class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg transition flex items-center space-x-2"
+                                    >
+                                        <i data-lucide='play' class='w-4 h-4'></i>
+                                        <span>Start Test</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-emerald-500/50 transition cursor-pointer">
+                            <!-- Test 2 -->
+                            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-emerald-500/50 transition">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
                                         <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
@@ -232,19 +227,22 @@
                                         </div>
                                         <div>
                                             <h4 class="text-white font-semibold">Data Structures Challenge</h4>
-                                            <p class="text-sm text-gray-400">15 questions • 60 minutes</p>
+                                            <p class="text-sm text-gray-400">60 minutes</p>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-500">
-                                            In Progress
-                                        </span>
-                                        <p class="text-xs text-gray-400 mt-1">6/15 completed</p>
-                                    </div>
+
+                                    <button 
+                                        onclick="window.location.href='test-runner.html?test=data-structures'"
+                                        class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg transition flex items-center space-x-2"
+                                    >
+                                        <i data-lucide='play' class='w-4 h-4'></i>
+                                        <span>Start Test</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-emerald-500/50 transition cursor-pointer">
+                            <!-- Test 3 -->
+                            <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700 hover:border-emerald-500/50 transition">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
                                         <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
@@ -252,61 +250,23 @@
                                         </div>
                                         <div>
                                             <h4 class="text-white font-semibold">Algorithms Mastery Test</h4>
-                                            <p class="text-sm text-gray-400">25 questions • 90 minutes</p>
+                                            <p class="text-sm text-gray-400">90 minutes</p>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-500">
-                                            Not Started
-                                        </span>
-                                        <p class="text-xs text-gray-400 mt-1">Due in 7 days</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <button class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center space-x-2">
-                            <i data-lucide="play" class="w-5 h-5"></i>
-                            <span>Start Available Test</span>
-                        </button>
-                    </div>
-
-                    <!-- Quick Actions & Achievements -->
-                    <div class="space-y-6">
-                        <!-- Quick Actions -->
-                        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                            <h3 class="text-lg font-bold text-white mb-4">Quick Actions</h3>
-                            <div class="space-y-3">
-                                <button class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium py-3 rounded-lg transition flex items-center justify-center space-x-2">
-                                    <i data-lucide="target" class="w-5 h-5"></i>
-                                    <span>Practice Mode</span>
-                                </button>
-                                <button class="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-lg transition flex items-center justify-center space-x-2">
-                                    <i data-lucide="trophy" class="w-5 h-5"></i>
-                                    <span>View Leaderboard</span>
-                                </button>
-                                <button class="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 rounded-lg transition flex items-center justify-center space-x-2">
-                                    <i data-lucide="book-open" class="w-5 h-5"></i>
-                                    <span>Study Resources</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Recent Achievement -->
-                        <div class="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-xl p-6 border border-yellow-500/30">
-                            <div class="flex items-start space-x-3">
-                                <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <i data-lucide="award" class="w-6 h-6 text-white"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-white font-semibold mb-1">New Achievement!</h4>
-                                    <p class="text-sm text-gray-300">Perfect Score Master</p>
-                                    <p class="text-xs text-gray-400 mt-1">Score 100% on 5 tests</p>
+                                    <button 
+                                        onclick="window.location.href='test-runner.html?test=algorithms'"
+                                        class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg transition flex items-center space-x-2"
+                                    >
+                                        <i data-lucide='play' class='w-4 h-4'></i>
+                                        <span>Start Test</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
 
                 <!-- Completed Tests History -->
                 <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
@@ -408,9 +368,11 @@
         </main>
     </div>
 
+      <script>lucide.createIcons();</script>
     <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
+         
 
         // Protect this page, only 'candidate' role is authorized
         protectPage(['candidate']).then(({ user, profile }) => {

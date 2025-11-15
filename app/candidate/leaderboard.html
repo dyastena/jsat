@@ -6,6 +6,7 @@
     <title>Leaderboard - JSAT</title>
     <link href="../../dist/output.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+ 
     <style>
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -41,10 +42,6 @@
                 <a href="practice.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="target" class="w-5 h-5"></i>
                     <span class="font-medium">Practice Ground</span>
-                </a>
-                <a href="test-runner.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
-                    <i data-lucide="file-text" class="w-5 h-5"></i>
-                    <span class="font-medium">Active Tests</span>
                 </a>
                 <a href="results.html" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
@@ -438,5 +435,6 @@
             window.location.href = '/jsat/app/auth/login.html';
         });
     </script>
+       <script>lucide.createIcons();</script>
 </body>
 </html>
