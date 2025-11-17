@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 30px; }
+        .table-container { margin-bottom: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; }
+        .table-header { background: #4CAF50; color: white; padding: 15px; font-size: 18px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f8f8; font-weight: bold; }
+        tr:hover { background-color: #f5f5f5; }
+        .loading { text-align: center; padding: 50px; }
+        .error { color: #d32f2f; background: #ffebee; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .empty { text-align: center; padding: 50px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Viewer</h1>
+
+        <div id="content">
+            <div class="loading">Loading database contents...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const tables = ['profiles', 'evaluation', 'question', 'result', 'level'];
+
+        async function loadAllTables() {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+
+            for (const tableName of tables) {
+                try {
+                    const { data, error } = await supabase.from(tableName).select('*').limit(100);
+
+                    if (error) {
+                        content.innerHTML += `
+                            <div class="table-container">
+                                <div class="table-header">${tableName}</div>
+                                <div class="error">Error loading ${tableName}: ${error.message}</div>
+                            </div>`;
+                        continue;
+                    }
+
+                    content.innerHTML += createTableHTML(tableName, data);
+                } catch (err) {
+                    content.innerHTML += `
+                        <div class="table-container">
+                            <div class="table-header">${tableName}</div>
+                            <div class="error">Failed to load ${tableName}: ${err.message}</div>
+                        </div>`;
+                }
+            }
+        }
+
+        function createTableHTML(tableName, data) {
+            if (!data || data.length === 0) {
+                return `
+                    <div class="table-container">
+                        <div class="table-header">${tableName} (${data?.length || 0} records)</div>
+                        <div class="empty">No data found in this table</div>
+                    </div>`;
+            }
+
+            const columns = Object.keys(data[0]);
+            const headers = columns.map(col => `<th>${col}</th>`).join('');
+            const rows = data.map(row => {
+                const cells = columns.map(col => `<td>${formatValue(row[col])}</td>`).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+
+            return `
+                <div class="table-container">
+                    <div class="table-header">${tableName} (${data.length} records)</div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead><tr>${headers}</tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        function formatValue(value) {
+            if (value === null || value === undefined) return 'NULL';
+            if (typeof value === 'object') {
+                if (Array.isArray(value)) return `[${value.length} items]`;
+                try {
+                    return JSON.stringify(value, null, 2);
+                } catch (e) {
+                    return '[Object]';
+                }
+            }
+            return String(value);
+        }
+
+        // Load all tables when page loads
+        loadAllTables();
+    </script>
+</body>
+</html>

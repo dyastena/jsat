@@ -16,6 +16,7 @@
         .rank-1 { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); }
         .rank-2 { background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%); }
         .rank-3 { background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%); }
+        .selected { background: rgba(16, 185, 129, 0.2) !important; color: rgb(16, 185, 129) !important; border: 1px solid rgba(16, 185, 129, 0.5) !important; font-weight: 500 !important; }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 font-sans">
@@ -117,23 +118,23 @@
                         <!-- Level Filter -->
                         <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
                             <h3 class="text-lg font-bold text-white mb-4">Filter by Level</h3>
-                            <div class="space-y-2">
-                                <button class="w-full text-left px-4 py-3 bg-emerald-500/20 text-emerald-500 rounded-lg font-medium border border-emerald-500/50">
+                            <div class="space-y-2" id="level-filter">
+                                <button class="filter-btn selected w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-level="all">
                                     All Levels
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="filter-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-level="beginner">
                                     Beginner
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="filter-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-level="novice">
                                     Novice
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="filter-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-level="intermediate">
                                     Intermediate
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="filter-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-level="advanced">
                                     Advanced
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="filter-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-level="expert">
                                     Expert
                                 </button>
                             </div>
@@ -142,17 +143,17 @@
                         <!-- Time Period -->
                         <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
                             <h3 class="text-lg font-bold text-white mb-4">Time Period</h3>
-                            <div class="space-y-2">
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                            <div class="space-y-2" id="period-filter">
+                                <button class="period-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-period="today">
                                     Today
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="period-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-period="week">
                                     This Week
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition">
+                                <button class="period-btn w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-period="month">
                                     This Month
                                 </button>
-                                <button class="w-full text-left px-4 py-3 bg-emerald-500/20 text-emerald-500 rounded-lg font-medium border border-emerald-500/50">
+                                <button class="period-btn selected w-full text-left px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-period="all">
                                     All Time
                                 </button>
                             </div>
@@ -403,6 +404,7 @@
             if (user && profile) {
                 // User is authorized, proceed with rendering the leaderboard page
                 lucide.createIcons();
+                initializeFilters();
             }
         });
 
@@ -411,6 +413,31 @@
             await logout();
             window.location.href = '/jsat/app/auth/login.html';
         });
+
+        // Filter functionality
+        function initializeFilters() {
+            // Level filter buttons
+            const levelButtons = document.querySelectorAll('.filter-btn');
+            levelButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove selected class from all level buttons
+                    levelButtons.forEach(btn => btn.classList.remove('selected'));
+                    // Add selected class to clicked button
+                    button.classList.add('selected');
+                });
+            });
+
+            // Period filter buttons
+            const periodButtons = document.querySelectorAll('.period-btn');
+            periodButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove selected class from all period buttons
+                    periodButtons.forEach(btn => btn.classList.remove('selected'));
+                    // Add selected class to clicked button
+                    button.classList.add('selected');
+                });
+            });
+        }
     </script>
        <script>lucide.createIcons();</script>
 </body>
