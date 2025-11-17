@@ -219,7 +219,7 @@ export function updateLevelMilestones(currentLevel) {
         }
     });
 
-    // Update level labels
+    // Update level labels - current level highlighted
     const levelLabels = document.querySelectorAll('.text-center p:first-of-type');
     levelLabels.forEach((label, index) => {
         if (index === currentIndex) {
