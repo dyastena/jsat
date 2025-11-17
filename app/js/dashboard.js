@@ -44,14 +44,17 @@ export async function loadUserLevelData(userId, recreateIcons = true) {
         if (levelData) {
             console.log('Level data found, updating UI...', levelData);
 
+            // Calculate actual level based on progress (in case database is not updated)
+            const actualLevel = calculateLevelFromProgress(levelData.Progress);
+
             // Update level badge
-            updateLevelBadge(levelData.Level_status);
+            updateLevelBadge(actualLevel);
 
             // Update progress bar and stats
-            updateProgressBar(levelData.Level_status, levelData.Progress);
+            updateProgressBar(actualLevel, levelData.Progress);
 
             // Update level milestones
-            updateLevelMilestones(levelData.Level_status);
+            updateLevelMilestones(actualLevel);
 
             if (recreateIcons) {
                 // Reinitialize Lucide icons after DOM updates
@@ -121,14 +124,16 @@ export function updateLevelBadge(levelStatus) {
 export function updateProgressBar(levelStatus, progress) {
     // Calculate total points and progress percentage
     const pointsByLevel = {
-        'Beginner': { min: 0, max: 100, current: progress },
-        'Novice': { min: 101, max: 150, current: progress },
-        'Intermediate': { min: 151, max: 200, current: progress },
-        'Advanced': { min: 201, max: 250, current: progress },
-        'Expert': { min: 251, max: 300, current: progress }
+        'Beginner': { min: 0, max: 100 },
+        'Novice': { min: 101, max: 150 },
+        'Intermediate': { min: 151, max: 200 },
+        'Advanced': { min: 201, max: 250 },
+        'Expert': { min: 251, max: 300 }
     };
 
-    const levelData = pointsByLevel[levelStatus] || pointsByLevel['Beginner'];
+    const levelConfig = pointsByLevel[levelStatus] || pointsByLevel['Beginner'];
+
+    const levelData = { ...levelConfig, current: progress };
 
     // Update progress display
     const progressText = document.querySelector('.flex.items-center.justify-between.mb-3 span:last-child');
@@ -136,11 +141,13 @@ export function updateProgressBar(levelStatus, progress) {
         progressText.textContent = `${levelData.current} / ${levelData.max} pts`;
     }
 
-    // Update progress bar width
+    // Update progress bar width (relative to level range)
     const progressBar = document.querySelector('.bg-gradient-to-r.from-emerald-500');
     if (progressBar) {
-        const percentage = Math.min((levelData.current / levelData.max) * 100, 100);
-        progressBar.style.width = `${percentage}%`;
+        const relativeProgress = levelData.current - levelConfig.min;
+        const relativeMax = levelConfig.max - levelConfig.min;
+        const percentage = Math.min((relativeProgress / relativeMax) * 100, 100);
+        progressBar.style.width = `${percentage}%`; // Bar resets to 0% when entering new level
     }
 
     // Update progress description
