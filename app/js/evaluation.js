@@ -1,5 +1,15 @@
 // Create global namespace
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 window.Evaluation = {
+
+    async getCurrentUserProfileId() {
+        const { data: { user } } = await supabase.auth.getUser();
+        return user ? user.id : null;
+    },
 
     evaluateCorrectness(userOutput, expectedOutput) {
         if (!userOutput || !expectedOutput) return 0;

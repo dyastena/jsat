@@ -240,7 +240,7 @@ export async function initializeUserLevel(userId, initialLevel = 'Beginner', ini
     try {
         // Check if user already has level data
         const { data: existingLevel, error: checkError } = await supabase
-            .from('Level')
+            .from('level')
             .select('id')
             .eq('Profile_id', userId)
             .single();
@@ -252,7 +252,7 @@ export async function initializeUserLevel(userId, initialLevel = 'Beginner', ini
 
         // Create initial level data
         const { data: newLevel, error: insertError } = await supabase
-            .from('Level')
+            .from('level')
             .insert({
                 Profile_id: userId,
                 Level_status: initialLevel,
@@ -283,7 +283,7 @@ export async function updateUserProgress(userId, pointsEarned) {
     try {
         // Get current level data
         const { data: currentLevel, error: fetchError } = await supabase
-            .from('Level')
+            .from('level')
             .select('Level_status, Progress')
             .eq('Profile_id', userId)
             .single();
@@ -298,7 +298,7 @@ export async function updateUserProgress(userId, pointsEarned) {
 
         // Update level data
         const { data: updatedLevel, error: updateError } = await supabase
-            .from('Level')
+            .from('level')
             .update({
                 Level_status: newLevel,
                 Progress: newProgress
