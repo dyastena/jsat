@@ -97,8 +97,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Timer
     const displayTimer = (minutes) => {
-        const mm = String(minutes).padStart(2, "0");
-        timerEl.textContent = `${mm}:00:00`;
+        if (timerEl) {
+            const mm = String(minutes).padStart(2, "0");
+            timerEl.textContent = `${mm}:00:00`;
+        }
     };
 
     // Submit modal

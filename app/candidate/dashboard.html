@@ -117,17 +117,17 @@
                         <div class="grid grid-cols-3 gap-4">
                             <div class="bg-gray-800/50 rounded-lg p-4 text-center">
                                 <i data-lucide="star" class="w-6 h-6 text-yellow-500 mx-auto mb-2"></i>
-                                <p class="text-2xl font-bold text-white">0</p>
+                                <p class="text-2xl font-bold text-white min-w-0">0</p>
                                 <p class="text-xs text-gray-400">Total Points</p>
                             </div>
                             <div class="bg-gray-800/50 rounded-lg p-4 text-center">
                                 <i data-lucide="check-circle" class="w-6 h-6 text-green-500 mx-auto mb-2"></i>
-                                <p class="text-2xl font-bold text-white">0</p>
+                                <p class="text-2xl font-bold text-white min-w-0">0</p>
                                 <p class="text-xs text-gray-400">Completed</p>
                             </div>
                             <div class="bg-gray-800/50 rounded-lg p-4 text-center">
                                 <i data-lucide="target" class="w-6 h-6 text-blue-500 mx-auto mb-2"></i>
-                                <p class="text-2xl font-bold text-white">0%</p>
+                                <p class="text-2xl font-bold text-white min-w-0 whitespace-nowrap">0%</p>
                                 <p class="text-xs text-gray-400">Accuracy</p>
                             </div>
                         </div>
@@ -186,6 +186,31 @@
                     <div class="lg:col-span-3 bg-gray-900 rounded-xl p-6 border border-gray-800">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-xl font-bold text-white">Upcoming Tests</h3>
+                            <div class="relative">
+                                <button id="difficulty-dropdown-btn" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                    <span id="current-difficulty-text">Level Difficulty</span>
+                                </button>
+                                <div id="difficulty-dropdown" class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg border border-gray-700 shadow-lg hidden z-20">
+                                    <div class="py-2">
+                                        <button class="difficulty-filter w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition" data-difficulty="Beginner">
+                                            Beginner Level
+                                        </button>
+                                        <button class="difficulty-filter w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition" data-difficulty="Novice">
+                                            Novice Level
+                                        </button>
+                                        <button class="difficulty-filter w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition" data-difficulty="Intermediate">
+                                            Intermediate Level
+                                        </button>
+                                        <button class="difficulty-filter w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition" data-difficulty="Advanced">
+                                            Advanced Level
+                                        </button>
+                                        <button class="difficulty-filter w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition" data-difficulty="Expert">
+                                            Expert Level
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="space-y-4">
@@ -366,7 +391,7 @@
     <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
-        import { loadUserLevelData, initializeUserLevel } from '../js/dashboard.js';
+import { loadUserLevelData, initializeUserLevel, loadUpcomingTests, loadRecent, initializeDifficultyDropdown } from '../js/dashboard.js';
 
         // Protect this page, only 'candidate' role is authorized
         protectPage(['candidate']).then(async ({ user, profile }) => {
@@ -376,7 +401,32 @@
 
                 // Initialize level system for new users and load level data
                 await initializeUserLevel(user.id, 'Beginner', 0);
-                await loadUserLevelData(user.id);
+                const levelData = await loadUserLevelData(user.id);
+
+                // Store user info globally
+                window.currentUser = user;
+                window.currentLevel = levelData ? levelData.Level_status : null;
+
+                // Load upcoming tests and recent completions
+                if (levelData) {
+                    await loadUpcomingTests(user.id, levelData.Level_status);
+                } else {
+                    // Fallback: get level directly
+                    const supabase = (await import('../js/auth.js')).supabase;
+                    const { data: level } = await supabase
+                        .from('level')
+                        .select('Level_status')
+                        .eq('Profile_id', user.id)
+                        .single();
+                    if (level) {
+                        window.currentLevel = level.Level_status;
+                        await loadUpcomingTests(user.id, level.Level_status);
+                    }
+                }
+                await loadRecent(user.id);
+
+                // Initialize difficulty dropdown
+                initializeDifficultyDropdown(user.id);
             }
         });
 
