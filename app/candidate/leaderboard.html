@@ -398,13 +398,14 @@
     <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
+        import { initializeLeaderboard } from '../js/leaderboard.js';
 
         // Protect this page, only 'candidate' role is authorized
         protectPage(['candidate']).then(({ user, profile }) => {
             if (user && profile) {
                 // User is authorized, proceed with rendering the leaderboard page
                 lucide.createIcons();
-                initializeFilters();
+                initializeLeaderboard(user, profile);
             }
         });
 
@@ -413,31 +414,6 @@
             await logout();
             window.location.href = '/jsat/app/auth/login.html';
         });
-
-        // Filter functionality
-        function initializeFilters() {
-            // Level filter buttons
-            const levelButtons = document.querySelectorAll('.filter-btn');
-            levelButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // Remove selected class from all level buttons
-                    levelButtons.forEach(btn => btn.classList.remove('selected'));
-                    // Add selected class to clicked button
-                    button.classList.add('selected');
-                });
-            });
-
-            // Period filter buttons
-            const periodButtons = document.querySelectorAll('.period-btn');
-            periodButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // Remove selected class from all period buttons
-                    periodButtons.forEach(btn => btn.classList.remove('selected'));
-                    // Add selected class to clicked button
-                    button.classList.add('selected');
-                });
-            });
-        }
     </script>
        <script>lucide.createIcons();</script>
 </body>

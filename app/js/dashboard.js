@@ -177,7 +177,7 @@ export async function updateDashboardStats(userId) {
         const { data: userEvaluations, error: evalError } = await supabase
             .from('evaluation')
             .select('id')
-            .eq('profile_id', userId);
+            .eq('Profile_id', userId);
 
         const completedCount = userEvaluations ? userEvaluations.length : 0;
 
@@ -416,7 +416,7 @@ export async function loadUpcomingTests(userId, levelStatus, selectedDifficulty 
         const { data: completedEvaluations, error: evalError } = await supabase
             .from('evaluation')
             .select('Question_id')
-            .eq('profile_id', userId);
+            .eq('Profile_id', userId);
 
         const completedQuestionIds = completedEvaluations ? completedEvaluations.map(e => e.Question_id) : [];
 
@@ -545,7 +545,7 @@ export async function loadRecent(userId) {
         const { data: evaluations, error } = await supabase
             .from('evaluation')
             .select('id, Question_id, created_at')
-            .eq('profile_id', userId)
+            .eq('Profile_id', userId)
             .order('created_at', { ascending: false })
             .limit(5);
 
