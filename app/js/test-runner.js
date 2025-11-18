@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: 'Write a Java program that prints "Hello, World!" to the console.'
             },
         ],
-        currentQuestionIndex: 0
+        currentquestionIndex: 0
     };
     let instance = mockInstance;
 
@@ -87,8 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Render questions
-    const renderQuestion = () => {
-        const q = instance.questions[instance.currentQuestionIndex];
+    const renderquestion = () => {
+        const q = instance.questions[instance.currentquestionIndex];
         questionPanel.innerHTML = `
             <h2 class="text-lg font-semibold">${q.title}</h2>
             <div class="mt-2 text-sm text-gray-300">${q.body}</div>
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Init
     const init = () => {
-        renderQuestion();
+        renderquestion();
         displayTimer(instance.durationMinutes);
     };
 

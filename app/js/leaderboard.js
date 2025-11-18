@@ -65,6 +65,8 @@ async function loadLeaderboard() {
         const selectedPeriodBtn = document.querySelector('.period-btn.selected');
         const periodFilter = selectedPeriodBtn ? selectedPeriodBtn.getAttribute('data-period') : 'all';
 
+        console.log('Loading leaderboard with filters:', { levelFilter, periodFilter });
+
         // Try RPC function first, fallback to manual query if it fails
         let { data, error } = await supabase
             .rpc('get_leaderboard_data', {
@@ -72,16 +74,21 @@ async function loadLeaderboard() {
                 period_filter: periodFilter
             });
 
+        console.log('RPC response:', { data, error, dataType: typeof data, dataLength: data?.length });
+
         if (error || !data) {
             console.log('RPC failed, using fallback query:', error);
             // Fallback: manual query using the existing approach
             const fallbackData = await loadLeaderboardFallback(levelFilter);
+            console.log('Fallback data:', fallbackData);
             data = fallbackData;
         }
 
+        console.log('Final leaderboard data loaded: Type:', typeof data, 'Length:', data?.length, 'Data:', data);
+
         leaderboardData = data || [];
         renderLeaderboard();
-        updateUserRanking();
+        await updateUserRanking();
 
     } catch (error) {
         console.error('Error loading leaderboard:', error);
@@ -99,8 +106,8 @@ function processLeaderboardData(rawData) {
             first_name: profile?.first_name || 'Anonymous',
             last_name: profile?.last_name || '',
             username: createUsername(profile),
-            total_points: item.Progress || 0,
-            current_level: item.Level_status || 'Beginner',
+            total_points: item.progress || 0,
+            current_level: item.level_status || 'Beginner',
             accuracy_percent: Math.round(item.accuracy || 0),
             total_tests: item.testCount || 0
         };
@@ -117,26 +124,71 @@ function renderLeaderboard() {
 }
 
 function updateTop3Podium() {
-    if (leaderboardData.length < 3) return;
+    // Define podium positions in correct order: 2nd place (left), 1st place (middle), 3rd place (right)
+    const podiumContainers = [
+        document.querySelector('.slide-up:nth-child(1)'), // 2nd place (left)
+        document.querySelector('.slide-up:nth-child(2)'), // 1st place (middle)
+        document.querySelector('.slide-up:nth-child(3)')  // 3rd place (right)
+    ];
 
-    const top3 = leaderboardData.slice(0, 3);
-
-    // Update 2nd place
-    const secondPlace = document.querySelector('.slide-up:nth-child(1)');
-    if (secondPlace && top3[1]) {
-        updatePodiumCard(secondPlace, top3[1], 2);
+    if (leaderboardData.length === 0) {
+        // No data to show - hide all podium positions
+        console.log('No leaderboard data - hiding all podium positions');
+        podiumContainers.forEach(container => {
+            if (container) {
+                container.style.display = 'none';
+            }
+        });
+        return;
     }
 
-    // Update 1st place
-    const firstPlace = document.querySelector('.slide-up:nth-child(2)');
-    if (firstPlace && top3[0]) {
-        updatePodiumCard(firstPlace, top3[0], 1);
+    // Reset all containers first
+    podiumContainers.forEach(container => {
+        if (container) {
+            // Clear existing content
+            const rankNumber = container.querySelector('.rank-1, .rank-2, .rank-3');
+            if (rankNumber) rankNumber.textContent = '';
+
+            const nameElement = container.querySelector('h4');
+            if (nameElement) nameElement.textContent = '';
+
+            const usernameElement = container.querySelector('p.text-sm.text-gray-400');
+            if (usernameElement) usernameElement.textContent = '';
+
+            const scoreElement = container.querySelector('span.text-2xl, span.text-3xl');
+            if (scoreElement) scoreElement.textContent = '';
+
+            const levelBadge = container.querySelector('.bg-purple-500\\/20');
+            if (levelBadge) levelBadge.textContent = '';
+        }
+    });
+
+    // Map podium positions to ranks
+    const podiumPositions = [
+        { container: podiumContainers[0], rank: 2, dataIndex: 1 }, // 2nd place (left)
+        { container: podiumContainers[1], rank: 1, dataIndex: 0 }, // 1st place (middle)
+        { container: podiumContainers[2], rank: 3, dataIndex: 2 }  // 3rd place (right)
+    ];
+
+    // Update only as many podium positions as we have data for
+    for (let i = 0; i < Math.min(podiumPositions.length, leaderboardData.length); i++) {
+        const position = podiumPositions[i];
+        const userData = leaderboardData[position.dataIndex];
+
+        if (position.container && userData) {
+            updatePodiumCard(position.container, userData, position.rank);
+            position.container.style.display = 'block'; // Show the container
+            console.log(`Updated podium position ${i + 1} with user:`, userData.first_name);
+        }
     }
 
-    // Update 3rd place
-    const thirdPlace = document.querySelector('.slide-up:nth-child(3)');
-    if (thirdPlace && top3[2]) {
-        updatePodiumCard(thirdPlace, top3[2], 3);
+    // Hide empty podium slots
+    for (let i = leaderboardData.length; i < podiumPositions.length; i++) {
+        const position = podiumPositions[i];
+        if (position.container) {
+            position.container.style.display = 'none';
+            console.log(`Hiding podium position ${i + 1} - no data`);
+        }
     }
 }
 
@@ -156,7 +208,7 @@ function updatePodiumCard(card, userData, rank) {
 
     const scoreElement = card.querySelector('span.text-2xl, span.text-3xl');
     if (scoreElement) {
-        scoreElement.textContent = Math.round(userData.total_points);
+        scoreElement.textContent = userData.total_points.toFixed(1);
     }
 
     const levelBadge = card.querySelector('.bg-purple-500\\/20');
@@ -196,7 +248,7 @@ function updateRankingsTable() {
                 <td class="px-6 py-4">
                     <div class="flex items-center space-x-1">
                         <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i>
-                        <span class="text-white font-semibold">${Math.round(user.total_points)}</span>
+                        <span class="text-white font-semibold">${user.total_points.toFixed(1)}</span>
                     </div>
                 </td>
                 <td class="px-6 py-4 text-white">${user.accuracy_percent}%</td>
@@ -218,49 +270,139 @@ function updateRankingsTable() {
     }
 }
 
-function updateUserRanking() {
-    const userData = leaderboardData.find(user => user.id === currentUser.id);
-    if (!userData) return;
+async function updateUserRanking() {
+    console.log('Current user ID:', currentUser.id);
 
-    // Update "Your Ranking" stats
+    // First get user's level from the global data
+    let { data: globalData, error: globalError } = await supabase
+        .rpc('get_leaderboard_data', {
+            level_filter: 'all',
+            period_filter: 'all'
+        });
+
+    if (globalError) {
+        console.error('Failed to get user level data:', globalError);
+        return;
+    }
+
+    const globalUserData = globalData?.find(user => user.id === currentUser.id);
+    if (!globalUserData) {
+        // User has never taken tests
+        console.log('User has no test data, showing placeholders');
+
+        const userRankElement = document.querySelector('.text-5xl.font-bold.text-emerald-400');
+        if (userRankElement) userRankElement.textContent = 'No Data';
+
+        const userCountElement = document.querySelector('.text-sm.text-gray-400');
+        if (userCountElement) userCountElement.textContent = 'Take a test to see ranking';
+
+        const yourRankingDiv = document.querySelector('.bg-gradient-to-br.from-emerald-500\\/20.to-blue-500\\/20 .space-y-2');
+        if (yourRankingDiv) {
+            const statElements = yourRankingDiv.querySelectorAll('.flex.items-center.justify-between');
+            if (statElements.length >= 3) {
+                statElements[0].querySelector('.text-white.font-semibold').textContent = '0.0';
+                statElements[1].querySelector('.text-white.font-semibold').textContent = '0';
+                statElements[2].querySelector('.text-white.font-semibold').textContent = '0%';
+            }
+        }
+        return;
+    }
+
+    // Get user's level and ALWAYS fetch ranking within that level (independent of main filter)
+    const userLevel = globalUserData.current_level;
+    console.log('User level:', userLevel);
+
+    let { data: levelData, error: levelError } = await supabase
+        .rpc('get_leaderboard_data', {
+            level_filter: userLevel,
+            period_filter: 'all'
+        });
+
+    if (levelError) {
+        console.error('Failed to get user level data:', levelError);
+        // Fallback to global data
+        const userRankElement = document.querySelector('.text-5xl.font-bold.text-emerald-400');
+        if (userRankElement) userRankElement.textContent = '#' + globalUserData.rank;
+
+        const userCountElement = document.querySelector('.text-sm.text-gray-400');
+        if (userCountElement) userCountElement.textContent = `out of ${globalData?.length || 0} total users`;
+
+        const yourRankingDiv = document.querySelector('.bg-gradient-to-br.from-emerald-500\\/20.to-blue-500\\/20 .space-y-2');
+        if (yourRankingDiv) {
+            const statElements = yourRankingDiv.querySelectorAll('.flex.items-center.justify-between');
+            if (statElements.length >= 3) {
+                statElements[0].querySelector('.text-white.font-semibold').textContent = globalUserData.total_points.toFixed(1);
+                statElements[1].querySelector('.text-white.font-semibold').textContent = globalUserData.total_tests;
+                statElements[2].querySelector('.text-white.font-semibold').textContent = globalUserData.accuracy_percent + '%';
+            }
+        }
+        return;
+    }
+
+    const userData = levelData?.find(user => user.id === currentUser.id);
+    console.log('User rank within level:', userData?.rank, 'Level data length:', levelData?.length);
+
+    console.log('Updating "Your Ranking" card with user\'s level data:', userData);
+
+    // Update "Your Ranking" stats (ALWAYS shows ranking within user's OWN level)
     const userRankElement = document.querySelector('.text-5xl.font-bold.text-emerald-400');
     if (userRankElement) {
-        userRankElement.textContent = '#' + userData.rank;
+        userRankElement.textContent = '#' + (userData?.rank || globalUserData.rank);
     }
 
     const userCountElement = document.querySelector('.text-sm.text-gray-400');
     if (userCountElement) {
-        userCountElement.textContent = `out of ${leaderboardData.length} participants`;
+        const userCount = levelData?.length || 0;
+        if (userCount > 0) {
+            userCountElement.textContent = `out of ${userCount} ${userLevel} users`;
+        } else {
+            userCountElement.textContent = `you're the only ${userLevel} user`;
+        }
     }
 
-    // Update stats
-    const pointsElement = document.querySelector('.text-white.font-semibold:nth-of-type(1)');
-    if (pointsElement) pointsElement.textContent = Math.round(userData.total_points);
+    // Update stats with more specific selectors
+    const yourRankingDiv = document.querySelector('.bg-gradient-to-br.from-emerald-500\\/20.to-blue-500\\/20 .space-y-2');
+    if (yourRankingDiv) {
+        const statElements = yourRankingDiv.querySelectorAll('.flex.items-center.justify-between');
+        if (statElements.length >= 3) {
+            // Always use user's data, fallback to global if needed
+            const displayData = userData || globalUserData;
+            statElements[0].querySelector('.text-white.font-semibold').textContent = displayData.total_points.toFixed(1);
+            statElements[1].querySelector('.text-white.font-semibold').textContent = displayData.total_tests;
+            statElements[2].querySelector('.text-white.font-semibold').textContent = displayData.accuracy_percent + '%';
+        }
+    }
 
-    const testsElement = document.querySelector('.text-white.font-semibold:nth-of-type(2)');
-    if (testsElement) testsElement.textContent = userData.total_tests;
-
-    const accuracyElement = document.querySelector('.text-white.font-semibold:nth-of-type(3)');
-    if (accuracyElement) accuracyElement.textContent = userData.accuracy_percent + '%';
+    // Update table row if user appears in filtered results
+    const tableRows = document.querySelectorAll('tbody.divide-y tr');
+    tableRows.forEach(row => {
+        const usernameCell = row.querySelector('p.text-xs.text-gray-400');
+        if (usernameCell && usernameCell.textContent === `@${globalUserData.username}`) {
+            const pointsCell = row.querySelector('span.font-semibold');
+            if (pointsCell) pointsCell.textContent = globalUserData.total_points.toFixed(1);
+        }
+    });
 }
 
 // Fallback function for leaderboard data loading using manual queries
 async function loadLeaderboardFallback(levelFilter) {
+    // Note: Period filter not implemented in fallback as it's better handled in the database
+    // For full period filtering, update the get_leaderboard_data RPC function in Supabase
     try {
         // First get level data
         let levelQuery = supabase
             .from('level')
             .select(`
                 id,
-                Progress,
-                Level_status,
-                Profile_id
+                progress,
+                level_status,
+                profile_id
             `)
-            .order('Progress', { ascending: false });
+            .order('progress', { ascending: false });
 
         // Apply level filter if specified
         if (levelFilter && levelFilter !== 'all') {
-            levelQuery = levelQuery.eq('Level_status', levelFilter);
+            levelQuery = levelQuery.eq('level_status', levelFilter);
         }
 
         const { data: levelData, error: levelError } = await levelQuery;
@@ -271,7 +413,7 @@ async function loadLeaderboardFallback(levelFilter) {
         }
 
         // Get profile data for these profiles
-        const profileIds = levelData.map(level => level.Profile_id);
+        const profileIds = levelData.map(level => level.profile_id);
         const { data: profilesData, error: profilesError } = await supabase
             .from('profiles')
             .select('id, first_name, last_name')
@@ -288,26 +430,30 @@ async function loadLeaderboardFallback(levelFilter) {
             supabase
                 .from('evaluation')
                 .select('correctness')
-                .eq('Profile_id', profileId)
+                .eq("profile_id", profileId)
         );
 
         const evaluationsResults = await Promise.all(evaluationsPromises);
 
         // Process data
         const processedData = levelData.map((level, index) => {
-            const profile = profilesData.find(p => p.id === level.Profile_id);
-            const evaluations = evaluationsResults[profileIds.indexOf(level.Profile_id)]?.data || [];
-            const totalCorrectness = evaluations.reduce((sum, e) => sum + (e.correctness || 0), 0);
-            const avgAccuracy = evaluations.length > 0 ? (totalCorrectness / evaluations.length) * 10 : 0;
+            const profile = profilesData.find(p => p.id === level.profile_id);
+            const evaluations = evaluationsResults[profileIds.indexOf(level.profile_id)]?.data || [];
+
+            // Match RPC function calculation: AVG(NULLIF(correctness, 0)) * 10
+            const validEvaluations = evaluations.filter(e => e.correctness !== null && e.correctness !== 0);
+            const avgAccuracy = validEvaluations.length > 0
+                ? (validEvaluations.reduce((sum, e) => sum + e.correctness, 0) / validEvaluations.length) * 10
+                : 0;
 
             return {
-                id: profile?.id || level.Profile_id,
+                id: profile?.id || level.profile_id,
                 rank: index + 1,
                 first_name: profile?.first_name || 'Anonymous',
                 last_name: profile?.last_name || '',
                 username: createUsername(profile),
-                total_points: level.Progress || 0,
-                current_level: level.Level_status || 'Beginner',
+                total_points: level.progress || 0,
+                current_level: level.level_status || 'Beginner',
                 accuracy_percent: Math.round(avgAccuracy),
                 total_tests: evaluations.length
             };
@@ -324,7 +470,7 @@ async function loadLeaderboardFallback(levelFilter) {
 function createUsername(user) {
     // Create a simple username from name or ID
     if (user.first_name && user.last_name) {
-        return user.first_name.toLowerCase() + user.last_name.toLowerCase().replace(/\s+/g, '');
+        return user.first_name.toLowerCase() + user.last_name.toLowerCase().replace(/\s+/g, ' ');
     }
     return user.id.substring(0, 8);
 }
@@ -346,7 +492,7 @@ function getBadges(user) {
     if (user.total_points > 300) badges += '<i data-lucide="crown" class="w-4 h-4 text-yellow-500"></i>';
     if (user.total_tests > 20) badges += '<i data-lucide="target" class="w-4 h-4 text-emerald-500"></i>';
     if (user.accuracy_percent > 90) badges += '<i data-lucide="zap" class="w-4 h-4 text-orange-500"></i>';
-    if (user.current_level === 'Expert') badges += '<i data-lucide="star" class="w-4 h-4 text-purple-500"></i>';
+    if (user.current_level === 'Expert') badges += '<i data-lucide="award" class="w-4 h-4 text-purple-500"></i>';
 
     return badges || '<i data-lucide="award" class="w-4 h-4 text-gray-500"></i>';
 }

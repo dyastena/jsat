@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - JSAT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="../../dist/output.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @keyframes slideIn {
@@ -387,7 +387,7 @@
         </main>
     </div>
 
-      <script>lucide.createIcons();</script>
+    <script>lucide.createIcons();</script>
     <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
@@ -405,22 +405,22 @@ import { loadUserLevelData, initializeUserLevel, loadUpcomingTests, loadRecent, 
 
                 // Store user info globally
                 window.currentUser = user;
-                window.currentLevel = levelData ? levelData.Level_status : null;
+                window.currentLevel = levelData ? levelData.level_status : null;
 
                 // Load upcoming tests and recent completions
                 if (levelData) {
-                    await loadUpcomingTests(user.id, levelData.Level_status);
+                    await loadUpcomingTests(user.id, levelData.level_status);
                 } else {
                     // Fallback: get level directly
                     const supabase = (await import('../js/auth.js')).supabase;
                     const { data: level } = await supabase
                         .from('level')
-                        .select('Level_status')
-                        .eq('Profile_id', user.id)
+                        .select('level_status')
+                        .eq('profile_id', user.id)
                         .single();
                     if (level) {
-                        window.currentLevel = level.Level_status;
-                        await loadUpcomingTests(user.id, level.Level_status);
+                        window.currentLevel = level.level_status;
+                        await loadUpcomingTests(user.id, level.level_status);
                     }
                 }
                 await loadRecent(user.id);

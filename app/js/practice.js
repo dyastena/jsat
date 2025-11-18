@@ -12,8 +12,8 @@ export async function loadChallenges(difficulty) {
     try {
         const { data: questions, error } = await supabase
             .from('question')
-            .select('Question_id, Title, Category, Difficulty')
-            .eq('Difficulty', difficulty);
+            .select('question_id, title, category, difficulty')
+            .eq('difficulty', difficulty);
 
         if (error) throw error;
 
@@ -40,19 +40,19 @@ export async function loadChallenges(difficulty) {
                 'challenge-btn w-full text-left p-4 bg-emerald-500/10 border border-emerald-500/50 rounded-lg hover:bg-emerald-500/20 transition' :
                 'challenge-btn w-full text-left p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition';
 
-            challengeBtn.setAttribute('data-question-id', question.Question_id);
-            challengeBtn.setAttribute('data-challenge', question.Title);
-            challengeBtn.setAttribute('data-topic', question.Category);
-            challengeBtn.setAttribute('data-difficulty', question.Difficulty);
+            challengeBtn.setAttribute('data-question-id', question.question_id);
+            challengeBtn.setAttribute('data-challenge', question.title);
+            challengeBtn.setAttribute('data-topic', question.category);
+            challengeBtn.setAttribute('data-difficulty', question.difficulty);
 
-            const difficultyBadge = getDifficultyBadge(question.Difficulty);
+            const difficultyBadge = getDifficultyBadge(question.difficulty);
 
             challengeBtn.innerHTML = `
                 <div class="flex items-start justify-between mb-2">
-                    <h4 class="text-white font-semibold text-sm">${question.Title}</h4>
+                    <h4 class="text-white font-semibold text-sm">${question.title}</h4>
                     <span class="text-xs px-2 py-1 ${difficultyBadge.color} rounded">${difficultyBadge.label}</span>
                 </div>
-                <p class="text-xs text-gray-400">${question.Category}</p>
+                <p class="text-xs text-gray-400">${question.category}</p>
             <div class="flex items-center space-x-3 mt-2 text-xs text-gray-500">
                 </div>
             `;
@@ -77,28 +77,28 @@ export async function loadChallenges(difficulty) {
 }
 
 // Function to load a specific question into the panel
-export async function loadQuestion(btn) {
+export async function loadquestion(btn) {
     const questionId = btn.dataset.questionId;
     if (!questionId) return;
 
     try {
         const { data: question, error } = await supabase
             .from('question')
-            .select('Title, Question, Category, Difficulty')
-            .eq('Question_id', questionId)
+            .select('title, question, category, difficulty')
+            .eq('question_id', questionId)
             .single();
 
         if (error) throw error;
 
-        const difficultyBadge = getDifficultyBadge(question.Difficulty);
+        const difficultyBadge = getDifficultyBadge(question.difficulty);
 
         document.getElementById("question-panel").innerHTML = `
-            <h3 class="text-xl font-bold text-white mb-4">${question.Title}</h3>
-            <p class="text-gray-400 text-sm mb-3">${question.Category}</p>
+            <h3 class="text-xl font-bold text-white mb-4">${question.title}</h3>
+            <p class="text-gray-400 text-sm mb-3">${question.category}</p>
             <span class="inline-block px-3 py-1 ${difficultyBadge.color} text-xs rounded mb-4">${difficultyBadge.label}</span>
 
             <div class="p-4 bg-gray-800 rounded-lg border border-gray-700 mb-4">
-                <p class="text-gray-300 text-sm">${question.Question}</p>
+                <p class="text-gray-300 text-sm">${question.question}</p>
             </div>
         `;
 
@@ -135,7 +135,7 @@ export function attachChallengeListeners() {
             });
             btn.classList.remove('bg-gray-800');
             btn.classList.add('bg-emerald-500/20','border','border-emerald-500/50');
-            loadQuestion(btn);
+            loadquestion(btn);
         });
     });
 }
@@ -159,18 +159,18 @@ export async function updateUserRanking(userId) {
         // Get user's rank among candidates by progress
         const { data: allCandidates, error: fetchError } = await supabase
             .from('level')
-            .select('Profile_id, Progress')
-            .in('Profile_id', candidateIds);
+            .select('profile_id, progress')
+            .in('profile_id', candidateIds);
 
         if (fetchError) throw fetchError;
 
         // Sort by progress descending
-        allCandidates.sort((a, b) => b.Progress - a.Progress);
+        allCandidates.sort((a, b) => b.progress - a.progress);
 
         // Find user's rank
         let rank = 1;
         for (let i = 0; i < allCandidates.length; i++) {
-            if (allCandidates[i].Profile_id === userId) {
+            if (allCandidates[i].profile_id === userId) {
                 rank = i + 1;
                 break;
             }

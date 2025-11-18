@@ -29,8 +29,8 @@ export async function loadUserLevelData(userId, recreateIcons = true) {
         // Then fetch user's level data from Level table
         const { data: levelData, error } = await supabase
             .from('level')
-            .select('Level_status, Progress')
-            .eq('Profile_id', userId)
+            .select('level_status, progress')
+            .eq('profile_id', userId)
             .single();
 
         console.log('Level Supabase response:', { data: levelData, error });
@@ -45,13 +45,13 @@ export async function loadUserLevelData(userId, recreateIcons = true) {
             console.log('Level data found, updating UI...', levelData);
 
             // Calculate actual level based on progress (in case database is not updated)
-            const actualLevel = calculateLevelFromProgress(levelData.Progress);
+            const actualLevel = calculateLevelFromprogress(levelData.progress);
 
             // Update level badge
             updateLevelBadge(actualLevel);
 
             // Update progress bar and stats
-            await updateProgressBar(actualLevel, levelData.Progress, userId);
+            await updateprogressBar(actualLevel, levelData.progress, userId);
 
             // Update level milestones
             updateLevelMilestones(actualLevel);
@@ -122,7 +122,7 @@ export function updateLevelBadge(levelStatus) {
  * @param {number} progress - The user's current progress points
  * @param {string} userId - The user's ID for stats
  */
-export async function updateProgressBar(levelStatus, progress, userId) {
+export async function updateprogressBar(levelStatus, progress, userId) {
     // Calculate total points and progress percentage
     const pointsByLevel = {
         'Beginner': { min: 0, max: 100 },
@@ -145,9 +145,9 @@ export async function updateProgressBar(levelStatus, progress, userId) {
     // Update progress bar width (relative to level range)
     const progressBar = document.querySelector('.bg-gradient-to-r.from-emerald-500');
     if (progressBar) {
-        const relativeProgress = levelData.current - levelConfig.min;
+        const relativeprogress = levelData.current - levelConfig.min;
         const relativeMax = levelConfig.max - levelConfig.min;
-        const percentage = Math.min((relativeProgress / relativeMax) * 100, 100);
+        const percentage = Math.min((relativeprogress / relativeMax) * 100, 100);
         progressBar.style.width = `${percentage}%`; // Bar resets to 0% when entering new level
     }
 
@@ -177,7 +177,7 @@ export async function updateDashboardStats(userId) {
         const { data: userEvaluations, error: evalError } = await supabase
             .from('evaluation')
             .select('id')
-            .eq('Profile_id', userId);
+            .eq('profile_id', userId);
 
         const completedCount = userEvaluations ? userEvaluations.length : 0;
 
@@ -187,11 +187,11 @@ export async function updateDashboardStats(userId) {
             const evaluationIds = userEvaluations.map(e => e.id);
             const { data: results, error: resultError } = await supabase
                 .from('result')
-                .select('Score')
-                .in('Evaluation_id', evaluationIds);
+                .select('score')
+                .in('evaluation_id', evaluationIds);
 
             if (!resultError && results && results.length > 0) {
-                const totalScore = results.reduce((sum, r) => sum + (r.Score || 0), 0);
+                const totalScore = results.reduce((sum, r) => sum + (r.score || 0), 0);
                 accuracy = totalScore / results.length;
             }
         }
@@ -199,15 +199,15 @@ export async function updateDashboardStats(userId) {
         // Update total points (from level.progress)
         const { data: levelData, error: levelError } = await supabase
             .from('level')
-            .select('Progress')
-            .eq('Profile_id', userId)
+            .select('progress')
+            .eq('profile_id', userId)
             .single();
 
         // Update the DOM - find each stat card individually
         // Total Points (first stat card)
         const totalPointsEl = document.querySelectorAll('.grid.grid-cols-3 .text-2xl.font-bold')[0];
         if (totalPointsEl) {
-            totalPointsEl.textContent = !levelError && levelData ? levelData.Progress || 0 : 0;
+            totalPointsEl.textContent = !levelError && levelData ? levelData.progress || 0 : 0;
         }
 
         // Completed (second stat card)
@@ -223,7 +223,7 @@ export async function updateDashboardStats(userId) {
         }
 
         // Debug logging
-        console.log('DEBUG - Stats update - Points:', (!levelError && levelData ? levelData.Progress || 0 : 0), 'Completed:', completedCount, 'Accuracy:', accuracy > 0 ? `${accuracy * 10}%` : '0%');
+        console.log('DEBUG - Stats update - Points:', (!levelError && levelData ? levelData.progress || 0 : 0), 'Completed:', completedCount, 'Accuracy:', accuracy > 0 ? `${accuracy * 10}%` : '0%');
 
     } catch (error) {
         console.error('Error updating dashboard stats:', error);
@@ -305,15 +305,15 @@ export function updateLevelMilestones(currentLevel) {
  * Initialize level system with default data for new users
  * @param {string} userId - The user's ID
  * @param {string} initialLevel - Initial level to set (default: Beginner)
- * @param {number} initialProgress - Initial progress points (default: 0)
+ * @param {number} initialprogress - Initial progress points (default: 0)
  */
-export async function initializeUserLevel(userId, initialLevel = 'Beginner', initialProgress = 0) {
+export async function initializeUserLevel(userId, initialLevel = 'Beginner', initialprogress = 0) {
     try {
         // Check if user already has level data
         const { data: existingLevel, error: checkError } = await supabase
             .from('level')
             .select('id')
-            .eq('Profile_id', userId)
+            .eq('profile_id', userId)
             .single();
 
         if (existingLevel) {
@@ -325,9 +325,9 @@ export async function initializeUserLevel(userId, initialLevel = 'Beginner', ini
         const { data: newLevel, error: insertError } = await supabase
             .from('level')
             .insert({
-                Profile_id: userId,
-                Level_status: initialLevel,
-                Progress: initialProgress
+                profile_id: userId,
+                level_status: initialLevel,
+                progress: initialprogress
             })
             .select()
             .single();
@@ -350,13 +350,13 @@ export async function initializeUserLevel(userId, initialLevel = 'Beginner', ini
  * @param {string} userId - The user's ID
  * @param {number} pointsEarned - Points to add to progress
  */
-export async function updateUserProgress(userId, pointsEarned) {
+export async function updateUserprogress(userId, pointsEarned) {
     try {
         // Get current level data
         const { data: currentLevel, error: fetchError } = await supabase
             .from('level')
-            .select('Level_status, Progress')
-            .eq('Profile_id', userId)
+            .select('level_status, progress')
+            .eq('profile_id', userId)
             .single();
 
         if (fetchError) {
@@ -364,17 +364,17 @@ export async function updateUserProgress(userId, pointsEarned) {
             return null;
         }
 
-        const newProgress = currentLevel.Progress + pointsEarned;
-        const newLevel = calculateLevelFromProgress(newProgress);
+        const newprogress = currentLevel.progress + pointsEarned;
+        const newLevel = calculateLevelFromprogress(newprogress);
 
         // Update level data
         const { data: updatedLevel, error: updateError } = await supabase
             .from('level')
             .update({
-                Level_status: newLevel,
-                Progress: newProgress
+                level_status: newLevel,
+                progress: newprogress
             })
-            .eq('Profile_id', userId)
+            .eq('profile_id', userId)
             .select()
             .single();
 
@@ -383,7 +383,7 @@ export async function updateUserProgress(userId, pointsEarned) {
             return null;
         }
 
-        console.log('Progress updated:', updatedLevel);
+        console.log('progress updated:', updatedLevel);
         return updatedLevel;
     } catch (err) {
         console.error('Error updating user progress:', err);
@@ -393,14 +393,14 @@ export async function updateUserProgress(userId, pointsEarned) {
 
 /**
  * Calculate level based on total progress points
- * @param {number} totalProgress - Total progress points
+ * @param {number} totalprogress - Total progress points
  * @returns {string} Level name
  */
-export function calculateLevelFromProgress(totalProgress) {
-    if (totalProgress >= 251) return 'Expert';
-    if (totalProgress >= 201) return 'Advanced';
-    if (totalProgress >= 151) return 'Intermediate';
-    if (totalProgress >= 101) return 'Novice';
+export function calculateLevelFromprogress(totalprogress) {
+    if (totalprogress >= 251) return 'Expert';
+    if (totalprogress >= 201) return 'Advanced';
+    if (totalprogress >= 151) return 'Intermediate';
+    if (totalprogress >= 101) return 'Novice';
     return 'Beginner';
 }
 
@@ -415,27 +415,27 @@ export async function loadUpcomingTests(userId, levelStatus, selectedDifficulty 
         // Get questions already completed by the user to exclude them
         const { data: completedEvaluations, error: evalError } = await supabase
             .from('evaluation')
-            .select('Question_id')
-            .eq('Profile_id', userId);
+            .select('question_id')
+            .eq('profile_id', userId);
 
-        const completedQuestionIds = completedEvaluations ? completedEvaluations.map(e => e.Question_id) : [];
+        const completedquestionIds = completedEvaluations ? completedEvaluations.map(e => e.question_id) : [];
 
         // Fetch up to 5 questions from the question table for the selected difficulty, excluding completed ones
         const currentDifficulty = selectedDifficulty || levelStatus;
 
         // First get all questions for the difficulty
-        const { data: allQuestions, error: qError } = await supabase
+        const { data: allquestions, error: qError } = await supabase
             .from('question')
-            .select('Question_id, Title, Category')
-            .eq('Difficulty', currentDifficulty);
+            .select('question_id, title, category')
+            .eq('difficulty', currentDifficulty);
 
         if (qError) throw qError;
 
         // Filter out completed questions in JavaScript
-        const availableQuestions = allQuestions.filter(q => !completedQuestionIds.includes(q.Question_id));
+        const availablequestions = allquestions.filter(q => !completedquestionIds.includes(q.question_id));
 
         // Take only 5 questions for display
-        const questions = availableQuestions.slice(0, 5);
+        const questions = availablequestions.slice(0, 5);
 
         if (qError) throw qError;
 
@@ -462,15 +462,15 @@ export async function loadUpcomingTests(userId, levelStatus, selectedDifficulty 
 
         // Map questions to test display objects
         const tests = (questions || []).map((question, index) => {
-            console.log(`Question ${index + 1} category: "${question.Category}"`);
-            const { icon, iconColor } = getCategoryIcon(question.Category);
-            console.log(`Icon for category "${question.Category}": ${icon}`);
+            console.log(`question ${index + 1} category: "${question.category}"`);
+            const { icon, iconColor } = getCategoryIcon(question.category);
+            console.log(`Icon for category "${question.category}": ${icon}`);
             return {
-                name: question.Title,
+                name: question.title,
                 duration: `${45 + (index * 15)} minutes`, // Vary duration
                 icon: icon,
                 iconColor: iconColor,
-                param: `question-${question.Question_id}`,
+                param: `question-${question.question_id}`,
                 isTimed: isTimed
             };
         });
@@ -544,8 +544,8 @@ export async function loadRecent(userId) {
         // Get recent evaluations for the user, limit to 5, ordered by date desc
         const { data: evaluations, error } = await supabase
             .from('evaluation')
-            .select('id, Question_id, created_at')
-            .eq('Profile_id', userId)
+            .select('id, question_id, created_at')
+            .eq('profile_id', userId)
             .order('created_at', { ascending: false })
             .limit(5);
 
@@ -558,29 +558,29 @@ export async function loadRecent(userId) {
             try {
                 const { data: question, error: qError } = await supabase
                     .from('question')
-                    .select('Title, Category, Difficulty')
-                    .eq('Question_id', evaluation.Question_id)
+                    .select('title, category, difficulty')
+                    .eq('question_id', evaluation.question_id)
                     .single();
 
                 // If question doesn't exist or error, use fallback
                 const questionData = (!qError && question) ? question : {
-                    Title: 'Question No Longer Available',
-                    Category: 'N/A',
-                    Difficulty: 'Unknown'
+                    title: 'question No Longer Available',
+                    category: 'N/A',
+                    difficulty: 'Unknown'
                 };
 
                 evaluationsWithDetails.push({
                     ...evaluation,
-                    Question: questionData
+                    question: questionData
                 });
             } catch (err) {
                 console.error('Error fetching question details:', err);
                 evaluationsWithDetails.push({
                     ...evaluation,
-                    Question: {
-                        Title: 'Question No Longer Available',
-                        Category: 'N/A',
-                        Difficulty: 'Unknown'
+                    question: {
+                        title: 'question No Longer Available',
+                        category: 'N/A',
+                        difficulty: 'Unknown'
                     }
                 });
             }
@@ -607,7 +607,7 @@ export async function loadRecent(userId) {
         // Process evaluations serially since calculateScore is async
         for (const evalData of evaluationsWithDetails) {
             const score = await calculateScore(evalData); // Wait for the async function
-            const level = evalData.Question.Difficulty;
+            const level = evalData.question.difficulty;
             const date = new Date(evalData.created_at).toLocaleDateString();
 
             const iconColor = getLevelIconColor(level);
@@ -620,7 +620,7 @@ export async function loadRecent(userId) {
                         <div class="w-8 h-8 bg-${iconColor}-500/20 rounded flex items-center justify-center">
                             <i data-lucide="code" class="w-4 h-4 text-${iconColor}-500"></i>
                         </div>
-                        <span class="text-white font-medium">${evalData.Question.Title}</span>
+                        <span class="text-white font-medium">${evalData.question.title}</span>
                     </div>
                 </td>
                 <td class="py-4 text-gray-400">${date}</td>
@@ -674,14 +674,14 @@ async function calculateScore(evalData) {
         // Get the actual score from the result table for this evaluation
         const { data: result, error } = await supabase
             .from('result')
-            .select('Score')
-            .eq('Evaluation_id', evalData.id)
+            .select('score')
+            .eq('evaluation_id', evalData.id)
             .single();
 
-        if (!error && result && result.Score !== null) {
+        if (!error && result && result.score !== null) {
             // Return the raw score from database (0-10 scale)
-            console.log('Raw score from database:', result.Score);
-            return result.Score;
+            console.log('Raw score from database:', result.score);
+            return result.score;
         }
     } catch (err) {
         console.error('Error fetching score for evaluation:', evalData.id, err);
