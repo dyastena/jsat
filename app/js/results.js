@@ -14,7 +14,7 @@ export async function loadResults(userId) {
         // Guard: check if userId is valid
         if (!userId || userId === 'undefined' || typeof userId !== 'string' || userId.length !== 36) {
             console.warn('Invalid userId, loading default data');
-            populateUI(0, [92, 8.5, 38, 7.8, 2, 18], 17, 20);
+            populateUI(0, [0, 8.5, 38, 7.8, 2, 18], 17, 20, 26);
             return;
         }
 
@@ -50,7 +50,7 @@ export async function loadResults(userId) {
         // If no evaluations, set defaults
         if (!evaluationData || evaluationData.length === 0) {
             console.log('No evaluations found for user');
-            populateUI(0, [0, 0, 0, 0, 0, 0], 0, 0);
+            populateUI(0, [0, 0, 0, 0, 0, 0], 0, 0, 0);
             return;
         }
 
@@ -90,11 +90,11 @@ export async function loadResults(userId) {
         let countCorrectness = countTestsTaken * max_per_test;
 
         // Calculate averages and populate UI
-        const averages = calculateAverages(evaluationData);
+        const calculation = calculateAverages(evaluationData);
         const overall = levelData ? levelData.progress : 0;
-        const data = [...averages, recentScore];
+        const data = [...calculation.averages, recentScore];
 
-        populateUI(overall, data, totalCorrect, countCorrectness);
+        populateUI(overall, data, totalCorrect, countCorrectness, calculation.totalPoints);
 
     } catch (err) {
         console.error('Error loading results:', err);
@@ -105,7 +105,7 @@ export async function loadResults(userId) {
 /**
  * Calculate average metrics from evaluations
  * @param {Array} evaluations - Array of evaluation records
- * @returns {Object} {averages: [accuracy, efficiency, time, style, errors], totalCorrect, countCorrectness}
+ * @returns {Object} {averages: [accuracy, efficiency, time, style, errors], totalCorrect, countCorrectness, totalPoints}
  */
 function calculateAverages(evaluations) {
     let totalCorrectness = 0, countCorrectness = 0;
@@ -114,8 +114,12 @@ function calculateAverages(evaluations) {
     let totalTime = 0, countTime = 0;
     let totalRuntime = 0, countRuntime = 0;
     let totalErrors = 0;
+    let totalPoints = 0;
 
     evaluations.forEach(evaluation => {
+        // Sum all non-null values for total points
+        totalPoints += (evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0);
+
         // Correctness: assume 0-1, used for count and percentage
         if (evaluation.correctness !== null && evaluation.correctness !== undefined) {
             totalCorrectness += evaluation.correctness;
@@ -149,16 +153,17 @@ function calculateAverages(evaluations) {
         }
     });
 
-    const accuracy = countCorrectness > 0 ? Math.round((totalCorrectness / countCorrectness) * 100) : 0;
-    const efficiency = countLineCode > 0 ? Math.round((totalLineCode / countLineCode) * 10) / 10 : 0; // 1 decimal
-    const avgTime = countTime > 0 ? Math.round(totalTime / countTime) : 0;
-    const style = countRuntime > 0 ? Math.round((totalRuntime / countRuntime) * 10) / 10 : 0; // 1 decimal
-    const errors = Math.round(totalErrors);
+    const accuracy = countCorrectness > 0 ? (totalCorrectness / countCorrectness) * 10 : 0;
+    const efficiency = countRuntime > 0 ? (totalRuntime / countRuntime) * 10 : 0;
+    const avgTime = countTime > 0 ? (totalTime / countTime) * 10 : 0;
+    const style = countLineCode > 0 ? (totalLineCode / countLineCode) * 10 : 0;
+    const errors = countTime > 0 ? (totalErrors / countTime) * 10 : 0; // average errors per test * 10
 
     return {
         averages: [accuracy, efficiency, avgTime, style, errors],
         totalCorrect,
-        countCorrectness
+        countCorrectness,
+        totalPoints
     };
 }
 
@@ -166,57 +171,88 @@ function calculateAverages(evaluations) {
  * Populate the UI with results data
  * @param {number} overall - Overall progress points
  * @param {Array} averages - [accuracy %, efficiency /10, time m, style /10, errors, recent score]
- * @param {number} totalCorrect - Total number of correct questions
- * @param {number} countCorrectness - Total number of tests taken
+ * @param {number} totalCorrect - Total sum of scores
+ * @param {number} countCorrectness - Total number of tests * max_per_test
+ * @param {number} totalPoints - Total points earned
  */
-function populateUI(overall, averages, totalCorrect, countCorrectness) {
-    // Overall score: percentage of correct questions out of total tests taken
+function populateUI(overall, averages, totalCorrect, countCorrectness, totalPoints) {
+    let countTestsTaken = countCorrectness / 10; // Assuming max_per_test = 10
+    let avgScore = countTestsTaken > 0 ? totalCorrect / countTestsTaken : 0;
+    let overallPercent;
+    if (totalCorrect === 17 && countCorrectness === 20) {
+        // Default data: average score 8.5, so 85%
+        overallPercent = 85.0;
+    } else {
+        overallPercent = avgScore * 10; // Convert average score (out of 10) to percentage
+    }
+
+    // Overall score: percentage based on average of test scores
     const overallElement = document.getElementById('overall-score');
     if (overallElement) {
-        let overallPercent;
-        if (totalCorrect === 17 && countCorrectness === 20) {
-            // Original default values hardcoded to 87%
-            overallPercent = 87;
-        } else {
-            overallPercent = countCorrectness > 0 ? Math.round((totalCorrect / countCorrectness) * 100) : 0;
-        }
         overallElement.textContent = `${overallPercent}%`;
     }
 
-    // Score fraction: correct / total
+    // Score fraction: shows number of tests taken
     const fractionElement = document.getElementById('score-fraction');
     if (fractionElement) {
-        fractionElement.textContent = `${totalCorrect}/${countCorrectness} Correct`;
+        fractionElement.textContent = `${countTestsTaken} test${countTestsTaken !== 1 ? 's' : ''}`;
     }
+
+    // Determine number of unlocked cards based on overall progress thresholds
+    let unlockedCards = 1;
+    if (overall >= 100) unlockedCards = 2;
+    if (overall >= 150) unlockedCards = 3;
+    if (overall >= 200) unlockedCards = 4;
+    if (overall >= 250) unlockedCards = 5;
+    if (overall >= 300) unlockedCards = 6;
+
+    // Define unlock levels for each card
+    const unlockLevels = {
+        1: 'Novice',
+        2: 'Intermediate',
+        3: 'Advanced',
+        4: 'Expert'
+    };
 
     // Smaller cards: select all text-2xl font-bold white spans in grid
     const cards = document.querySelectorAll('.grid.grid-cols-3 .text-2xl.font-bold.text-white');
+    const cardIcons = document.querySelectorAll('.grid.grid-cols-3 .w-6.h-6');
     if (cards.length >= 6) {
         const [accuracy, efficiency, time, style, errors] = averages;
 
-        // Accuracy %
-        cards[0].textContent = `${accuracy}%`;
-
-        // Code Efficiency /10
-        cards[1].textContent = `${efficiency}/10`;
-
-        // Time Taken in minutes
-        cards[2].textContent = `${time}m`;
-
-        // Code Style /10
-        cards[3].textContent = `${style}/10`;
-
-        // Errors
-        cards[4].textContent = errors;
-
-        // Points Earned: recent score
-        cards[5].textContent = `+${averages[5]} pts`; // averages has 6 elements
+        for (let i = 0; i < 6; i++) {
+            const isUnlocked = i === 5 || i < unlockedCards;
+            if (isUnlocked) {
+                // Set values for unlocked cards
+                if (i < 5) {
+                    cards[i].textContent = `${averages[i]}%`;
+                } else {
+                    cards[i].textContent = `${totalPoints} pts`;
+                }
+                // Set original icon and color
+                if (cardIcons[i]) {
+                    const originalIcons = ['target', 'code', 'clock', 'zap', 'alert-triangle', 'star'];
+                    cardIcons[i].setAttribute('data-lucide', originalIcons[i]);
+                    cardIcons[i].style.color = ''; // reset to original color
+                }
+            } else {
+                // Set locked state
+                cards[i].textContent = `${unlockLevels[i]}`;
+                if (cardIcons[i]) {
+                    cardIcons[i].setAttribute('data-lucide', 'lock');
+                    cardIcons[i].style.color = '#9ca3af'; // gray-400
+                }
+            }
+        }
     }
+
+    // Rerender icons after attribute changes
+    lucide.createIcons();
 
     // Update total points description if present
     const totalPtsElement = document.querySelector('.grid.grid-cols-3 .text-xs.text-gray-500');
     if (totalPtsElement && totalPtsElement.textContent.includes('Total:')) {
-        totalPtsElement.textContent = `Total: ${overall} pts`;
+        totalPtsElement.textContent = `Recent: ${averages[5]} pts`;
     }
 
     console.log('UI populated with results:', { overall, averages, totalCorrect, countCorrectness });

@@ -97,21 +97,21 @@
                                 <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
                                     <i data-lucide="target" class="w-6 h-6 text-blue-500"></i>
                                 </div>
-                                <span class="text-2xl font-bold text-white">92%</span>
+                                <span class="text-2xl font-bold text-white">0%</span>
                             </div>
                             <p class="text-sm text-gray-400">Accuracy</p>
-                            <p class="text-xs text-gray-500 mt-1">Above average</p>
+                            
                         </div>
 
                         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="zap" class="w-6 h-6 text-purple-500"></i>
+                                    <i data-lucide="code" class="w-6 h-6 text-purple-500"></i>
                                 </div>
-                                <span class="text-2xl font-bold text-white">8.5/10</span>
+                                <span class="text-2xl font-bold text-white">0%</span>
                             </div>
-                            <p class="text-sm text-gray-400">Code Efficiency</p>
-                            <p class="text-xs text-gray-500 mt-1">Excellent</p>
+                            <p class="text-sm text-gray-400">Code Style</p>
+                          
                         </div>
 
                         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
@@ -119,21 +119,21 @@
                                 <div class="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
                                     <i data-lucide="clock" class="w-6 h-6 text-orange-500"></i>
                                 </div>
-                                <span class="text-2xl font-bold text-white">38m</span>
+                                <span class="text-2xl font-bold text-white">0%</span>
                             </div>
                             <p class="text-sm text-gray-400">Time Taken</p>
-                            <p class="text-xs text-gray-500 mt-1">of 45 minutes</p>
+                         
                         </div>
 
                         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="code" class="w-6 h-6 text-green-500"></i>
+                                    <i data-lucide="zap" class="w-6 h-6 text-green-500"></i>
                                 </div>
-                                <span class="text-2xl font-bold text-white">7.8/10</span>
+                                <span class="text-2xl font-bold text-white">0%</span>
                             </div>
-                            <p class="text-sm text-gray-400">Code Style</p>
-                            <p class="text-xs text-gray-500 mt-1">Good practices</p>
+                            <p class="text-sm text-gray-400">Code Efficiency</p>
+                            
                         </div>
 
                         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
@@ -141,10 +141,10 @@
                                 <div class="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
                                     <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
                                 </div>
-                                <span class="text-2xl font-bold text-white">2</span>
+                                <span class="text-2xl font-bold text-white">0%</span>
                             </div>
                             <p class="text-sm text-gray-400">Errors</p>
-                            <p class="text-xs text-gray-500 mt-1">Runtime errors</p>
+                            
                         </div>
 
                         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 fade-in">
@@ -155,7 +155,7 @@
                                 <span class="text-2xl font-bold text-white">+18</span>
                             </div>
                             <p class="text-sm text-gray-400">Points Earned</p>
-                            <p class="text-xs text-gray-500 mt-1">Total: 165 pts</p>
+                        
                         </div>
                     </div>
                 </div>
@@ -310,7 +310,7 @@
                 lucide.createIcons();
 
                 // Load results data
-                loadResults(profile.id);
+                loadResults(user.id);
 
                 // Radar Chart
                 const ctx = document.getElementById('radarChart').getContext('2d');

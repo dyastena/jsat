@@ -176,13 +176,14 @@ export async function updateDashboardStats(userId) {
         // Get user's evaluations for both completed count and accuracy calculation
         const { data: userEvaluations, error: evalError } = await supabase
             .from('evaluation')
-            .select('id')
+            .select('*')
             .eq('profile_id', userId);
 
         const completedCount = userEvaluations ? userEvaluations.length : 0;
 
         // Get average accuracy - average score of all tests taken
         let accuracy = 0;
+        let totalPoints = 0;
         if (userEvaluations && userEvaluations.length > 0) {
             const evaluationIds = userEvaluations.map(e => e.id);
             const { data: results, error: resultError } = await supabase
@@ -190,24 +191,27 @@ export async function updateDashboardStats(userId) {
                 .select('score')
                 .in('evaluation_id', evaluationIds);
 
+            // Calculate total points as sum of non-null values from evaluation table
+            // Using same logic as results.html calculateAverages function
+            userEvaluations.forEach(evaluation => {
+                // Sum all non-null values for total points
+                totalPoints += (evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0);
+                console.log(`DEBUG Evaluation ${evaluation.id}: correctness=${evaluation.correctness}, line_code=${evaluation.line_code}, time_taken=${evaluation.time_taken}, runtime=${evaluation.runtime}, error_made=${evaluation.error_made}, sum=${(evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0)}`);
+            });
+            console.log(`DEBUG Total evaluations: ${userEvaluations.length}, totalPoints calculated: ${totalPoints}`);
+
+            // Get average accuracy from result scores if available
             if (!resultError && results && results.length > 0) {
                 const totalScore = results.reduce((sum, r) => sum + (r.score || 0), 0);
                 accuracy = totalScore / results.length;
             }
         }
 
-        // Update total points (from level.progress)
-        const { data: levelData, error: levelError } = await supabase
-            .from('level')
-            .select('progress')
-            .eq('profile_id', userId)
-            .single();
-
         // Update the DOM - find each stat card individually
-        // Total Points (first stat card)
+        // Total Points (first stat card) - sum of evaluation metrics
         const totalPointsEl = document.querySelectorAll('.grid.grid-cols-3 .text-2xl.font-bold')[0];
         if (totalPointsEl) {
-            totalPointsEl.textContent = !levelError && levelData ? levelData.progress || 0 : 0;
+            totalPointsEl.textContent = totalPoints;
         }
 
         // Completed (second stat card)
@@ -219,19 +223,17 @@ export async function updateDashboardStats(userId) {
         // Accuracy (third stat card) - average score as percentage
         const accuracyEl = document.querySelectorAll('.grid.grid-cols-3 .text-2xl.font-bold')[2];
         if (accuracyEl) {
-            accuracyEl.textContent = accuracy > 0 ? `${accuracy * 10}%` : '0%';
+            accuracyEl.textContent = accuracy > 0 ? `${Math.round(accuracy * 10)}%` : '0%';
         }
 
         // Debug logging
-        console.log('DEBUG - Stats update - Points:', (!levelError && levelData ? levelData.progress || 0 : 0), 'Completed:', completedCount, 'Accuracy:', accuracy > 0 ? `${accuracy * 10}%` : '0%');
+        console.log('DEBUG - Stats update - Total Points:', totalPoints, 'Completed:', completedCount, 'Accuracy:', accuracy > 0 ? `${Math.round(accuracy * 10)}%` : '0%');
 
     } catch (error) {
         console.error('Error updating dashboard stats:', error);
         // Keep default 0 values if error
     }
 }
-
-
 
 /**
  * Get the next level name

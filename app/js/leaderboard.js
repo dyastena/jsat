@@ -67,24 +67,9 @@ async function loadLeaderboard() {
 
         console.log('Loading leaderboard with filters:', { levelFilter, periodFilter });
 
-        // Try RPC function first, fallback to manual query if it fails
-        let { data, error } = await supabase
-            .rpc('get_leaderboard_data', {
-                level_filter: levelFilter,
-                period_filter: periodFilter
-            });
-
-        console.log('RPC response:', { data, error, dataType: typeof data, dataLength: data?.length });
-
-        if (error || !data) {
-            console.log('RPC failed, using fallback query:', error);
-            // Fallback: manual query using the existing approach
-            const fallbackData = await loadLeaderboardFallback(levelFilter);
-            console.log('Fallback data:', fallbackData);
-            data = fallbackData;
-        }
-
-        console.log('Final leaderboard data loaded: Type:', typeof data, 'Length:', data?.length, 'Data:', data);
+        // Use custom calculation instead of RPC function - calculate total points from evaluation metrics
+        const data = await loadLeaderboardWithEvaluationSums(levelFilter);
+        console.log('Leaderboard data with evaluation sums loaded: Type:', typeof data, 'Length:', data?.length);
 
         leaderboardData = data || [];
         renderLeaderboard();
@@ -92,6 +77,145 @@ async function loadLeaderboard() {
 
     } catch (error) {
         console.error('Error loading leaderboard:', error);
+        // Fallback to existing RPC approach if needed
+        await loadLeaderboardFallbackRPC();
+    }
+}
+
+// New function to load leaderboard data with evaluation sums (same as dashboard)
+async function loadLeaderboardWithEvaluationSums(levelFilter) {
+    try {
+        // Get all candidate profiles
+        const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .eq('role', 'candidate');
+
+        if (profilesError) {
+            console.error('Error fetching profiles:', profilesError);
+            return [];
+        }
+
+        console.log('Found profiles:', profiles.length);
+
+        const leaderboardUsers = [];
+
+        // Process each profile to calculate points from evaluations
+        for (const profile of profiles) {
+            try {
+                // Get user's evaluations
+                const { data: evaluations, error: evalError } = await supabase
+                    .from('evaluation')
+                    .select('*')
+                    .eq('profile_id', profile.id);
+
+                if (evalError) {
+                    console.error(`Error fetching evaluations for ${profile.id}:`, evalError);
+                    continue;
+                }
+
+                // Calculate total points (same as dashboard and results)
+                let totalPoints = 0;
+                if (evaluations && evaluations.length > 0) {
+                    evaluations.forEach(evaluation => {
+                        totalPoints += (evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0);
+                    });
+                }
+
+                // Get user's level
+                const { data: levelData, error: levelError } = await supabase
+                    .from('level')
+                    .select('level_status, progress')
+                    .eq('profile_id', profile.id)
+                    .single();
+
+                const currentLevel = levelData ? levelData.level_status : 'Beginner';
+
+                // Calculate accuracy from result scores
+                let accuracy = 0;
+                let totalTests = 0;
+                if (evaluations && evaluations.length > 0) {
+                    const evaluationIds = evaluations.map(e => e.id);
+                    const { data: results, error: resultError } = await supabase
+                        .from('result')
+                        .select('score')
+                        .in('evaluation_id', evaluationIds);
+
+                    if (!resultError && results && results.length > 0) {
+                        const totalScore = results.reduce((sum, r) => sum + (r.score || 0), 0);
+                        accuracy = totalScore / results.length;
+                        totalTests = evaluations.length;
+                    }
+                }
+
+                leaderboardUsers.push({
+                    id: profile.id,
+                    first_name: profile.first_name || 'Anonymous',
+                    last_name: profile.last_name || '',
+                    username: createUsername(profile),
+                    total_points: totalPoints,
+                    current_level: currentLevel,
+                    accuracy_percent: Math.round(accuracy * 10),
+                    total_tests: totalTests
+                });
+
+            } catch (err) {
+                console.error(`Error processing profile ${profile.id}:`, err);
+                // Continue with other profiles
+            }
+        }
+
+        // Sort by total points descending
+        leaderboardUsers.sort((a, b) => b.total_points - a.total_points);
+
+        // Assign ranks
+        leaderboardUsers.forEach((user, index) => {
+            user.rank = index + 1;
+        });
+
+        // Apply level filter if specified
+        let filteredUsers = leaderboardUsers;
+        if (levelFilter && levelFilter !== 'all') {
+            filteredUsers = leaderboardUsers.filter(user => user.current_level === levelFilter);
+            // Re-rank within filtered results
+            filteredUsers.forEach((user, index) => {
+                user.rank = index + 1;
+            });
+        }
+
+        console.log('Leaderboard data calculated from evaluation sums:', filteredUsers);
+        return filteredUsers;
+
+    } catch (error) {
+        console.error('Error loading leaderboard with evaluation sums:', error);
+        return [];
+    }
+}
+
+// Fallback RPC function call (original approach)
+async function loadLeaderboardFallbackRPC() {
+    try {
+        const selectedLevelBtn = document.querySelector('.filter-btn.selected');
+        const levelFilter = selectedLevelBtn ? selectedLevelBtn.getAttribute('data-level') : 'all';
+
+        const selectedPeriodBtn = document.querySelector('.period-btn.selected');
+        const periodFilter = selectedPeriodBtn ? selectedPeriodBtn.getAttribute('data-period') : 'all';
+
+        let { data, error } = await supabase
+            .rpc('get_leaderboard_data', {
+                level_filter: levelFilter,
+                period_filter: periodFilter
+            });
+
+        if (error || !data) {
+            data = loadLeaderboardFallback(levelFilter);
+        }
+
+        leaderboardData = data || [];
+        renderLeaderboard();
+        await updateUserRanking();
+    } catch (error) {
+        console.error('Fallback RPC loading failed:', error);
     }
 }
 
@@ -208,7 +332,7 @@ function updatePodiumCard(card, userData, rank) {
 
     const scoreElement = card.querySelector('span.text-2xl, span.text-3xl');
     if (scoreElement) {
-        scoreElement.textContent = userData.total_points.toFixed(1);
+        scoreElement.textContent = userData.total_points % 1 === 0 ? userData.total_points.toFixed(0) : userData.total_points.toFixed(1);
     }
 
     const levelBadge = card.querySelector('.bg-purple-500\\/20');
@@ -248,7 +372,7 @@ function updateRankingsTable() {
                 <td class="px-6 py-4">
                     <div class="flex items-center space-x-1">
                         <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i>
-                        <span class="text-white font-semibold">${user.total_points.toFixed(1)}</span>
+                        <span class="text-white font-semibold">${user.total_points % 1 === 0 ? user.total_points.toFixed(0) : user.total_points.toFixed(1)}</span>
                     </div>
                 </td>
                 <td class="px-6 py-4 text-white">${user.accuracy_percent}%</td>
@@ -360,16 +484,35 @@ async function updateUserRanking() {
         }
     }
 
+    // Calculate current user's actual total points from evaluations (same logic as main calculation)
+    let userActualPoints = 0;
+    try {
+        const { data: userEvaluations, error: userEvalError } = await supabase
+            .from('evaluation')
+            .select('correctness, line_code, time_taken, runtime, error_made')
+            .eq('profile_id', currentUser.id);
+
+        if (!userEvalError && userEvaluations && userEvaluations.length > 0) {
+            userEvaluations.forEach(evaluation => {
+                userActualPoints += (evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0);
+            });
+        }
+
+        console.log('User actual points from evaluations:', userActualPoints);
+    } catch (evalError) {
+        console.error('Error calculating user actual points:', evalError);
+    }
+
     // Update stats with more specific selectors
     const yourRankingDiv = document.querySelector('.bg-gradient-to-br.from-emerald-500\\/20.to-blue-500\\/20 .space-y-2');
     if (yourRankingDiv) {
         const statElements = yourRankingDiv.querySelectorAll('.flex.items-center.justify-between');
         if (statElements.length >= 3) {
-            // Always use user's data, fallback to global if needed
-            const displayData = userData || globalUserData;
-            statElements[0].querySelector('.text-white.font-semibold').textContent = displayData.total_points.toFixed(1);
-            statElements[1].querySelector('.text-white.font-semibold').textContent = displayData.total_tests;
-            statElements[2].querySelector('.text-white.font-semibold').textContent = displayData.accuracy_percent + '%';
+            // Use calculated points if available, otherwise fallback to RPC data
+            const pointsToShow = userActualPoints > 0 ? userActualPoints : (userData || globalUserData)?.total_points || 0;
+            statElements[0].querySelector('.text-white.font-semibold').textContent = pointsToShow % 1 === 0 ? pointsToShow.toFixed(0) : pointsToShow.toFixed(1);
+            statElements[1].querySelector('.text-white.font-semibold').textContent = (userData || globalUserData)?.total_tests || 0;
+            statElements[2].querySelector('.text-white.font-semibold').textContent = ((userData || globalUserData)?.accuracy_percent || 0) + '%';
         }
     }
 
@@ -379,7 +522,7 @@ async function updateUserRanking() {
         const usernameCell = row.querySelector('p.text-xs.text-gray-400');
         if (usernameCell && usernameCell.textContent === `@${globalUserData.username}`) {
             const pointsCell = row.querySelector('span.font-semibold');
-            if (pointsCell) pointsCell.textContent = globalUserData.total_points.toFixed(1);
+            if (pointsCell) pointsCell.textContent = globalUserData.total_points % 1 === 0 ? globalUserData.total_points.toFixed(0) : globalUserData.total_points.toFixed(1);
         }
     });
 }
