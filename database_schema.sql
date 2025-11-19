@@ -263,17 +263,17 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION accumulate_level_progress_after_result()
 RETURNS TRIGGER AS $$
 DECLARE
-    profile_id uuid;
+    user_profile_id uuid;
 BEGIN
     -- Get the profile id from the evaluation linked to this result
-    SELECT profile_id INTO profile_id
+    SELECT profile_id INTO user_profile_id
     FROM public.evaluation
     WHERE id = NEW.evaluation_id;
 
     -- Add the new score to the existing progress
     UPDATE public.level
     SET progress = COALESCE(progress,0) + NEW.score
-    WHERE profile_id = profile_id;
+    WHERE profile_id = user_profile_id;
 
     RETURN NEW;
 END;

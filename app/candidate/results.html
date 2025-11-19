@@ -298,19 +298,34 @@
         </main>
     </div>
 
-    <script type="module">
+        <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
         import { loadResults } from '../js/results.js';
+        import { getAveragePerformance } from '../js/results.js';
 
         // Protect this page, only 'candidate' role is authorized
-        protectPage(['candidate']).then(({ user, profile }) => {
+        protectPage(['candidate']).then(async ({ user, profile }) => {
             if (user && profile) {
                 // User is authorized, proceed with rendering the results page
                 lucide.createIcons();
 
-                // Load results data
-                loadResults(user.id);
+                // Load results data and average performance data
+                const [resultData, avgPerformance] = await Promise.all([
+                    loadResults(user.id),
+                    getAveragePerformance()
+                ]);
+                const averages = resultData.averages || [0, 0, 0, 0, 0];
+
+                // Map averages to chart labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime']
+                // averages: [accuracy, efficiency, avgTime, style, errors]
+                const chartData = [
+                    averages[0], // Accuracy (direct: higher is better)
+                    averages[1], // Efficiency (direct: higher is better)
+                    averages[3], // Code Style (direct: higher is better)
+                    averages[4] === 0 ? 0 : Math.max(0, 100 - averages[4]), // Error Handling (if no data/errors=0, show 0; else invert since fewer errors = better)
+                    averages[2] === 0 ? 0 : Math.max(0, 100 - averages[2])  // Runtime (if no data/time=0, show 0; else invert since less time = better)
+                ];
 
                 // Radar Chart
                 const ctx = document.getElementById('radarChart').getContext('2d');
@@ -320,14 +335,14 @@
                         labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime'],
                         datasets: [{
                             label: 'Your Performance',
-                            data: [92, 85, 78, 65, 88],
+                            data: chartData,
                             backgroundColor: 'rgba(16, 185, 129, 0.2)',
                             borderColor: 'rgba(16, 185, 129, 1)',
                             borderWidth: 2,
                             pointBackgroundColor: 'rgba(16, 185, 129, 1)'
                         }, {
                             label: 'Average Performance',
-                            data: [75, 70, 72, 68, 75],
+                            data: avgPerformance,
                             backgroundColor: 'rgba(100, 116, 139, 0.2)',
                             borderColor: 'rgba(100, 116, 139, 1)',
                             borderWidth: 2,

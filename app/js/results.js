@@ -4,8 +4,82 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
+ * Fetch average performance metrics across all users
+ * @returns {Promise<Array>} [accuracy, efficiency, style, errorHandling, runtime]
+ */
+export async function getAveragePerformance() {
+    try {
+        // Fetch all evaluation data for candidate users
+        const { data: evaluations, error } = await supabase
+            .from('evaluation')
+            .select('correctness, line_code, runtime, error_made, time_taken, profile_id');
+
+        if (error) {
+            console.error('Error fetching average performance:', error);
+            return [75, 70, 72, 68, 75]; // Fallback to defaults
+        }
+
+        if (!evaluations || evaluations.length === 0) {
+            return [0, 0, 0, 0, 0]; // Return 0s if no evaluation data exists in system
+        }
+
+        // Calculate averages
+        const totalEntries = evaluations.length;
+        let totalCorrectness = 0, countCorrectness = 0;
+        let totalLineCode = 0, countLineCode = 0;
+        let totalRuntime = 0, countRuntime = 0;
+        let totalErrors = 0, countErrors = 0;
+        let totalTimeTaken = 0, countTime = 0;
+
+        evaluations.forEach(evaluation => {
+            if (evaluation.correctness !== null) {
+                totalCorrectness += evaluation.correctness;
+                countCorrectness++;
+            }
+            if (evaluation.line_code !== null) {
+                totalLineCode += evaluation.line_code;
+                countLineCode++;
+            }
+            if (evaluation.runtime !== null) {
+                totalRuntime += evaluation.runtime;
+                countRuntime++;
+            }
+            if (evaluation.error_made !== null) {
+                totalErrors += evaluation.error_made;
+                countErrors++;
+            }
+            if (evaluation.time_taken !== null) {
+                totalTimeTaken += evaluation.time_taken;
+                countTime++;
+            }
+        });
+
+        // Calculate average percentages (assuming raw scores are 0-1 or 0-10)
+        const avgAccuracy = countCorrectness > 0 ? (totalCorrectness / countCorrectness) * 10 : 0;
+        const avgEfficiency = countRuntime > 0 ? (totalRuntime / countRuntime) * 10 : 0;
+        const avgStyle = countLineCode > 0 ? (totalLineCode / countLineCode) * 10 : 0;
+        const avgErrors = countErrors > 0 ? (totalErrors / countErrors) * 10 : 0; // Scale to 0-100 range
+        const avgTime = countTime > 0 ? (totalTimeTaken / countTime) * 10 : 0;
+
+        // Return in chart format: [Accuracy, Efficiency, Style, ErrorHandling (inverted), Runtime (inverted)]
+        // For inverted metrics: if no data (avg=0), show 0; if data exists, invert (100 - value)
+        return [
+            Math.min(100, Math.max(0, avgAccuracy)),
+            Math.min(100, Math.max(0, avgEfficiency)),
+            Math.min(100, Math.max(0, avgStyle)),
+            Math.min(100, Math.max(0, avgErrors === 0 ? 0 : 100 - avgErrors)), // Fewer errors = better; if no data, show 0
+            Math.min(100, Math.max(0, avgTime === 0 ? 0 : 100 - avgTime))     // Less time = better; if no data, show 0
+        ];
+    } catch (err) {
+        console.error('Error getting average performance:', err);
+        return [75, 70, 72, 68, 75];
+    }
+}
+
+/**
  * Load and display results data
  * @param {string} userId - The user's ID
+ * @returns {Object} The calculated results data
  */
 export async function loadResults(userId) {
     try {
@@ -14,8 +88,9 @@ export async function loadResults(userId) {
         // Guard: check if userId is valid
         if (!userId || userId === 'undefined' || typeof userId !== 'string' || userId.length !== 36) {
             console.warn('Invalid userId, loading default data');
-            populateUI(0, [0, 8.5, 38, 7.8, 2, 18], 17, 20, 26);
-            return;
+            const defaultAverages = [0, 8.5, 38, 7.8, 2, 18];
+            populateUI(0, defaultAverages, 17, 20, 26);
+            return { averages: defaultAverages };
         }
 
         // Fetch overall progress from level table
@@ -28,7 +103,7 @@ export async function loadResults(userId) {
         if (levelError && levelError.code !== 'PGRST116') { // Allow missing level data
             console.error('Error fetching level data:', levelError);
             alert('Error loading level data: ' + levelError.message);
-            return;
+            return { averages: [0, 0, 0, 0, 0] };
         }
 
         console.log('Level data:', levelData);
@@ -42,7 +117,7 @@ export async function loadResults(userId) {
         if (evalError) {
             console.error('Error fetching evaluation data:', evalError);
             alert('Error loading evaluation data: ' + evalError.message);
-            return;
+            return { averages: [0, 0, 0, 0, 0] };
         }
 
         console.log('Evaluation data:', evaluationData);
@@ -50,8 +125,9 @@ export async function loadResults(userId) {
         // If no evaluations, set defaults
         if (!evaluationData || evaluationData.length === 0) {
             console.log('No evaluations found for user');
-            populateUI(0, [0, 0, 0, 0, 0, 0], 0, 0, 0);
-            return;
+            const defaultAverages = [0, 0, 0, 0, 0];
+            populateUI(0, [...defaultAverages, 0], 0, 0, 0);
+            return { averages: defaultAverages };
         }
 
         // Fetch recent result score
@@ -78,7 +154,7 @@ export async function loadResults(userId) {
 
         if (resultAllError) {
             console.error('Error fetching all result data:', resultAllError);
-            return;
+            return { averages: [0, 0, 0, 0, 0] };
         }
 
         console.log('All result data:', resultData);
@@ -96,9 +172,12 @@ export async function loadResults(userId) {
 
         populateUI(overall, data, totalCorrect, countCorrectness, calculation.totalPoints);
 
+        return { averages: calculation.averages };
+
     } catch (err) {
         console.error('Error loading results:', err);
         alert('Failed to load results: ' + err.message);
+        return { averages: [0, 0, 0, 0, 0] };
     }
 }
 
