@@ -88,7 +88,8 @@ export async function loadResults(userId) {
         // Guard: check if userId is valid
         if (!userId || userId === 'undefined' || typeof userId !== 'string' || userId.length !== 36) {
             console.warn('Invalid userId, loading default data');
-            const defaultAverages = [0, 8.5, 38, 7.8, 2, 18];
+            // Fixed: time should be 3.8 not 38 (normalized scale where 30 minutes is be 3.0 in 10s scale)
+            const defaultAverages = [0, 8.5, 3.8, 7.8, 2, 18];
             populateUI(0, defaultAverages, 17, 20, 26);
             return { averages: defaultAverages };
         }
@@ -172,7 +173,11 @@ export async function loadResults(userId) {
 
         populateUI(overall, data, totalCorrect, countCorrectness, calculation.totalPoints);
 
-        return { averages: calculation.averages };
+        return {
+            averages: calculation.averages,
+            totalScore: totalCorrect,
+            testCount: countTestsTaken
+        };
 
     } catch (err) {
         console.error('Error loading results:', err);
@@ -247,57 +252,46 @@ function calculateAverages(evaluations) {
 }
 
 /**
- * Populate the CART Skill Classification card
+ * Populate the CART Skill Classification card showing overall performance and individual factors
+ * @param {number} totalScore - Total score from all user's test results
+ * @param {number} testCount - Number of tests taken by the user
  * @param {Array} averages - [accuracy, efficiency, avgTime, style, errors] all 0-10
  */
-export function populateClassificationCard(averages) {
+export function populateClassificationCard(totalScore, testCount, averages) {
     try {
-        console.log('Populating classification card with averages:', averages);
+        console.log('Populating classification card with totalScore:', totalScore, 'testCount:', testCount);
 
         // Validate input
-        if (!averages || averages.length < 5) {
-            console.error('Invalid averages array:', averages);
-            averages = [0, 0, 0, 0, 0];
+        if (typeof totalScore !== 'number' || typeof testCount !== 'number') {
+            console.error('Invalid input - totalScore:', totalScore, 'testCount:', testCount);
+            totalScore = 0;
+            testCount = 1;
         }
 
-        const [accuracy, efficiency, avgTime, style, errors] = averages;
+        // Calculate average score per test (assuming each test is out of 10)
+        const avgScorePerTest = testCount > 0 ? totalScore / testCount : 0;
+        const avgScoreScaled = Math.min(10, Math.max(0, avgScorePerTest)); // Cap at 0-10 scale
 
-        // Calculate scores for each skill (all 0-10)
-        const problemSolving = Math.max(0, Math.min(10, accuracy || 0));
-        const algorithmDesign = Math.max(0, Math.min(10, efficiency || 0));
-        const codeQuality = Math.max(0, Math.min(10, style || 0));
-        const timeEfficiency = Math.max(0, Math.min(10, avgTime === 0 ? 0 : Math.max(0, 10 - avgTime))); // Invert time: less time = better, but if no data show 0
-        const errorHandling = errors === 0 ? 0 : Math.max(0, Math.min(10, 10 - errors)); // If no errors data (0), show 0; otherwise invert
+        console.log('Calculated scores:', { totalScore, testCount, avgScorePerTest, avgScoreScaled });
 
-        const avgSkill = (problemSolving + algorithmDesign + codeQuality + timeEfficiency + errorHandling) / 5;
-
-        console.log('Calculated skill scores:', {
-            problemSolving,
-            algorithmDesign,
-            codeQuality,
-            timeEfficiency,
-            errorHandling,
-            avgSkill
-        });
-
-        // Determine classification level
+        // Determine classification level based on average score (0-10 scale)
         let level = 'NOVICE';
         let description = 'Entry-level programmer with basic coding skills';
         let icon = 'trending-up';
 
-        if (avgSkill <= 2) {
+        if (avgScoreScaled <= 2) {
             level = 'NOVICE';
             description = 'Entry-level programmer with basic coding skills';
             icon = 'trending-up';
-        } else if (avgSkill <= 4) {
+        } else if (avgScoreScaled <= 4) {
             level = 'BEGINNER';
             description = 'Developing fundamentals with growing proficiency';
             icon = 'zap';
-        } else if (avgSkill <= 6) {
+        } else if (avgScoreScaled <= 6) {
             level = 'INTERMEDIATE';
             description = 'Solid coding skills with good problem-solving abilities';
             icon = 'target';
-        } else if (avgSkill <= 8) {
+        } else if (avgScoreScaled <= 8) {
             level = 'ADVANCED';
             description = 'Advanced coder with strong efficiency and code quality';
             icon = 'star';
@@ -307,34 +301,34 @@ export function populateClassificationCard(averages) {
             icon = 'award';
         }
 
-        console.log('Classification determined:', { level, description, icon });
+        console.log('Classification determined:', { level, description, icon, avgScoreScaled });
 
         // Update elements
         const levelEl = document.getElementById('classification-level');
         if (levelEl) {
             levelEl.textContent = level;
-            console.log('Updated classification level element');
-        } else {
-            console.warn('classification-level element not found');
         }
 
         const iconEl = document.getElementById('classification-icon');
         if (iconEl) {
             iconEl.setAttribute('data-lucide', icon);
-            console.log('Updated classification icon element');
-        } else {
-            console.warn('classification-icon element not found');
         }
 
         const descEl = document.getElementById('classification-description');
         if (descEl) {
             descEl.textContent = description;
-            console.log('Updated classification description element');
-        } else {
-            console.warn('classification-description element not found');
         }
 
-        // Update scores and bars
+        // Calculate scores for each skill (using the averages passed in)
+        const [accuracy, efficiency, avgTime, style, errors] = averages || [0, 0, 0, 0, 0];
+
+        const problemSolving = Math.max(0, Math.min(10, accuracy || 0));
+        const algorithmDesign = Math.max(0, Math.min(10, efficiency || 0));
+        const codeQuality = Math.max(0, Math.min(10, style || 0));
+        const timeEfficiency = Math.max(0, Math.min(10, avgTime === 0 ? 0 : Math.max(0, 10 - avgTime)));
+        const errorHandling = errors === 0 ? 0 : Math.max(0, Math.min(10, 10 - errors));
+
+        // Update the individual skill factors - show all for all levels
         const metrics = [
             { id: 'problem-solving', score: problemSolving },
             { id: 'algorithm-design', score: algorithmDesign },
@@ -346,18 +340,17 @@ export function populateClassificationCard(averages) {
         metrics.forEach(metric => {
             const scoreEl = document.getElementById(`${metric.id}-score`);
             const barEl = document.getElementById(`${metric.id}-bar`);
-            
+
             if (scoreEl) scoreEl.textContent = `${metric.score.toFixed(1)}/10`;
             if (barEl) barEl.style.width = `${metric.score * 10}%`;
         });
 
-        // Recreate lucide icons to ensure new icon is rendered
+        // Recreate lucide icons
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
-            console.log('Lucide icons recreated');
         }
 
-        console.log('Classification card populated successfully');
+        console.log('Classification card populated successfully with overall score and individual factors');
     } catch (error) {
         console.error('Error populating classification card:', error);
     }

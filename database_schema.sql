@@ -219,8 +219,10 @@ DECLARE
     factor_count int := 0;
     total numeric := 0;
     calc_score numeric;
+    avg_skill numeric := 0;
+    cart_level text;
 BEGIN
-    -- Sum non-null factors
+    -- Sum non-null factors for basic score calculation
     IF NEW.correctness IS NOT NULL THEN
         total := total + NEW.correctness;
         factor_count := factor_count + 1;
@@ -252,9 +254,71 @@ BEGIN
         calc_score := 0;
     END IF;
 
-    -- Insert into result, only using evaluation_id and calculated score
+    -- Calculate CART skill average for classification
+    -- This mimics the frontend logic: average of 5 skills (0-10 scale each)
+    -- Where time and errors are inverted (less time/errors = higher score)
+    DECLARE
+        problem_solving numeric := 0;
+        algorithm_design numeric := 0;
+        code_quality numeric := 0;
+        time_efficiency numeric := 0;
+        error_handling numeric := 0;
+        skill_count int := 0;
+    BEGIN
+        -- Problem Solving (accuracy)
+        IF NEW.correctness IS NOT NULL THEN
+            problem_solving := LEAST(10, GREATEST(0, NEW.correctness));
+            skill_count := skill_count + 1;
+        END IF;
+
+        -- Algorithm Design (runtime/efficiency)
+        IF NEW.runtime IS NOT NULL THEN
+            algorithm_design := LEAST(10, GREATEST(0, NEW.runtime));
+            skill_count := skill_count + 1;
+        END IF;
+
+        -- Code Quality (line_code/style)
+        IF NEW.line_code IS NOT NULL THEN
+            code_quality := LEAST(10, GREATEST(0, NEW.line_code));
+            skill_count := skill_count + 1;
+        END IF;
+
+        -- Time Efficiency (inverted: less time = higher score)
+        IF NEW.time_taken IS NOT NULL THEN
+            time_efficiency := LEAST(10, GREATEST(0, 10 - NEW.time_taken));
+            skill_count := skill_count + 1;
+        END IF;
+
+        -- Error Handling (inverted: fewer errors = higher score)
+        IF NEW.error_made IS NOT NULL THEN
+            error_handling := LEAST(10, GREATEST(0, 10 - NEW.error_made));
+            skill_count := skill_count + 1;
+        END IF;
+
+        -- Calculate CART skill average
+        IF skill_count > 0 THEN
+            avg_skill := (COALESCE(problem_solving, 0) + COALESCE(algorithm_design, 0) +
+                         COALESCE(code_quality, 0) + COALESCE(time_efficiency, 0) +
+                         COALESCE(error_handling, 0)) / skill_count;
+        END IF;
+
+        -- Determine CART classification based on average skill (0-10 scale)
+        IF avg_skill <= 2.5 THEN
+            cart_level := 'NOVICE';
+        ELSIF avg_skill <= 5.0 THEN
+            cart_level := 'BEGINNER';
+        ELSIF avg_skill <= 7.5 THEN
+            cart_level := 'INTERMEDIATE';
+        ELSIF avg_skill <= 9.0 THEN
+            cart_level := 'ADVANCED';
+        ELSE
+            cart_level := 'EXPERT';
+        END IF;
+    END;
+
+    -- Insert into result with calculated CART evaluation
     INSERT INTO public.result(evaluation_id, cart_eval, score)
-    VALUES (NEW.id, 'Pending', calc_score);
+    VALUES (NEW.id, cart_level, calc_score);
 
     RETURN NEW;
 END;

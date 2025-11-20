@@ -326,8 +326,10 @@
                 ]);
                 const averages = resultData.averages || [0, 0, 0, 0, 0];
 
-                // Populate classification card
-                populateClassificationCard(averages);
+                // Populate classification card with total score, test count, and individual factors
+                const totalScore = resultData.totalScore || 0;
+                const testCount = resultData.testCount || 0;
+                populateClassificationCard(totalScore, testCount, averages);
 
                 // Map averages to chart labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime']
                 // averages: [accuracy, efficiency, avgTime, style, errors]
