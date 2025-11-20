@@ -303,16 +303,16 @@ BEGIN
         END IF;
 
         -- Determine CART classification based on average skill (0-10 scale)
-        IF avg_skill <= 2.5 THEN
-            cart_level := 'NOVICE';
-        ELSIF avg_skill <= 5.0 THEN
-            cart_level := 'BEGINNER';
-        ELSIF avg_skill <= 7.5 THEN
-            cart_level := 'INTERMEDIATE';
-        ELSIF avg_skill <= 9.0 THEN
+        IF avg_skill <= 2 THEN
+            cart_level := 'FOUNDATION';
+        ELSIF avg_skill <= 4 THEN
+            cart_level := 'BASIC';
+        ELSIF avg_skill <= 6 THEN
+            cart_level := 'PROFICIENT';
+        ELSIF avg_skill <= 8 THEN
             cart_level := 'ADVANCED';
         ELSE
-            cart_level := 'EXPERT';
+            cart_level := 'MASTERY';
         END IF;
     END;
 

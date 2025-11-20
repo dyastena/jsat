@@ -147,10 +147,15 @@ export async function loadResults(userId) {
 
         console.log('Recent score:', recentScore);
 
-        // Fetch all user's results with scores
+        // Fetch all user's results with scores and cart_eval, joining with questions
         const { data: resultData, error: resultAllError } = await supabase
             .from('result')
-            .select('score')
+            .select(`
+                score,
+                cart_eval,
+                evaluation_id,
+                evaluation!inner(question_id, question!inner(title))
+            `)
             .in('evaluation_id', evaluationData.map(e => e.id));
 
         if (resultAllError) {
@@ -158,7 +163,7 @@ export async function loadResults(userId) {
             return { averages: [0, 0, 0, 0, 0] };
         }
 
-        console.log('All result data:', resultData);
+        console.log('All result data with questions:', resultData);
 
         // Calculate totals from result data
         let max_per_test = 10; // max score per test
@@ -176,7 +181,8 @@ export async function loadResults(userId) {
         return {
             averages: calculation.averages,
             totalScore: totalCorrect,
-            testCount: countTestsTaken
+            testCount: countTestsTaken,
+            testResults: resultData || []  // Include detailed test results with titles, scores, cart_eval
         };
 
     } catch (err) {
@@ -275,29 +281,29 @@ export function populateClassificationCard(totalScore, testCount, averages) {
         console.log('Calculated scores:', { totalScore, testCount, avgScorePerTest, avgScoreScaled });
 
         // Determine classification level based on average score (0-10 scale)
-        let level = 'NOVICE';
-        let description = 'Entry-level programmer with basic coding skills';
+        let level = 'RANK D';
+        let description = 'Fundamental coding abilities with basic comprehension';
         let icon = 'trending-up';
 
         if (avgScoreScaled <= 2) {
-            level = 'NOVICE';
-            description = 'Entry-level programmer with basic coding skills';
+            level = 'RANK D';
+            description = 'Fundamental coding abilities with basic comprehension';
             icon = 'trending-up';
         } else if (avgScoreScaled <= 4) {
-            level = 'BEGINNER';
-            description = 'Developing fundamentals with growing proficiency';
+            level = 'RANK C';
+            description = 'Growing competency with emerging problem-solving skills';
             icon = 'zap';
         } else if (avgScoreScaled <= 6) {
-            level = 'INTERMEDIATE';
-            description = 'Solid coding skills with good problem-solving abilities';
+            level = 'RANK B';
+            description = 'Established problem-solving with reliable code execution';
             icon = 'target';
         } else if (avgScoreScaled <= 8) {
-            level = 'ADVANCED';
-            description = 'Advanced coder with strong efficiency and code quality';
+            level = 'RANK A';
+            description = 'Advanced efficiency and code quality across multiple domains';
             icon = 'star';
         } else {
-            level = 'EXPERT';
-            description = 'Master-level programming with exceptional skills';
+            level = 'RANK S';
+            description = 'Elite mastery with exceptional coding skills';
             icon = 'award';
         }
 
@@ -337,12 +343,31 @@ export function populateClassificationCard(totalScore, testCount, averages) {
             { id: 'error-handling', score: errorHandling }
         ];
 
-        metrics.forEach(metric => {
-            const scoreEl = document.getElementById(`${metric.id}-score`);
-            const barEl = document.getElementById(`${metric.id}-bar`);
+        // Map classification factors to correspond with the small card display order
+        // Small cards show: [0]Accuracy, [3]Code Style, [2]Time Taken, [1]Code Efficiency, [4]Errors
+        const factorMappings = [
+            { id: 'problem-solving', averageIndex: 0 },  // maps to Accuracy %
+            { id: 'algorithm-design', averageIndex: 3 },  // maps to Code Style %
+            { id: 'code-quality', averageIndex: 2 },     // maps to Time Taken %
+            { id: 'time-efficiency', averageIndex: 1 },  // maps to Code Efficiency %
+            { id: 'error-handling', averageIndex: 4 }    // maps to Errors %
+        ];
 
-            if (scoreEl) scoreEl.textContent = `${metric.score.toFixed(1)}/10`;
-            if (barEl) barEl.style.width = `${metric.score * 10}%`;
+        console.log('Populating factor scores:', factorMappings);
+
+        factorMappings.forEach(mapping => {
+            const scoreEl = document.getElementById(`${mapping.id}-score`);
+            const barEl = document.getElementById(`${mapping.id}-bar`);
+            const percentageValue = averages[mapping.averageIndex] || 0;
+            const decimalValue = percentageValue / 10;
+            const displayValue = decimalValue % 1 === 0 ? decimalValue.toFixed(0) : decimalValue.toFixed(1);
+
+            console.log(`Setting ${mapping.id}-score to: ${displayValue}/10`);
+            console.log(`Setting ${mapping.id}-bar width to: ${percentageValue}%`);
+
+            // Display as X/10 or X.X/10 format (decimal only if needed)
+            if (scoreEl) scoreEl.textContent = `${displayValue}/10`;
+            if (barEl) barEl.style.width = `${percentageValue}%`;  // Keep percentage for bar width
         });
 
         // Recreate lucide icons
@@ -353,6 +378,112 @@ export function populateClassificationCard(totalScore, testCount, averages) {
         console.log('Classification card populated successfully with overall score and individual factors');
     } catch (error) {
         console.error('Error populating classification card:', error);
+    }
+}
+
+/**
+ * Populate the question-by-question breakdown cards with real test data
+ * @param {Array} testResults - Array of test results with question titles, scores, and cart_eval
+ */
+export function populateTestBreakdown(testResults) {
+    try {
+        console.log('Populating question-by-question cards with', testResults?.length || 0, 'results');
+
+        const container = document.querySelector('.test-breakdown-container');
+
+        if (!container) {
+            console.warn('Test breakdown container not found');
+            return;
+        }
+
+        // Clear existing content
+        container.innerHTML = '';
+
+        if (!testResults || testResults.length === 0) {
+            // Show no tests message
+            const noTestsCard = document.createElement('div');
+            noTestsCard.className = 'bg-gray-800/50 rounded-lg p-4 border border-gray-700';
+            noTestsCard.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 flex-1">
+                        <div class="w-10 h-10 bg-gray-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="help-circle" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-white font-semibold">No tests completed yet</h4>
+                            <p class="text-sm text-gray-400">Complete tests to see detailed results here</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-gray-500 font-bold text-lg">--</p>
+                        <p class="text-xs text-gray-400">Score</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(noTestsCard);
+            return;
+        }
+
+        // Create a card for each test result
+        testResults.forEach((result, index) => {
+            const questionTitle = result.evaluation?.question?.title || 'Unknown Question';
+            const score = result.score || 0;
+            const cartEval = result.cart_eval || 'UNKNOWN';
+
+            // Determine icon and color based on score
+            let iconName = 'minus';
+            let iconColor = 'yellow';
+            let scoreText = '';
+            let scoreColor = 'yellow';
+
+            if (score >= 8) {
+                iconName = 'check';
+                iconColor = 'green';
+                scoreText = 'Excellent';
+                scoreColor = 'green';
+            } else if (score >= 6) {
+                iconName = 'check';
+                iconColor = 'green';
+                scoreText = 'Good';
+                scoreColor = 'green';
+            } else {
+                iconName = 'minus';
+                iconColor = 'yellow';
+                scoreText = 'Partial credit';
+            }
+
+            const testCard = document.createElement('div');
+            testCard.className = 'bg-gray-800/50 rounded-lg p-4 border border-gray-700';
+
+            testCard.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 flex-1">
+                        <div class="w-10 h-10 bg-${iconColor}-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="${iconName}" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-white font-semibold">${index + 1}: ${questionTitle}</h4>
+                            <p class="text-sm text-gray-400">${cartEval} Level | Algorithm design, Problem solving</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-emerald-500 font-bold text-lg">${score}/10</p>
+                        <p class="text-xs text-gray-400">${scoreText}</p>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(testCard);
+        });
+
+        // Recreate lucide icons after adding new content
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
+        console.log('Question-by-question cards populated successfully');
+    } catch (error) {
+        console.error('Error populating question-by-question cards:', error);
     }
 }
 
