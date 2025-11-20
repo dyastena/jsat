@@ -169,50 +169,59 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="text-sm text-gray-400 mb-1">Your Classification</p>
-                                    <p class="text-3xl font-bold text-emerald-400">INTERMEDIATE</p>
+                                    <p class="text-3xl font-bold text-emerald-400" id="classification-level">LOADING</p>
                                 </div>
                                 <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center">
-                                    <i data-lucide="trending-up" class="w-10 h-10 text-white"></i>
+                                    <i data-lucide="trending-up" class="w-10 h-10 text-white" id="classification-icon"></i>
                                 </div>
                             </div>
-                            <p class="text-sm text-gray-300">Based on multi-factor analysis including accuracy, efficiency, and code quality</p>
+                            <p class="text-sm text-gray-300" id="classification-description">Loading...</p>
                         </div>
 
                         <div class="space-y-3">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm text-gray-400">Problem Solving</span>
-                                    <span class="text-sm font-semibold text-white">8.5/10</span>
+                                    <span class="text-sm font-semibold text-white" id="problem-solving-score">0/10</span>
                                 </div>
                                 <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-emerald-500 rounded-full" style="width: 85%"></div>
+                                    <div class="h-full bg-emerald-500 rounded-full" id="problem-solving-bar"></div>
                                 </div>
                             </div>
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm text-gray-400">Algorithm Design</span>
-                                    <span class="text-sm font-semibold text-white">7.8/10</span>
+                                    <span class="text-sm font-semibold text-white" id="algorithm-design-score">0/10</span>
                                 </div>
                                 <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-emerald-500 rounded-full" style="width: 78%"></div>
+                                    <div class="h-full bg-emerald-500 rounded-full" id="algorithm-design-bar"></div>
                                 </div>
                             </div>
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm text-gray-400">Code Quality</span>
-                                    <span class="text-sm font-semibold text-white">7.2/10</span>
+                                    <span class="text-sm font-semibold text-white" id="code-quality-score">0/10</span>
                                 </div>
                                 <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-blue-500 rounded-full" style="width: 72%"></div>
+                                    <div class="h-full bg-blue-500 rounded-full" id="code-quality-bar"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-400">Time Efficiency</span>
+                                    <span class="text-sm font-semibold text-white" id="time-efficiency-score">0/10</span>
+                                </div>
+                                <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-purple-500 rounded-full" id="time-efficiency-bar"></div>
                                 </div>
                             </div>
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm text-gray-400">Error Handling</span>
-                                    <span class="text-sm font-semibold text-white">6.5/10</span>
+                                    <span class="text-sm font-semibold text-white" id="error-handling-score">0/10</span>
                                 </div>
                                 <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 65%"></div>
+                                    <div class="h-full bg-yellow-500 rounded-full" id="error-handling-bar"></div>
                                 </div>
                             </div>
                         </div>
@@ -301,7 +310,7 @@
         <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
-        import { loadResults } from '../js/results.js';
+        import { loadResults, populateClassificationCard } from '../js/results.js';
         import { getAveragePerformance } from '../js/results.js';
 
         // Protect this page, only 'candidate' role is authorized
@@ -316,6 +325,9 @@
                     getAveragePerformance()
                 ]);
                 const averages = resultData.averages || [0, 0, 0, 0, 0];
+
+                // Populate classification card
+                populateClassificationCard(averages);
 
                 // Map averages to chart labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime']
                 // averages: [accuracy, efficiency, avgTime, style, errors]

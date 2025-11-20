@@ -247,6 +247,123 @@ function calculateAverages(evaluations) {
 }
 
 /**
+ * Populate the CART Skill Classification card
+ * @param {Array} averages - [accuracy, efficiency, avgTime, style, errors] all 0-10
+ */
+export function populateClassificationCard(averages) {
+    try {
+        console.log('Populating classification card with averages:', averages);
+
+        // Validate input
+        if (!averages || averages.length < 5) {
+            console.error('Invalid averages array:', averages);
+            averages = [0, 0, 0, 0, 0];
+        }
+
+        const [accuracy, efficiency, avgTime, style, errors] = averages;
+
+        // Calculate scores for each skill (all 0-10)
+        const problemSolving = Math.max(0, Math.min(10, accuracy || 0));
+        const algorithmDesign = Math.max(0, Math.min(10, efficiency || 0));
+        const codeQuality = Math.max(0, Math.min(10, style || 0));
+        const timeEfficiency = Math.max(0, Math.min(10, avgTime === 0 ? 0 : Math.max(0, 10 - avgTime))); // Invert time: less time = better, but if no data show 0
+        const errorHandling = errors === 0 ? 0 : Math.max(0, Math.min(10, 10 - errors)); // If no errors data (0), show 0; otherwise invert
+
+        const avgSkill = (problemSolving + algorithmDesign + codeQuality + timeEfficiency + errorHandling) / 5;
+
+        console.log('Calculated skill scores:', {
+            problemSolving,
+            algorithmDesign,
+            codeQuality,
+            timeEfficiency,
+            errorHandling,
+            avgSkill
+        });
+
+        // Determine classification level
+        let level = 'NOVICE';
+        let description = 'Entry-level programmer with basic coding skills';
+        let icon = 'trending-up';
+
+        if (avgSkill <= 2) {
+            level = 'NOVICE';
+            description = 'Entry-level programmer with basic coding skills';
+            icon = 'trending-up';
+        } else if (avgSkill <= 4) {
+            level = 'BEGINNER';
+            description = 'Developing fundamentals with growing proficiency';
+            icon = 'zap';
+        } else if (avgSkill <= 6) {
+            level = 'INTERMEDIATE';
+            description = 'Solid coding skills with good problem-solving abilities';
+            icon = 'target';
+        } else if (avgSkill <= 8) {
+            level = 'ADVANCED';
+            description = 'Advanced coder with strong efficiency and code quality';
+            icon = 'star';
+        } else {
+            level = 'EXPERT';
+            description = 'Master-level programming with exceptional skills';
+            icon = 'award';
+        }
+
+        console.log('Classification determined:', { level, description, icon });
+
+        // Update elements
+        const levelEl = document.getElementById('classification-level');
+        if (levelEl) {
+            levelEl.textContent = level;
+            console.log('Updated classification level element');
+        } else {
+            console.warn('classification-level element not found');
+        }
+
+        const iconEl = document.getElementById('classification-icon');
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', icon);
+            console.log('Updated classification icon element');
+        } else {
+            console.warn('classification-icon element not found');
+        }
+
+        const descEl = document.getElementById('classification-description');
+        if (descEl) {
+            descEl.textContent = description;
+            console.log('Updated classification description element');
+        } else {
+            console.warn('classification-description element not found');
+        }
+
+        // Update scores and bars
+        const metrics = [
+            { id: 'problem-solving', score: problemSolving },
+            { id: 'algorithm-design', score: algorithmDesign },
+            { id: 'code-quality', score: codeQuality },
+            { id: 'time-efficiency', score: timeEfficiency },
+            { id: 'error-handling', score: errorHandling }
+        ];
+
+        metrics.forEach(metric => {
+            const scoreEl = document.getElementById(`${metric.id}-score`);
+            const barEl = document.getElementById(`${metric.id}-bar`);
+            
+            if (scoreEl) scoreEl.textContent = `${metric.score.toFixed(1)}/10`;
+            if (barEl) barEl.style.width = `${metric.score * 10}%`;
+        });
+
+        // Recreate lucide icons to ensure new icon is rendered
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+            console.log('Lucide icons recreated');
+        }
+
+        console.log('Classification card populated successfully');
+    } catch (error) {
+        console.error('Error populating classification card:', error);
+    }
+}
+
+/**
  * Populate the UI with results data
  * @param {number} overall - Overall progress points
  * @param {Array} averages - [accuracy %, efficiency /10, time m, style /10, errors, recent score]
