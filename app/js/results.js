@@ -154,7 +154,7 @@ export async function loadResults(userId) {
                 score,
                 cart_eval,
                 evaluation_id,
-                evaluation!inner(question_id, question!inner(title))
+                evaluation!inner(question_id, question!inner(title, category, difficulty))
             `)
             .in('evaluation_id', evaluationData.map(e => e.id));
 
@@ -429,6 +429,8 @@ export function populateTestBreakdown(testResults) {
             const questionTitle = result.evaluation?.question?.title || 'Unknown Question';
             const score = result.score || 0;
             const cartEval = result.cart_eval || 'UNKNOWN';
+            const category = result.evaluation?.question?.category || 'Unknown';
+            const difficulty = result.evaluation?.question?.difficulty || 'Unknown';
 
             // Determine icon and color based on score
             let iconName = 'minus';
@@ -463,12 +465,12 @@ export function populateTestBreakdown(testResults) {
                         </div>
                         <div class="flex-1">
                             <h4 class="text-white font-semibold">${index + 1}: ${questionTitle}</h4>
-                            <p class="text-sm text-gray-400">${cartEval} Level | Algorithm design, Problem solving</p>
+                            <p class="text-sm text-gray-400">${category} | ${difficulty} Level</p>
                         </div>
                     </div>
                     <div class="text-right">
                         <p class="text-emerald-500 font-bold text-lg">${score}/10</p>
-                        <p class="text-xs text-gray-400">${scoreText}</p>
+                        <p class="text-sm text-gray-400">${cartEval}</p>
                     </div>
                 </div>
             `;

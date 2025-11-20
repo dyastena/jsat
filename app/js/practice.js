@@ -190,6 +190,28 @@ export async function updateUserRanking(userId) {
     }
 }
 
+// Function to update the user's total points in the header
+export async function updateUserPoints(userId) {
+    try {
+        const { data: levelData, error } = await supabase
+            .from('level')
+            .select('progress')
+            .eq('profile_id', userId)
+            .single();
+
+        if (error) throw error;
+
+        // Update the points display
+        const pointsElement = document.getElementById('user-total-points');
+        if (pointsElement) {
+            pointsElement.textContent = levelData?.progress || 0;
+        }
+    } catch (error) {
+        console.error('Error updating user points:', error);
+        // Keep default value of 0 if query fails
+    }
+}
+
 // Setup function to initialize difficulty filters
 export function setupDifficultyFilters() {
     const difficultyButtons = document.querySelectorAll('.difficulty-btn');
