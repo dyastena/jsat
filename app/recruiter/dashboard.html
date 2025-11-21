@@ -79,16 +79,16 @@
 
             <!-- Dashboard Content -->
             <div class="p-8 space-y-8">
-                <!-- Key Metrics Cards -->
+            <!-- Key Metrics Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-emerald-500/50 transition-colors">
                         <div class="flex items-center justify-between mb-4">
                             <div class="p-3 bg-emerald-500/10 rounded-lg">
                                 <i data-lucide="users" class="w-6 h-6 text-emerald-500"></i>
                             </div>
-                            <span class="text-emerald-500 text-sm font-medium">+12%</span>
+                            <span class="text-emerald-500 text-sm font-medium" id="total-candidates-change">-</span>
                         </div>
-                        <h3 class="text-3xl font-bold text-white mb-1">1,247</h3>
+                        <h3 class="text-2xl font-bold text-white mb-1" id="total-candidates">0</h3>
                         <p class="text-gray-400 text-sm">Total Candidates</p>
                     </div>
 
@@ -97,9 +97,9 @@
                             <div class="p-3 bg-blue-500/10 rounded-lg">
                                 <i data-lucide="check-circle" class="w-6 h-6 text-blue-500"></i>
                             </div>
-                            <span class="text-blue-500 text-sm font-medium">+8%</span>
+                            <span class="text-blue-500 text-sm font-medium" id="completion-rate-change">-</span>
                         </div>
-                        <h3 class="text-3xl font-bold text-white mb-1">89.5%</h3>
+                        <h3 class="text-2xl font-bold text-white mb-1" id="completion-rate">0%</h3>
                         <p class="text-gray-400 text-sm">Completion Rate</p>
                     </div>
 
@@ -108,9 +108,9 @@
                             <div class="p-3 bg-purple-500/10 rounded-lg">
                                 <i data-lucide="trending-up" class="w-6 h-6 text-purple-500"></i>
                             </div>
-                            <span class="text-purple-500 text-sm font-medium">+5%</span>
+                            <span class="text-purple-500 text-sm font-medium" id="avg-skill-change">-</span>
                         </div>
-                        <h3 class="text-3xl font-bold text-white mb-1">3.8</h3>
+                        <h3 class="text-2xl font-bold text-white mb-1" id="avg-skill"></h3>
                         <p class="text-gray-400 text-sm">Avg Skill Level</p>
                     </div>
                 </div>
@@ -133,28 +133,28 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="text-center">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-500/10 rounded-full mb-3">
-                                <span class="text-2xl font-bold text-emerald-500">12</span>
+                                <span class="text-2xl font-bold text-emerald-500" id="active-tests-count">0</span>
                             </div>
                             <p class="text-sm text-gray-400">Active Tests</p>
                         </div>
-                        
+
                         <div class="text-center">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-500/10 rounded-full mb-3">
-                                <span class="text-2xl font-bold text-orange-500">14</span>
+                                <span class="text-2xl font-bold text-orange-500" id="pending-reviews-count">0</span>
                             </div>
-                            <p class="text-sm text-gray-400">Pending Reviews</p>
+                            <p class="text-sm text-gray-400">Tests Completed Today</p>
                         </div>
-                        
+
                         <div class="text-center">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500/10 rounded-full mb-3">
-                                <span class="text-2xl font-bold text-blue-500">156</span>
+                                <span class="text-2xl font-bold text-blue-500" id="question-bank-count">0</span>
                             </div>
                             <p class="text-sm text-gray-400">Question Bank</p>
                         </div>
-                        
+
                         <div class="text-center">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-500/10 rounded-full mb-3">
-                                <span class="text-2xl font-bold text-purple-500">23</span>
+                                <span class="text-2xl font-bold text-purple-500" id="exam-templates-count">0</span>
                             </div>
                             <p class="text-sm text-gray-400">Exam Templates</p>
                         </div>
@@ -166,15 +166,111 @@
 
     <script type="module">
         import { protectPage } from '../js/guard.js';
-        import { logout } from '../js/auth.js';
+        import { supabase } from '../js/auth.js';
 
         // Protect this page, only 'recruiter' role is authorized
-        protectPage(['recruiter']).then(({ user, profile }) => {
+        protectPage(['recruiter']).then(async ({ user, profile }) => {
             if (user && profile) {
                 // User is authorized, proceed with rendering the dashboard page
                 lucide.createIcons();
 
+                // Load dashboard data from Supabase
+                await loadDashboardData();
+
                 // Skill Distribution Chart
+                await loadSkillChart();
+            }
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Fetch total candidates
+                const { count: candidateCount, error: candidateError } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('role', 'candidate');
+
+                if (!candidateError) {
+                    document.getElementById('total-candidates').textContent = candidateCount || 0;
+                }
+
+                // Fetch average score from results
+                const { data: scores, error: scoreError } = await supabase
+                    .from('result')
+                    .select('score');
+
+                if (!scoreError && scores.length) {
+                    const avgScore = (scores.reduce((sum, r) => sum + (r.score || 0), 0) / scores.length).toFixed(1);
+                    document.getElementById('avg-skill').textContent = avgScore;
+                }
+
+                // Completion rate: percentage of completed tests (rough estimate)
+                const { data: evaluations, error: evalError } = await supabase
+                    .from('evaluation')
+                    .select('correctness');
+
+                if (!evalError && evaluations.length) {
+                    const completed = evaluations.filter(e => e.correctness > 0).length;
+                    const rate = ((completed / evaluations.length) * 100).toFixed(1);
+                    document.getElementById('completion-rate').textContent = `${rate}%`;
+                }
+
+                // System Status
+                const { count: questionCount, error: qError } = await supabase
+                    .from('question')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!qError) {
+                    document.getElementById('question-bank-count').textContent = questionCount || 0;
+                }
+
+                const { count: evalCount, error: evError } = await supabase
+                    .from('evaluation')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!evError) {
+                    document.getElementById('active-tests-count').textContent = evalCount || 0;
+                }
+
+                // Tests Completed Today: evaluations with created_at today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                const { count: todayCount, error: tcError } = await supabase
+                    .from('evaluation')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', today.toISOString())
+                    .lt('created_at', tomorrow.toISOString());
+
+                if (!tcError) {
+                    document.getElementById('pending-reviews-count').textContent = todayCount || 0;
+                }
+
+                // Exam Templates: perhaps unique question combinations or fixed
+                document.getElementById('exam-templates-count').textContent = '5'; // Placeholder
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        async function loadSkillChart() {
+            try {
+                const { data: levels, error } = await supabase
+                    .from('level')
+                    .select('level_status');
+
+                if (error) throw error;
+
+                // Count levels for each status
+                const counts = {};
+                levels.forEach(l => {
+                    const status = l.level_status;
+                    counts[status] = (counts[status] || 0) + 1;
+                });
+
                 const ctx = document.getElementById('skillChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'bar',
@@ -182,7 +278,13 @@
                         labels: ['Beginner', 'Novice', 'Intermediate', 'Advanced', 'Expert'],
                         datasets: [{
                             label: 'Number of Candidates',
-                            data: [142, 298, 456, 267, 84],
+                            data: [
+                                counts['Beginner'] || 0,
+                                counts['Novice'] || 0,
+                                counts['Intermediate'] || 0,
+                                counts['Advanced'] || 0,
+                                counts['Expert'] || 0
+                            ],
                             backgroundColor: [
                                 'rgba(234, 179, 8, 0.8)',
                                 'rgba(59, 130, 246, 0.8)',
@@ -230,8 +332,10 @@
                         }
                     }
                 });
+            } catch (error) {
+                console.error('Error loading skill chart:', error);
             }
-        });
+        }
 
         // Logout functionality
         document.getElementById('logout-btn').addEventListener('click', async () => {

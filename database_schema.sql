@@ -357,6 +357,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION get_candidate_emails()
+RETURNS TABLE (user_id uuid, email text) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT p.id, au.email
+  FROM profiles p
+  JOIN auth.users au ON au.id = p.id
+  WHERE p.role = 'candidate';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TRIGGER trg_update_level_progress
 AFTER INSERT ON public.result
@@ -443,6 +453,19 @@ BEGIN
     INNER JOIN profiles p ON ld.profile_id = p.id
     LEFT JOIN user_stats us ON ld.profile_id = us.profile_id
     ORDER BY ld.rank_num;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- RPC function to safely get candidate emails for authorized recruiters
+CREATE OR REPLACE FUNCTION get_candidate_emails()
+RETURNS TABLE (user_id uuid, email varchar(255)) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT p.id, au.email
+  FROM profiles p
+  JOIN auth.users au ON au.id = p.id
+  WHERE p.role = 'candidate';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

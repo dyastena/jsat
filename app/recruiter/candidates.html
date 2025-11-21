@@ -91,15 +91,7 @@
                             <option>Advanced</option>
                             <option>Expert</option>
                         </select>
-                        <select class="px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                            <option>All Status</option>
-                            <option>Not Tested</option>
-                            <option>Test Assigned</option>
-                            <option>Test Completed</option>
-                            <option>Under Review</option>
-                            <option>Hired</option>
-                            <option>Rejected</option>
-                        </select>
+
                     </div>
                 </div>
 
@@ -126,7 +118,7 @@
                     </div>
                 </div>
 
-                <!-- Candidates Table -->
+            <!-- Candidates Table -->
                 <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full">
@@ -155,202 +147,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-800">
-                                <tr class="hover:bg-gray-800/30 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=10b981&color=fff" alt="Avatar" class="w-10 h-10 rounded-full">
-                                            <div>
-                                                <p class="text-sm font-medium text-white">Sarah Johnson</p>
-                                                <p class="text-xs text-gray-500">ID: #C1247</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">sarah.j@email.com</td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500">
-                                            Advanced
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-400">2 hours ago</td>
-                                    <td class="px-6 py-4">
-                                        <span class="text-gray-300">
-                                            85
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="View Details">
-                                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
-                                                <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
-                                                <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-800/30 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=3b82f6&color=fff" alt="Avatar" class="w-10 h-10 rounded-full">
-                                            <div>
-                                                <p class="text-sm font-medium text-white">Michael Chen</p>
-                                                <p class="text-xs text-gray-500">ID: #C1246</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">m.chen@email.com</td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-500">
-                                            Intermediate
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-400">1 day ago</td>
-                                    <td class="px-6 py-4">
-                                        <span class="text-gray-300">
-                                            72
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="View Details">
-                                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
-                                                <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
-                                                <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-800/30 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://ui-avatars.com/api/?name=Emma+Wilson&background=a855f7&color=fff" alt="Avatar" class="w-10 h-10 rounded-full">
-                                            <div>
-                                                <p class="text-sm font-medium text-white">Emma Wilson</p>
-                                                <p class="text-xs text-gray-500">ID: #C1245</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">emma.w@email.com</td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
-                                            Novice
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-400">3 days ago</td>
-                                    <td class="px-6 py-4">
-                                        <span class="text-gray-300">
-                                            0
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="View Details">
-                                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
-                                                <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
-                                                <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-800/30 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://ui-avatars.com/api/?name=David+Lee&background=ef4444&color=fff" alt="Avatar" class="w-10 h-10 rounded-full">
-                                            <div>
-                                                <p class="text-sm font-medium text-white">David Lee</p>
-                                                <p class="text-xs text-gray-500">ID: #C1244</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">david.lee@email.com</td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-500">
-                                            Expert
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-400">1 week ago</td>
-                                    <td class="px-6 py-4">
-                                        <span class="text-gray-300">
-                                            95
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="View Details">
-                                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
-                                                <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
-                                                <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-800/30 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-3">
-                                            <img src="https://ui-avatars.com/api/?name=Lisa+Brown&background=f59e0b&color=fff" alt="Avatar" class="w-10 h-10 rounded-full">
-                                            <div>
-                                                <p class="text-sm font-medium text-white">Lisa Brown</p>
-                                                <p class="text-xs text-gray-500">ID: #C1243</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">lisa.b@email.com</td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500">
-                                            Beginner
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-400">Never</td>
-                                    <td class="px-6 py-4">
-                                        <span class="text-gray-300">
-                                            0
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-2">
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="View Details">
-                                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
-                                                <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
-                                                <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                            <tbody class="divide-y divide-gray-800" id="candidatesTableBody">
                             </tbody>
                         </table>
                     </div>
@@ -390,13 +187,20 @@
 
     <script type="module">
         import { protectPage } from '../js/guard.js';
-        import { logout } from '../js/auth.js';
+        import { logout, supabase } from '../js/auth.js';
 
         // Protect this page, only 'recruiter' role is authorized
-        protectPage(['recruiter']).then(({ user, profile }) => {
+        protectPage(['recruiter']).then(async ({ user, profile }) => {
             if (user && profile) {
                 // User is authorized, proceed with rendering the candidates page
                 lucide.createIcons();
+
+                // Load candidates data from Supabase
+                await loadCandidates(user);
+
+                // For debugging - log user and profile
+                console.log('User:', user);
+                console.log('Profile:', profile);
 
                 // Bulk selection logic
                 const selectAll = document.getElementById('selectAll');
@@ -420,6 +224,177 @@
                 }
             }
         });
+
+        async function loadCandidates() {
+            try {
+                // Step 1: Fetch candidate profiles
+                const { data: candidates, error: candidatesError } = await supabase
+                    .from('profiles')
+                    .select('id, first_name, last_name')
+                    .eq('role', 'candidate');
+
+                if (candidatesError) throw candidatesError;
+
+                // Fetch candidate emails using RPC function
+                const { data: emailData, error: emailError } = await supabase
+                    .rpc('get_candidate_emails');
+
+                // Create email map for easy lookup
+                const emailMap = {};
+                if (!emailError && emailData) {
+                    emailData.forEach(item => {
+                        emailMap[item.user_id] = item.email;
+                    });
+                }
+
+                // Step 2: Fetch level statuses for candidates
+                const candidateIds = candidates.map(c => c.id);
+                const { data: levels, error: levelsError } = await supabase
+                    .from('level')
+                    .select('profile_id, level_status')
+                    .in('profile_id', candidateIds);
+
+                if (levelsError) throw levelsError;
+
+                // Step 3: Fetch latest results via evaluation join
+                const { data: evaluations, error: evalError } = await supabase
+                    .from('evaluation')
+                    .select('id, profile_id, created_at, correctness')
+                    .in('profile_id', candidateIds)
+                    .order('created_at', { ascending: false });
+
+                if (evalError) throw evalError;
+
+                // Group evaluations by profile_id (latest first)
+                const evalMap = {};
+                evaluations.forEach(eval_record => {
+                    if (!evalMap[eval_record.profile_id]) {
+                        evalMap[eval_record.profile_id] = eval_record;
+                    }
+                });
+
+                // Fetch results for those evaluations
+                const evalIds = evaluations.map(e => e.id);
+                const { data: results, error: resultsError } = await supabase
+                    .from('result')
+                    .select('evaluation_id, score')
+                    .in('evaluation_id', evalIds);
+
+                if (resultsError) throw resultsError;
+
+                // Create maps for data lookup
+                const levelMap = {};
+                levels.forEach(level => {
+                    levelMap[level.profile_id] = level.level_status;
+                });
+
+                const resultMap = {};
+                results.forEach(result => {
+                    resultMap[result.evaluation_id] = result.score;
+                });
+
+                // Render candidates to table
+                const tbody = document.getElementById('candidatesTableBody');
+                tbody.innerHTML = ''; // Clear existing rows
+
+                const skillLevelColors = {
+                    'Beginner': 'bg-yellow-500/10 text-yellow-500',
+                    'Novice': 'bg-blue-500/10 text-blue-500',
+                    'Intermediate': 'bg-purple-500/10 text-purple-500',
+                    'Advanced': 'bg-emerald-500/10 text-emerald-500',
+                    'Expert': 'bg-red-500/10 text-red-500'
+                };
+
+                const randomColors = ['ef4444', 'f97316', 'eab308', '22c55e', '06b6d4', '3b82f6', '8b5cf6', 'ec4899'];
+
+                candidates.forEach((candidate, index) => {
+                    const skillLevel = levelMap[candidate.id] || 'Beginner';
+                    const latestEval = evalMap[candidate.id];
+                    const score = latestEval ? (resultMap[latestEval.id] || 0) : 0;
+                    const lastTest = latestEval ? formatTimeAgo(new Date(latestEval.created_at)) : 'Never';
+                    // Random color for avatar
+                    const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent((candidate.first_name || '') + ' ' + (candidate.last_name || ''))}&background=${randomColor}&color=fff`;
+
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-800/30 transition-colors';
+                    row.innerHTML = `
+                        <td class="px-6 py-4">
+                            <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-3">
+                                <img src="${avatarUrl}" alt="Avatar" class="w-10 h-10 rounded-full">
+                                <div>
+                                    <p class="text-sm font-medium text-white">${candidate.first_name || ''} ${candidate.last_name || ''}</p>
+                                    <p class="text-xs text-gray-500">ID: #${candidate.id.slice(-4).toUpperCase()}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-300">${emailMap[candidate.id] || 'Email not available'}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${skillLevelColors[skillLevel] || skillLevelColors['Beginner']}">
+                                ${skillLevel}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-400">${lastTest}</td>
+                        <td class="px-6 py-4">
+                            <span class="text-gray-300">${score.toFixed(1)}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors candidate-detail-btn" title="View Details" data-candidate-id="${candidate.id}">
+                                    <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
+                                </button>
+                                <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
+                                    <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
+                                </button>
+                                <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
+                                    <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+
+                // Re-initialize icons for new elements
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading candidates:', error);
+                // Show fallback message if loading fails
+                const tbody = document.getElementById('candidatesTableBody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-400">
+                            <i data-lucide="alert-circle" class="w-8 h-8 inline mr-2"></i>
+                            Failed to load candidates. Please try again later.
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffInMs = now - date;
+            const diffInHours = diffInMs / (1000 * 60 * 60);
+            const diffInDays = diffInHours / 24;
+            const diffInWeeks = diffInDays / 7;
+
+            if (diffInHours < 1) {
+                const minutes = Math.floor(diffInMs / (1000 * 60));
+                return `${minutes} min ago`;
+            } else if (diffInHours < 24) {
+                return `${Math.floor(diffInHours)} hours ago`;
+            } else if (diffInDays < 7) {
+                return `${Math.floor(diffInDays)} days ago`;
+            } else {
+                return `${Math.floor(diffInWeeks)} weeks ago`;
+            }
+        }
 
         // Logout functionality
         document.getElementById('logout-btn').addEventListener('click', async () => {
