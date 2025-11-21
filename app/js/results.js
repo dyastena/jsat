@@ -468,10 +468,13 @@ export function populateTestBreakdown(testResults) {
                             <p class="text-sm text-gray-400">${category} | ${difficulty} Level</p>
                         </div>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right mr-2">
                         <p class="text-emerald-500 font-bold text-lg">${score}/10</p>
                         <p class="text-sm text-gray-400">${cartEval}</p>
                     </div>
+                    <button class="px-2 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded transition duration-200" onclick="window.location.href='completion.html'">
+                        Result
+                    </button>
                 </div>
             `;
 

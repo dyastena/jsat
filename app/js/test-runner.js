@@ -1,3 +1,8 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
 
@@ -5,24 +10,84 @@ document.addEventListener("DOMContentLoaded", () => {
     const runBtn = document.getElementById("runBtn");
     const editor = document.getElementById("editor");
     const consoleEl = document.getElementById("console-text");
+    const execStatus = document.getElementById("exec-status");
+    const execTime = document.getElementById("exec-time");
+    const execMemory = document.getElementById("exec-memory");
     const timerEl = document.getElementById("timer");
     const questionPanel = document.getElementById("question-panel");
     const submitBtn = document.getElementById("submitBtn");
+    const headerTitle = document.getElementById("header-title");
+    const progress = document.getElementById("progress");
+    const clearConsoleBtn = document.getElementById("clearConsole");
 
-    // Mock (replace with server API later)
-    const mockInstance = {
-        id: "mock-1",
+    let instance = {
+        id: null,
         durationMinutes: 30,
-        questions: [
-            {
-                id: 1,
-                title: "Hello, World!",
-                body: 'Write a Java program that prints "Hello, World!" to the console.'
-            },
-        ],
-        currentquestionIndex: 0
+        questions: [],
+        currentquestionIndex: 0,
+        isTimed: false
     };
-    let instance = mockInstance;
+
+    // Load question from URL param
+    const loadQuestionFromParam = async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const testParam = urlParams.get('test');
+
+        if (testParam && testParam.startsWith('question-')) {
+            const questionId = testParam.replace('question-', '');
+            console.log('Loading question with id:', questionId);
+
+            try {
+                const { data: question, error } = await supabase
+                    .from('question')
+                    .select('question_id, title, question, input, output, difficulty, category')
+                    .eq('question_id', questionId)
+                    .single();
+
+                if (error || !question) {
+                    console.error('Error fetching question:', error);
+                    alert('Question not found.');
+                    return false;
+                }
+
+                // Update instance
+                instance.id = questionId;
+                instance.questions = [question];
+                instance.isTimed = ['Intermediate', 'Advanced', 'Expert'].includes(question.difficulty);
+                instance.durationMinutes = instance.isTimed ? 30 : 0; // Set duration for timed tests
+
+                // Update UI
+                headerTitle.textContent = `Test: ${question.title}`;
+                progress.textContent = `${question.category} - ${question.difficulty} Level`;
+
+                console.log('Question loaded:', question);
+
+                // If not timed, hide timer or show unlimited
+                if (!instance.isTimed) {
+                    document.querySelector('.bg-gray-800.px-6.py-3.rounded-lg.border.border-gray-700').style.display = 'none';
+                }
+
+                return true;
+            } catch (err) {
+                console.error('Error loading question:', err);
+                alert('Failed to load question.');
+                return false;
+            }
+        } else {
+            // No param, use mock for fallback
+            console.log('No test param, using mock data');
+            instance.questions = [
+                {
+                    id: 1,
+                    title: "Default Question",
+                    question: "This is a default question. Please go back to dashboard and select a test."
+                }
+            ];
+            instance.isTimed = false;
+            instance.durationMinutes = 0;
+            return true;
+        }
+    };
 
     // Judge0 CE (FREE, unlimited)
     const JUDGE0_URL ='https://ce.judge0.com/submissions/?base64_encoded=true&wait=true';
@@ -39,6 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        execStatus.textContent = "Running...";
+        execStatus.style.color = '#fbbf24'; // yellow
         consoleEl.textContent = "Executing...";
 
         const payload = {
@@ -55,6 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const result = await response.json();
 
+            // Update execution stats
+            execStatus.textContent = result.status?.description || 'Error';
+            execStatus.style.color = result.status?.id === 3 ? '#10b981' : '#ef4444'; // green for success, red for error
+            execTime.textContent = `${result.time || 0}s`;
+            execMemory.textContent = `${result.memory || 0} KB`;
+
             // If judge0 returns error structure
             if (!result || !result.status) {
                 consoleEl.textContent =
@@ -64,25 +137,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Build output safely
-            let output = `Status: ${result.status.description}\n`;
-            output += `Time: ${result.time || 0}s\n`;
-            output += `Memory: ${result.memory || 0} KB\n\n`;
+            let output = '';
 
             if (result.stdout) {
-                output += `--- Output ---\n${atob(result.stdout)}\n`;
+                output += `${atob(result.stdout)}\n`;
             }
             if (result.stderr) {
-                output += `--- Error ---\n${atob(result.stderr)}\n`;
+                output += `Error: ${atob(result.stderr)}\n`;
             }
             if (result.compile_output) {
-                output += `--- Compile Output ---\n${atob(result.compile_output)}\n`;
+                output += `Compilation: ${atob(result.compile_output)}\n`;
             }
 
-            consoleEl.textContent = output;
+            consoleEl.textContent = output || 'No output generated';
+
         } catch (err) {
             console.error(err);
-            consoleEl.textContent =
-                "Network or server error. Please try again.";
+            execStatus.textContent = 'Error';
+            execStatus.style.color = '#ef4444';
+            consoleEl.textContent = "Network error. Please try again.";
         }
     };
 
@@ -91,7 +164,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const q = instance.questions[instance.currentquestionIndex];
         questionPanel.innerHTML = `
             <h2 class="text-lg font-semibold">${q.title}</h2>
-            <div class="mt-2 text-sm text-gray-300">${q.body}</div>
+            <div class="mt-2 text-sm text-gray-300">${q.question}</div>
+            ${q.input ? `<div class="mt-4 p-3 bg-gray-800 rounded border-l-4 border-blue-500">
+                <h3 class="text-sm font-semibold text-blue-400 mb-1">Sample Input:</h3>
+                <pre class="font-mono text-sm text-gray-200">${q.input}</pre>
+            </div>` : ''}
+            ${q.output ? `<div class="mt-3 p-3 bg-gray-800 rounded border-l-4 border-green-500">
+                <h3 class="text-sm font-semibold text-green-400 mb-1">Expected Output:</h3>
+                <pre class="font-mono text-sm text-gray-200">${q.output}</pre>
+            </div>` : ''}
         `;
     };
 
@@ -131,14 +212,23 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("cancelSubmit").onclick = () => modal.remove();
     };
 
+    // Clear console functionality
+    const clearConsole = () => {
+        if (consoleEl) consoleEl.textContent = "Console cleared. Ready for new execution.";
+    };
+
     // Events
     if (runBtn) runBtn.addEventListener("click", runCode);
     if (submitBtn) submitBtn.addEventListener("click", showSubmitModal);
+    if (clearConsoleBtn) clearConsoleBtn.addEventListener("click", clearConsole);
 
     // Init
-    const init = () => {
-        renderquestion();
-        displayTimer(instance.durationMinutes);
+    const init = async () => {
+        const loaded = await loadQuestionFromParam();
+        if (loaded) {
+            renderquestion();
+            displayTimer(instance.durationMinutes);
+        }
     };
 
     init();

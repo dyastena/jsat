@@ -101,16 +101,36 @@ public class Main {
 }
                             </textarea>
                         </div>
-                        
+
                         <div id="console" class="bg-gray-900 rounded-xl border border-gray-800">
                             <div class="flex items-center justify-between px-6 py-3 bg-gray-800 border-b border-gray-700">
                                 <div class="flex items-center space-x-3">
                                     <i data-lucide="terminal" class="w-4 h-4 text-emerald-500"></i>
                                     <span class="text-sm font-medium text-white">Test Results</span>
                                 </div>
-                               
+                                <div class="flex items-center space-x-3">
+                                    <button id="clearConsole" class="text-gray-400 hover:text-gray-200 text-sm">Clear</button>
+                                </div>
                             </div>
                             <pre id="console-text" class="p-6 text-sm text-gray-300"></pre>
+
+                            <!-- Execution Stats -->
+                            <div class="px-6 py-3 border-t border-gray-700 bg-gray-800">
+                                <div class="grid grid-cols-3 gap-4 text-xs text-center">
+                                    <div>
+                                        <div class="text-gray-400">Status</div>
+                                        <div id="exec-status" class="text-green-400 font-semibold">Ready</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400">Time</div>
+                                        <div id="exec-time" class="text-blue-400 font-semibold">0s</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400">Memory</div>
+                                        <div id="exec-memory" class="text-yellow-400 font-semibold">0 KB</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Buttons -->
@@ -136,8 +156,7 @@ public class Main {
         </main>
     </div>
     <script>lucide.createIcons();</script>
-    <script src="../js/test-runner.js"></script>
-    <script src="../js/evaluation.js"></script>
+    <script type="module" src="../js/test-runner.js"></script>
+    <script type="module" src="../js/evaluation.js"></script>
 </body>
 </html>
-
