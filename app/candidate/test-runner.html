@@ -102,14 +102,14 @@ public class Main {
                             </textarea>
                         </div>
 
-                        <div id="console" class="bg-gray-900 rounded-xl border border-gray-800">
+                        <!-- Input Section -->
+                        <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
                             <div class="flex items-center justify-between px-6 py-3 bg-gray-800 border-b border-gray-700">
-                                <div class="flex items-center space-x-3">
-                                    <i data-lucide="terminal" class="w-4 h-4 text-emerald-500"></i>
-                                    <span class="text-sm font-medium text-white">Test Results</span>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button id="clearConsole" class="text-gray-400 hover:text-gray-200 text-sm">Clear</button>
+                                <span class="text-sm font-medium text-white">Test Input</span>
+                            </div>
+                            <textarea id="input-area" class="w-full h-32 bg-gray-950 text-gray-100 p-6 font-mono text-sm resize-none focus:outline-none" placeholder="Enter test input for your program..."></textarea>
+                        </div>
+
                                 </div>
                             </div>
                             <pre id="console-text" class="p-6 text-sm text-gray-300"></pre>

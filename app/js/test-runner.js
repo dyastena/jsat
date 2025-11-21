@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // DOM elements
     const runBtn = document.getElementById("runBtn");
     const editor = document.getElementById("editor");
+    const inputArea = document.getElementById("input-area");
     const consoleEl = document.getElementById("console-text");
     const execStatus = document.getElementById("exec-status");
     const execTime = document.getElementById("exec-time");
@@ -25,7 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
         durationMinutes: 30,
         questions: [],
         currentquestionIndex: 0,
-        isTimed: false
+        isTimed: false,
+        startTime: null,
+        lastJudge0Result: null,
+        totalRuns: 0,
+        errorCount: 0
     };
 
     // Load question from URL param
@@ -110,10 +115,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         consoleEl.textContent = "Executing...";
 
+        const testInput = inputArea ? inputArea.value.trim() : '';
+
         const payload = {
             language_id: JAVA_ID,
             source_code: btoa(sourceCode),
         };
+
+        // Only add stdin if there's actual input
+        if (testInput) {
+            payload.stdin = btoa(testInput);
+        }
 
         try {
             const response = await fetch(JUDGE0_URL, {
@@ -123,6 +135,17 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const result = await response.json();
+
+            // Track execution data
+            instance.totalRuns++;
+            if (result.status?.id !== 3) { // Not successful
+                instance.errorCount++;
+            }
+
+            // Store successful result
+            if (result.status?.id === 3) {
+                instance.lastJudge0Result = result;
+            }
 
             // Update execution stats
             if (execStatus) {
@@ -190,6 +213,60 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    // Submit test results to Supabase
+    const submitTestResults = async () => {
+        if (!instance.lastJudge0Result || !instance.id) {
+            console.error('No test results to submit');
+            return;
+        }
+
+        const question = instance.questions[0];
+        const timeTaken = (Date.now() - instance.startTime) / (1000 * 60); // minutes
+
+        // Calculate correctness (0-10 scale)
+        let correctness = 0;
+        if (instance.lastJudge0Result.stdout) {
+            const actualOutput = atob(instance.lastJudge0Result.stdout).trim();
+            const expectedOutput = question.output?.trim() || '';
+            // Simple string comparison for correctness
+            correctness = actualOutput === expectedOutput ? 10 : 5; // Full credit if exact match, half if different
+        }
+
+        // Calculate code quality (line_code) - simple heuristic
+        const sourceCode = editor.value;
+        const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
+        const lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
+
+        // Runtime from Judge0
+        const runtime = instance.lastJudge0Result.time || 0;
+
+        // Error rate (inverse: fewer errors = higher score)
+        const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
+        const errorMade = Math.max(0, 10 - (errorRate * 10()));
+
+        try {
+            const { data: user } = await supabase.auth.getUser();
+            if (!user.user) throw new Error('Not authenticated');
+
+            await supabase
+                .from('evaluation')
+                .insert({
+                    question_id: instance.id,
+                    profile_id: user.user.id,
+                    correctness: correctness,
+                    line_code: lineCode,
+                    time_taken: timeTaken,
+                    runtime: runtime,
+                    error_made: errorMade
+                });
+
+            console.log('Test results saved successfully');
+        } catch (error) {
+            console.error('Failed to save test results:', error);
+            alert('Failed to submit test results. Please try again.');
+        }
+    };
+
     // Submit modal
     const showSubmitModal = () => {
         if (document.getElementById("submit-modal")) return;
@@ -211,7 +288,9 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         document.body.appendChild(modal);
 
-        document.getElementById("confirmSubmit").onclick = () => {
+        document.getElementById("confirmSubmit").onclick = async () => {
+            // Save evaluation to Supabase
+            await submitTestResults();
             window.location.href = "completion.html";
         };
 
@@ -234,6 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (loaded) {
             renderquestion();
             displayTimer(instance.durationMinutes);
+            instance.startTime = Date.now(); // Start tracking time
         }
     };
 
