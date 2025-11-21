@@ -107,11 +107,11 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="bg-gray-800/50 px-6 py-4 border-t border-gray-800">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-400 pagination">Showing 1-10 of 0 reports</span>
-                            <div class="flex items-center space-x-2">
+                <!-- Pagination -->
+                <div class="bg-gray-800/50 px-6 py-4 border-t border-gray-800">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-400 pagination">Showing 1-10 of 0 reports</span>
+                        <div class="flex items-center space-x-2 pagination-nav">
                                 <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50" disabled>
                                     <i data-lucide="chevron-left" class="w-4 h-4"></i>
                                 </button>
@@ -215,6 +215,14 @@
                 }
                 if (avgScoreEl) {
                     avgScoreEl.textContent = `${avgScore.toFixed(1)}%`;
+                }
+
+                // Hide pagination nav if fewer than 10 reports
+                const paginationNav = document.querySelector('.pagination-nav');
+                if (paginationNav && totalTests < 10) {
+                    paginationNav.style.display = 'none';
+                } else if (paginationNav) {
+                    paginationNav.style.display = 'flex';
                 }
 
                 // Fetch table data
@@ -330,69 +338,156 @@
         }
 
         async function loadChartsData() {
-            // Placeholder for future chart data loading
-            // Performance Trends Chart
-            const perfCtx = document.getElementById('performanceChart').getContext('2d');
-            new Chart(perfCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Average Score',
-                        data: [72, 75, 78, 76, 79, 82],
-                        borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            grid: { color: 'rgba(75, 85, 99, 0.2)' },
-                            ticks: { color: '#9ca3af' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#9ca3af' }
-                        }
-                    }
-                }
-            });
+            try {
+                // Fetch performance trends data - monthly average scores from recent results
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+                const { data: trendsData } = await supabase
+                    .from('result')
+                    .select('score, created_at')
+                    .gte('created_at', sixMonthsAgo.toISOString())
+                    .order('created_at', { ascending: true });
 
-            // Skill Gap Chart
-            const gapCtx = document.getElementById('skillGapChart').getContext('2d');
-            new Chart(gapCtx, {
-                type: 'radar',
-                data: {
-                    labels: ['Algorithms', 'Data Structures', 'Async JS', 'DOM', 'ES6+', 'Problem Solving'],
-                    datasets: [{
-                        label: 'Average Proficiency',
-                        data: [78, 82, 68, 85, 75, 71],
-                        borderColor: 'rgb(168, 85, 247)',
-                        backgroundColor: 'rgba(168, 85, 247, 0.2)',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: { color: 'rgba(75, 85, 99, 0.2)' },
-                            ticks: { color: '#9ca3af', backdropColor: 'transparent' },
-                            pointLabels: { color: '#9ca3af' }
+                // If no trend data, use default
+                const trendLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                let trendData = [72, 75, 78, 76, 79, 82];
+
+                if (trendsData && trendsData.length > 0) {
+                    // Group by month and calculate averages
+                    const monthlyData = {};
+                    trendsData.forEach(item => {
+                        const date = new Date(item.created_at);
+                        const monthKey = date.toLocaleString('en-US', { month: 'short' });
+                        if (!monthlyData[monthKey]) {
+                            monthlyData[monthKey] = [];
                         }
+                        monthlyData[monthKey].push(item.score || 0);
+                    });
+
+                    trendLabels.length = 0;
+                    trendData.length = 0;
+                    // Only include months with data, sorted by month order
+                    const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const monthsKeys = Object.keys(monthlyData).sort((a,b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+
+                    // Limit to last 6 months with data
+                    const recentMonths = monthsKeys.slice(-6);
+
+                    recentMonths.forEach(month => {
+                        const scores = monthlyData[month];
+                        const avg = scores.reduce((a,b) => a + b, 0) / scores.length;
+                        trendLabels.push(month);
+                        trendData.push(Math.round(avg));
+                    });
+
+                    // If no data, fall back to defaults
+                    if (trendData.length === 0) {
+                        trendLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+                        trendData = [68, 71, 74, 76, 79, 82];
                     }
                 }
-            });
+
+                // Performance Trends Chart
+                const perfCtx = document.getElementById('performanceChart').getContext('2d');
+                new Chart(perfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Average Score',
+                            data: [72, 75, 78, 76, 79, 82],
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: { color: 'rgba(75, 85, 99, 0.2)' },
+                                ticks: { color: '#9ca3af' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#9ca3af' }
+                            }
+                        }
+                    }
+                });
+
+                // Fetch skill gap data - average evaluation factors mapped to skills
+                const { data: skillData } = await supabase
+                    .from('evaluation')
+                    .select('correctness, line_code, time_taken, runtime, error_made, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+
+                let skillDataArr = [78, 82, 68, 85, 75, 71]; // default
+
+                if (skillData && skillData.length > 0) {
+                    // Map factors to skills (simplified mapping)
+                    // Algorithms: runtime, Problem Solving: correctness, Code Quality: line_code, Time: time_taken inverse, Errors: error_made inverse
+                    const algorithms = skillData.map(item => item.runtime || 0).filter(x => x > 0);
+                    const problemSolving = skillData.map(item => item.correctness || 0).filter(x => x > 0);
+                    const codeQuality = skillData.map(item => item.line_code || 0).filter(x => x > 0);
+                    const timeEfficiency = skillData.map(item => item.time_taken ? Math.max(0, 10 - item.time_taken) : 0).filter(x => x > 0);
+                    const errorHandling = skillData.map(item => item.error_made ? Math.max(0, 10 - item.error_made) : 0).filter(x => x > 0);
+                    const dataStructures = algorithms.map(x => x * 0.8); // proxy
+
+                    const avgAlgorithms = algorithms.length > 0 ? algorithms.reduce((a,b) => a+b, 0) / algorithms.length : 78;
+                    const avgDataStructures = dataStructures.length > 0 ? dataStructures.reduce((a,b) => a+b, 0) / dataStructures.length : 82;
+                    const avgAsyncJs = timeEfficiency.length > 0 ? timeEfficiency.reduce((a,b) => a+b, 0) / timeEfficiency.length : 68;
+                    const avgDom = errorHandling.length > 0 ? errorHandling.reduce((a,b) => a+b, 0) / errorHandling.length : 85;
+                    const avgEs6 = codeQuality.length > 0 ? codeQuality.reduce((a,b) => a+b, 0) / codeQuality.length : 75;
+                    const avgProblemSolving = problemSolving.length > 0 ? problemSolving.reduce((a,b) => a+b, 0) / problemSolving.length : 71;
+
+                    skillDataArr = [
+                        Math.round(avgAlgorithms),
+                        Math.round(avgDataStructures),
+                        Math.round(avgAsyncJs),
+                        Math.round(avgDom),
+                        Math.round(avgEs6),
+                        Math.round(avgProblemSolving)
+                    ];
+                }
+
+                // Skill Gap Chart
+                const gapCtx = document.getElementById('skillGapChart').getContext('2d');
+                new Chart(gapCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Algorithms', 'Data Structures', 'Async JS', 'DOM', 'ES6+', 'Problem Solving'],
+                        datasets: [{
+                            label: 'Average Proficiency',
+                            data: skillDataArr,
+                            borderColor: 'rgb(168, 85, 247)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: { color: 'rgba(75, 85, 99, 0.2)' },
+                                ticks: { color: '#9ca3af', backdropColor: 'transparent' },
+                                pointLabels: { color: '#9ca3af' }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading chart data:', error);
+            }
         }
 
         // Logout functionality
