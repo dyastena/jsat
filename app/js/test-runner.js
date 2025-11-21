@@ -104,8 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        execStatus.textContent = "Running...";
-        execStatus.style.color = '#fbbf24'; // yellow
+        if (execStatus) {
+            execStatus.textContent = "Running...";
+            execStatus.style.color = '#fbbf24'; // yellow
+        }
         consoleEl.textContent = "Executing...";
 
         const payload = {
@@ -123,10 +125,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await response.json();
 
             // Update execution stats
-            execStatus.textContent = result.status?.description || 'Error';
-            execStatus.style.color = result.status?.id === 3 ? '#10b981' : '#ef4444'; // green for success, red for error
-            execTime.textContent = `${result.time || 0}s`;
-            execMemory.textContent = `${result.memory || 0} KB`;
+            if (execStatus) {
+                execStatus.textContent = result.status?.description || 'Error';
+                execStatus.style.color = result.status?.id === 3 ? '#10b981' : '#ef4444';
+            }
+            if (execTime) execTime.textContent = `${result.time || 0}s`;
+            if (execMemory) execMemory.textContent = `${result.memory || 0} KB`;
 
             // If judge0 returns error structure
             if (!result || !result.status) {
@@ -153,8 +157,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error(err);
-            execStatus.textContent = 'Error';
-            execStatus.style.color = '#ef4444';
+            if (execStatus) {
+                execStatus.textContent = 'Error';
+                execStatus.style.color = '#ef4444';
+            }
             consoleEl.textContent = "Network error. Please try again.";
         }
     };
