@@ -220,30 +220,66 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const question = instance.questions[0];
-        const timeTaken = (Date.now() - instance.startTime) / (1000 * 60); // minutes
-
-        // Calculate correctness (0-10 scale) using Evaluation - check if code contains answer values
-        const sourceCode = editor.value;
-        const correctness = Evaluation.evaluateCorrectness(
-            sourceCode,
-            question.answer || ''
-        );
-
-        // Calculate code quality (line_code) - simple heuristic
-        const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
-        const lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
-
-        // Runtime from Judge0
-        const runtime = instance.lastJudge0Result.time || 0;
-
-        // Error rate (inverse: fewer errors = higher score)
-        const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
-        const errorMade = Math.max(0, 10 - (errorRate * 10));
-
         try {
             const { data: user } = await supabase.auth.getUser();
             if (!user.user) throw new Error('Not authenticated');
+
+            // Get user's current level
+            const { data: levelData, error: levelError } = await supabase
+                .from('level')
+                .select('level_status')
+                .eq('profile_id', user.user.id)
+                .single();
+
+            if (levelError) {
+                console.error('Error fetching user level:', levelError);
+                throw new Error('Could not determine user level');
+            }
+
+            const userLevel = levelData?.level_status || 'Beginner';
+            const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
+            const numericLevel = levelMapping[userLevel] || 1;
+
+            const question = instance.questions[0];
+            const sourceCode = editor.value;
+            const timeTaken = (Date.now() - instance.startTime) / (1000 * 60); // minutes
+
+            // Initialize all metrics to null
+            let correctness = null;
+            let lineCode = null;
+            let runtime = null;
+            let errorMade = null;
+
+            // Calculate only metrics required for current level
+            if (numericLevel >= 1) {
+                // Always calculate correctness for all levels
+                correctness = Evaluation.evaluateCorrectness(
+                    sourceCode,
+                    question.answer || ''
+                );
+            }
+
+            if (numericLevel >= 2) {
+                // For Novice and above, include time_taken (processed by database)
+                // timeTaken is always included, so no special handling needed here
+            }
+
+            if (numericLevel >= 3) {
+                // For Intermediate and above, include code quality
+                const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
+                lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
+            }
+
+            if (numericLevel >= 4) {
+                // For Advanced and above, include runtime
+                runtime = instance.lastJudge0Result.time || 0;
+            }
+
+            if (numericLevel >= 5) {
+                // For Expert level, include error handling
+                const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
+                errorMade = Math.max(0, 10 - (errorRate * 10));
+            }
 
             await supabase
                 .from('evaluation')
@@ -252,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     profile_id: user.user.id,
                     correctness: correctness,
                     line_code: lineCode,
-                    time_taken: timeTaken,
+                    time_taken: numericLevel >= 2 ? timeTaken : null,
                     runtime: runtime,
                     error_made: errorMade
                 });
@@ -374,8 +410,9 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         document.body.appendChild(modal);
 
-        document.getElementById("confirmSubmit").onclick = () => {
-            // Just go to completion, no data insertion
+        document.getElementById("confirmSubmit").onclick = async () => {
+            // Submit test results to Supabase first
+            await submitTestResults();
             modal.remove();
             window.location.href = "completion.html";
         };
