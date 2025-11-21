@@ -291,19 +291,26 @@
 
     const updateTestSummary = (evaluationData, levelData) => {
         console.log('Updating test summary with data:', evaluationData);
-        const testTitleEl = document.querySelector('.bg-gray-900.rounded-2xl h2.text-2xl.font-bold.text-white');
-        const testDetailsEl = document.querySelector('.bg-gray-900.rounded-2xl .text-gray-400');
+        const testTitleEl = document.querySelector('h2.text-2xl.font-bold.text-white.mb-1');
+        const testDetailsEl = document.querySelector('.text-gray-400');
 
-        if (testTitleEl && evaluationData.question) {
-            testTitleEl.textContent = `Test: ${evaluationData.question.title}`;
+        // First try localStorage (from submission), then database
+        const questionTitle = localStorage.getItem('lastTestQuestionTitle') || (evaluationData.question ? evaluationData.question.title : 'Test Completed');
+
+        if (testTitleEl) {
+            testTitleEl.textContent = questionTitle;
             console.log('Updated title to:', testTitleEl.textContent);
         }
 
         if (testDetailsEl && evaluationData.created_at) {
             const completionDate = new Date(evaluationData.created_at).toLocaleDateString();
-            testDetailsEl.textContent = `Completed on ${completionDate}`;
+    
             console.log('Updated date to:', testDetailsEl.textContent);
         }
+
+        // Clear localStorage after use
+        localStorage.removeItem('lastTestQuestionTitle');
+        localStorage.removeItem('lastTestQuestionId');
     };
 
     const updatePreliminaryScore = (evaluationData) => {
@@ -340,7 +347,6 @@
         const levelConfig = {
             'Beginner': {
                 title: 'Welcome to Coding!',
-                subtitle: 'You\'re just getting started',
                 color: 'from-green-500/10 to-emerald-500/10',
                 border: 'border-green-500/30',
                 iconBg: 'bg-green-500',
@@ -349,7 +355,6 @@
             },
             'Novice': {
                 title: 'Building Momentum!',
-                subtitle: 'Good progress so far',
                 color: 'from-blue-500/10 to-cyan-500/10',
                 border: 'border-blue-500/30',
                 iconBg: 'bg-blue-500',
@@ -358,7 +363,6 @@
             },
             'Intermediate': {
                 title: 'Level Progress Updated!',
-                subtitle: 'You\'re getting closer to the next level',
                 color: 'from-purple-500/10 to-pink-500/10',
                 border: 'border-purple-500/30',
                 iconBg: 'bg-purple-500',
@@ -367,7 +371,6 @@
             },
             'Advanced': {
                 title: 'Advanced Skills Achieved!',
-                subtitle: 'You\'re in the expert league now',
                 color: 'from-orange-500/10 to-red-500/10',
                 border: 'border-orange-500/30',
                 iconBg: 'bg-orange-500',
@@ -376,7 +379,6 @@
             },
             'Expert': {
                 title: 'Expert Level Reached!',
-                subtitle: 'You\'ve mastered the basics',
                 color: 'from-red-500/10 to-pink-500/10',
                 border: 'border-red-500/30',
                 iconBg: 'bg-red-500',
@@ -390,23 +392,14 @@
         const config = levelConfig[currentLevel] || levelConfig['Beginner'];
         const currentProgress = Math.round(levelData?.progress || 0);
 
-        // Update card container styling
-        const cardEl = document.querySelector('.bg-gradient-to-br');
-        if (cardEl) {
-            cardEl.className = `bg-gradient-to-br ${config.color} rounded-2xl border ${config.border} p-8 mb-6`;
-        }
+        // Keep card styling consistent (purple theme)
+        // Card container styling and icon background remain the same
 
-        // Update icon background
-        const iconContainer = document.querySelector('.w-16.h-16.rounded-full');
-        if (iconContainer) {
-            iconContainer.className = `w-16 h-16 ${config.iconBg} rounded-full flex items-center justify-center`;
-        }
+        // Update card title and subtitle (level progress card only)
+        const levelCardTitle = document.querySelector('.bg-gradient-to-br + .bg-gradient-to-br .text-2xl.font-bold.text-white.mb-1');
 
-        // Update card title and subtitle
-        const titleEl = document.querySelector('.text-2xl.font-bold.text-white.mb-1');
-        const subtitleEl = document.querySelector('.text-gray-400');
-        if (titleEl) titleEl.textContent = config.title;
-        if (subtitleEl) subtitleEl.textContent = config.subtitle;
+        if (levelCardTitle) levelCardTitle.textContent = config.title;
+        
 
         // Update progress section
         const levelContainer = document.querySelector('.bg-gray-900\\/50.rounded-lg');

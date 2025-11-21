@@ -260,6 +260,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     error_made: errorMade
                 });
 
+            // Store question title for quick access on completion page
+            localStorage.setItem('lastTestQuestionTitle', question.title);
+            localStorage.setItem('lastTestQuestionId', instance.id);
+
             console.log('Test results saved successfully');
         } catch (error) {
             console.error('Failed to save test results:', error);
