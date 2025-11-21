@@ -231,6 +231,20 @@
                 return;
             }
 
+            // Get user's profile data for name
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('first_name, last_name')
+                .eq('id', user.user.id)
+                .single();
+
+            if (profileError) {
+                console.log('Profile data not available:', profileError);
+            }
+
+            // Update user welcome message
+            updateWelcomeMessage(profile);
+
             // Get the user's most recent evaluation with result data
             const { data: evaluationData, error: evalError } = await supabase
                 .from('evaluation')
@@ -277,7 +291,7 @@
             updateTestSummary(evaluationData, levelData);
 
             // Update preliminary score
-            updatePreliminaryScore(evaluationData);
+            updatePreliminaryScore(evaluationData, levelData);
 
             // Update level progress
             updateLevelProgress(evaluationData, levelData);
@@ -289,10 +303,20 @@
         }
     };
 
+    const updateWelcomeMessage = (profile) => {
+        const welcomeEl = document.querySelector('.text-center.mb-8 p.text-xl.text-gray-400');
+        if (welcomeEl && profile) {
+            const firstName = profile.first_name || '';
+            const lastName = profile.last_name || '';
+            const fullName = `${firstName} ${lastName}`.trim() || 'User';
+            welcomeEl.textContent = `Excellent work, ${fullName}! Your responses have been submitted successfully.`;
+        }
+    };
+
     const updateTestSummary = (evaluationData, levelData) => {
         console.log('Updating test summary with data:', evaluationData);
         const testTitleEl = document.querySelector('h2.text-2xl.font-bold.text-white.mb-1');
-        const testDetailsEl = document.querySelector('.text-gray-400');
+        const testDetailsEl = document.querySelector('.bg-gray-900.rounded-2xl.border.border-gray-800 p-8.mb-6 .text-gray-400');
 
         // First try localStorage (from submission), then database
         const questionTitle = localStorage.getItem('lastTestQuestionTitle') || (evaluationData.question ? evaluationData.question.title : 'Test Completed');
@@ -304,7 +328,7 @@
 
         if (testDetailsEl && evaluationData.created_at) {
             const completionDate = new Date(evaluationData.created_at).toLocaleDateString();
-    
+            testDetailsEl.textContent = `Completed on ${completionDate}`;
             console.log('Updated date to:', testDetailsEl.textContent);
         }
 
@@ -313,29 +337,71 @@
         localStorage.removeItem('lastTestQuestionId');
     };
 
-    const updatePreliminaryScore = (evaluationData) => {
-        console.log('Updating preliminary score with data:', evaluationData);
-        // Find the preliminary results container first
+    const updatePreliminaryScore = (evaluationData, levelData) => {
+        console.log('Updating preliminary score with data:', evaluationData, levelData);
+
+        // Find the preliminary results container
         const prelimContainer = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10');
-        const prelimScoreEl = prelimContainer ? prelimContainer.querySelector('.text-4xl.font-bold.text-emerald-400') : null;
-        const prelimDetailsEl = prelimContainer ? prelimContainer.querySelector('.text-sm.text-gray-300') : null;
 
-        if (prelimScoreEl && evaluationData.result && evaluationData.result.score != null) {
-            const percentage = Math.round((evaluationData.result.score / 10) * 100);
-            prelimScoreEl.textContent = `${percentage}%`;
-            console.log('Updated score to:', prelimScoreEl.textContent);
-        }
+        // Find the percentage element (large green number) within the container
+        const prelimScoreEl = prelimContainer?.querySelector('.text-4xl.font-bold.text-emerald-400');
 
-        if (prelimDetailsEl && evaluationData) {
-            const factors = [
-                evaluationData.correctness >= 7 ? 1 : 0,
-                evaluationData.line_code >= 7 ? 1 : 0,
-                evaluationData.time_taken <= 5 ? 1 : 0,  // Less than 5 minutes is good
-                evaluationData.runtime <= 1 ? 1 : 0,     // Less than 1 second execution
-                evaluationData.error_made <= 3 ? 1 : 0   // Few errors
-            ].filter(Boolean).length;
+        // Find the factor count element (the first small gray text under the percentage within the flex-1 container)
+        const prelimDetailsEl = prelimContainer?.querySelector('.flex-1 p.text-sm.text-gray-300');
 
-            prelimDetailsEl.textContent = `${factors} out of 5 factors correct`;
+        if (prelimDetailsEl && evaluationData && levelData) {
+            // Get user's level to determine which factors were evaluated
+            const userLevel = levelData.level_status || 'Beginner';
+            const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
+            const numericLevel = levelMapping[userLevel] || 1;
+
+            // Initialize factors array and count of total possible factors
+            let factors = [];
+            let totalFactors = 0;
+
+            // Always include correctness (all levels)
+            if (evaluationData.correctness !== null) {
+                factors.push(evaluationData.correctness >= 7 ? 1 : 0);
+                totalFactors++;
+            }
+
+            // Time efficiency (Novice and above)
+            if (numericLevel >= 2 && evaluationData.time_taken !== null) {
+                factors.push(evaluationData.time_taken >= 7 ? 1 : 0); // Higher score = better (less time)
+                totalFactors++;
+            }
+
+            // Code quality (Intermediate and above)
+            if (numericLevel >= 3 && evaluationData.line_code !== null) {
+                factors.push(evaluationData.line_code >= 7 ? 1 : 0);
+                totalFactors++;
+            }
+
+            // Runtime performance (Advanced and above)
+            if (numericLevel >= 4 && evaluationData.runtime !== null) {
+                factors.push(evaluationData.runtime >= 7 ? 1 : 0); // Higher score = better (faster)
+                totalFactors++;
+            }
+
+            // Error handling (Expert level)
+            if (numericLevel >= 5 && evaluationData.error_made !== null) {
+                factors.push(evaluationData.error_made >= 7 ? 1 : 0); // Higher score = better (fewer errors)
+                totalFactors++;
+            }
+
+            const factorsCorrect = factors.filter(Boolean).length;
+
+            // Calculate percentage as factors correct / total factors evaluated for level
+            const percentage = totalFactors > 0 ? Math.round((factorsCorrect / totalFactors) * 100) : 0;
+
+            // Update percentage display
+            if (prelimScoreEl) {
+                prelimScoreEl.textContent = `${percentage}%`;
+                console.log('Updated percentage to:', prelimScoreEl.textContent);
+            }
+
+            // Update factor count text
+            prelimDetailsEl.textContent = `${factorsCorrect} out of ${totalFactors} factors correct`;
             console.log('Updated factors to:', prelimDetailsEl.textContent);
         }
     };
