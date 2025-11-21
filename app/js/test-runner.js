@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const { data: question, error } = await supabase
                     .from('question')
-                    .select('question_id, title, question, input, output, difficulty, category')
+                    .select('question_id, title, question, input, output, answer, difficulty, category')
                     .eq('question_id', questionId)
                     .single();
 
@@ -223,17 +223,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const question = instance.questions[0];
         const timeTaken = (Date.now() - instance.startTime) / (1000 * 60); // minutes
 
-        // Calculate correctness (0-10 scale)
-        let correctness = 0;
-        if (instance.lastJudge0Result.stdout) {
-            const actualOutput = atob(instance.lastJudge0Result.stdout).trim();
-            const expectedOutput = question.output?.trim() || '';
-            // Simple string comparison for correctness
-            correctness = actualOutput === expectedOutput ? 10 : 5; // Full credit if exact match, half if different
-        }
+        // Calculate correctness (0-10 scale) using Evaluation - check if code contains answer values
+        const sourceCode = editor.value;
+        const correctness = Evaluation.evaluateCorrectness(
+            sourceCode,
+            question.answer || ''
+        );
 
         // Calculate code quality (line_code) - simple heuristic
-        const sourceCode = editor.value;
         const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
         const lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
 
@@ -242,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Error rate (inverse: fewer errors = higher score)
         const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
-        const errorMade = Math.max(0, 10 - (errorRate * 10()));
+        const errorMade = Math.max(0, 10 - (errorRate * 10));
 
         try {
             const { data: user } = await supabase.auth.getUser();
@@ -272,8 +269,41 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Submit modal
-    const showSubmitModal = () => {
+    const showSubmitModal = async () => {
         if (document.getElementById("submit-modal")) return;
+
+        // Get user profile ID first
+        const { data: user } = await supabase.auth.getUser();
+        const profileId = user?.user?.id || 'Not available';
+
+        // Get user's current level
+        const { data: levelData, error: levelError } = await supabase
+            .from('level')
+            .select('level_status')
+            .eq('profile_id', profileId)
+            .single();
+
+        const userLevel = levelData?.level_status || 'Beginner';
+        const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
+        const numericLevel = levelMapping[userLevel] || 1;
+
+        // Calculate scores based on level
+        const question = instance.questions[0];
+        const sourceCode = editor.value;
+        const timeTaken = (Date.now() - instance.startTime) / (1000 * 60);
+
+        // Run level-based evaluation
+        const evaluationResult = Evaluation.evaluateLevel(
+            numericLevel,
+            instance.lastJudge0Result || {},
+            sourceCode,
+            timeTaken,
+            instance.errorCount,
+            instance.totalRuns,
+            question.answer || ''
+        );
+
+        const questionId = instance.id || 'Not available';
 
         const modal = document.createElement("div");
         modal.id = "submit-modal";
@@ -281,20 +311,72 @@ document.addEventListener("DOMContentLoaded", () => {
             "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
 
         modal.innerHTML = `
-            <div class="bg-gray-900 text-gray-100 p-6 rounded-lg w-[90%] max-w-md text-center">
-                <h3 class="text-lg font-semibold mb-2">Submit Test</h3>
-                <p class="text-sm text-gray-300 mb-4">Are you sure you want to submit?</p>
-                <div class="flex items-center justify-center gap-3">
-                    <button id="confirmSubmit" class="px-4 py-2 bg-emerald-500 rounded-md text-white font-semibold">Confirm</button>
-                    <button id="cancelSubmit" class="px-4 py-2 bg-gray-700 rounded-md text-gray-200">Go Back</button>
+            <div class="bg-gray-900 text-gray-100 p-6 rounded-lg w-[90%] max-w-lg text-center">
+                <h3 class="text-lg font-semibold mb-4">Test Results</h3>
+                <div class="space-y-3 text-left mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">User Profile ID:</span>
+                        <span class="text-white font-mono text-sm">${profileId}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Question ID:</span>
+                        <span class="text-white font-mono text-sm">${questionId}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Current Level:</span>
+                        <span class="text-blue-400 font-bold">${userLevel}</span>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 pt-4">
+                    <h4 class="text-sm font-semibold text-gray-300 mb-2">Evaluation Factors:</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Correctness:</span>
+                            <span class="text-emerald-400">${evaluationResult.details.correctness}/10</span>
+                        </div>
+                        ${numericLevel > 1 ? `
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Time Efficiency:</span>
+                            <span class="text-yellow-400">${Math.max(0, 10 - evaluationResult.details.timeTaken)}/10</span>
+                        </div>
+                        ` : ''}
+                        ${numericLevel > 2 ? `
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Code Quality:</span>
+                            <span class="text-blue-400">${evaluationResult.details.lineCount > 20 ? 0 : Math.max(1, 11 - evaluationResult.details.lineCount)}/10</span>
+                        </div>
+                        ` : ''}
+                        ${numericLevel > 3 ? `
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Runtime Performance:</span>
+                            <span class="text-orange-400">${evaluationResult.details.runtime >= 0 ? Math.max(0, 10 - evaluationResult.details.runtime * 10) : 10}/10</span>
+                        </div>
+                        ` : ''}
+                        ${numericLevel > 4 ? `
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Error Handling:</span>
+                            <span class="text-red-400">${10 - (evaluationResult.details.totalRuns > 0 ? (evaluationResult.details.totalErrors / evaluationResult.details.totalRuns) * 10 : 0)}/10</span>
+                        </div>
+                        ` : ''}
+                        <div class="border-t border-gray-600 pt-2 mt-3">
+                            <div class="flex justify-between font-bold">
+                                <span class="text-gray-300">Total Score:</span>
+                                <span class="text-emerald-400">${Math.round((evaluationResult.score / evaluationResult.maxScore) * 100)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center justify-center gap-3">
+                    <button id="confirmSubmit" class="px-4 py-2 bg-emerald-500 rounded-md text-white font-semibold">Proceed to Results</button>
+                    <button id="cancelSubmit" class="px-4 py-2 bg-gray-700 rounded-md text-gray-200">Cancel</button>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
 
-        document.getElementById("confirmSubmit").onclick = async () => {
-            // Save evaluation to Supabase
-            await submitTestResults();
+        document.getElementById("confirmSubmit").onclick = () => {
+            // Just go to completion, no data insertion
+            modal.remove();
             window.location.href = "completion.html";
         };
 

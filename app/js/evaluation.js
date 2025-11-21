@@ -11,16 +11,28 @@ window.Evaluation = {
         return user ? user.id : null;
     },
 
-    evaluateCorrectness(userOutput, expectedOutput) {
-        if (!userOutput || !expectedOutput) return 0;
-        return userOutput.trim() === expectedOutput.trim() ? 1 : 0;
+    evaluateCorrectness(code, expectedValues) {
+        if (!code || !expectedValues) return 0;
+
+        const normalizedCode = code.replace(/\s+/g, '').toLowerCase();
+        const expectedChars = expectedValues.replace(/\s+/g, '').toLowerCase().split('');
+
+        // Check if expected characters appear in order in the code
+        let matchIndex = 0;
+        for (const char of normalizedCode) {
+            if (matchIndex < expectedChars.length && char === expectedChars[matchIndex]) {
+                matchIndex++;
+            }
+        }
+
+        return matchIndex === expectedChars.length ? 10 : 0;
     },
 
-    evaluateLevel(level, judgeResult, userCode, timeTaken, totalErrors, totalRuns, expectedOutput) {
-        
+    evaluateLevel(level, judgeResult, userCode, timeTaken, totalErrors, totalRuns, expectedAnswer) {
+
         const correctness = this.evaluateCorrectness(
-            atob(judgeResult.stdout || ""),
-            expectedOutput
+            userCode,
+            expectedAnswer
         );
 
         const lineCount = userCode.split("\n").length;
@@ -30,7 +42,7 @@ window.Evaluation = {
         let maxScore = level;
 
         switch (level) {
-            case 1:
+            case 1: // Beginner - only correctness
                 score += correctness;
                 break;
 

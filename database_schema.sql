@@ -346,8 +346,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.create_level_after_profile()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Only generate level if the new profile is a candidate
-    IF NEW.role = 'candidate' THEN
+    -- Only generate level if the new profile is a candidate AND role is finalized
+    -- This prevents creating levels for users who haven't finalized their role yet
+    IF NEW.role = 'candidate' AND NEW.is_role_finalized = TRUE THEN
         INSERT INTO public.level(profile_id, progress, level_status)
         VALUES (NEW.id, 0, 'Beginner');
     END IF;
