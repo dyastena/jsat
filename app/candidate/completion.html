@@ -365,10 +365,14 @@
             console.log('Updated title to:', testTitleEl.textContent);
         }
 
-        if (testDetailsEl && evaluationData.time_taken !== null) {
-            const timeTakenMinutes = Math.round(evaluationData.time_taken);
-            const timeText = timeTakenMinutes === 1 ? '1 minute' : `${timeTakenMinutes} minutes`;
-            testDetailsEl.textContent = `Completed in ${timeText}`;
+        if (testDetailsEl && evaluationData.created_at) {
+            const completionDate = new Date(evaluationData.created_at);
+            const formattedDate = completionDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            testDetailsEl.textContent = `Test taken on ${formattedDate}`;
             console.log('Updated time to:', testDetailsEl.textContent);
         }
 
