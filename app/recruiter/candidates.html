@@ -173,6 +173,7 @@
         let levelMapGlobal = {};
         let resultMapGlobal = {};
         let evalMapGlobal = {};
+        let averageScoreMapGlobal = {};
         // Filter state
         let searchTerm = '';
         let selectedSkillLevel = 'All Skill Levels';
@@ -304,14 +305,39 @@
                     }
                 });
 
-                // Fetch results for those evaluations
-                const evalIds = evaluations.map(e => e.id);
-                const { data: results, error: resultsError } = await supabase
-                    .from('result')
-                    .select('evaluation_id, score')
-                    .in('evaluation_id', evalIds);
+                // Fetch all results for candidates to calculate averages
+                const { data: allResults, error: resultsError } = await supabase
+                    .from('evaluation')
+                    .select('profile_id, result(score)')
+                    .in('profile_id', candidateIds);
 
                 if (resultsError) throw resultsError;
+
+                // Calculate average scores per candidate
+                const averageScoreMap = {};
+                const scoreCounts = {};
+                allResults.forEach(eval_record => {
+                    const profileId = eval_record.profile_id;
+                    if (eval_record.result && eval_record.result.length > 0) {
+                        eval_record.result.forEach(res => {
+                            if (!averageScoreMap[profileId]) {
+                                averageScoreMap[profileId] = 0;
+                                scoreCounts[profileId] = 0;
+                            }
+                            averageScoreMap[profileId] += res.score;
+                            scoreCounts[profileId]++;
+                        });
+                    }
+                });
+
+                // Finalize averages
+                Object.keys(averageScoreMap).forEach(profileId => {
+                    if (scoreCounts[profileId] > 0) {
+                        averageScoreMap[profileId] = averageScoreMap[profileId] / scoreCounts[profileId];
+                    } else {
+                        averageScoreMap[profileId] = 0;
+                    }
+                });
 
                 // Create maps for data lookup
                 const levelMap = {};
@@ -320,8 +346,12 @@
                 });
 
                 const resultMap = {};
-                results.forEach(result => {
-                    resultMap[result.evaluation_id] = result.score;
+                allResults.forEach(eval_record => {
+                    if (eval_record.result && eval_record.result.length > 0) {
+                        eval_record.result.forEach(res => {
+                            resultMap[eval_record.id] = res.score;
+                        });
+                    }
                 });
 
                 // Store data globally for pagination
@@ -330,6 +360,7 @@
                 levelMapGlobal = levelMap;
                 resultMapGlobal = resultMap;
                 evalMapGlobal = evalMap;
+                averageScoreMapGlobal = averageScoreMap;
                 totalCandidates = allCandidates.length;
 
                 // Update pagination display
@@ -401,7 +432,7 @@
             candidatesToShow.forEach((candidate, index) => {
                 const skillLevel = levelMapGlobal[candidate.id] || 'Beginner';
                 const latestEval = evalMapGlobal[candidate.id];
-                const score = latestEval ? (resultMapGlobal[latestEval.id] || 0) : 0;
+                const score = averageScoreMapGlobal[candidate.id] || 0;
                 const lastTest = latestEval ? formatTimeAgo(new Date(latestEval.created_at)) : 'Never';
                 // Random color for avatar
                 const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
