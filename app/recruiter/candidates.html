@@ -93,7 +93,7 @@
                             <span id="selectedCount">0</span> candidates selected
                         </span>
                         <div class="flex items-center space-x-3">
-                            <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                            <button id="bulkSendEmailBtn" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
                                 <i data-lucide="mail" class="w-4 h-4 inline mr-2"></i>Send Email
                             </button>
                             <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
@@ -211,7 +211,7 @@
                                 const subject = 'Regarding Your J-SAT Application';
                                 const body = `Dear Candidate,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
                                 const mailtoUrl = `mailto:${candidateEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
-                                window.location.href = mailtoUrl;
+                                window.open(mailtoUrl, '_blank');
                             } else {
                                 alert('Candidate email not available');
                             }
@@ -254,6 +254,26 @@
                     selectedCount.textContent = checked;
                     bulkActionsBar.classList.toggle('hidden', checked === 0);
                 }
+
+                // Event listener for bulk send email
+                document.getElementById('bulkSendEmailBtn').addEventListener('click', () => {
+                    const selectedCheckboxes = document.querySelectorAll('.candidate-checkbox:checked');
+                    const emails = [];
+                    selectedCheckboxes.forEach(cb => {
+                        const row = cb.closest('tr');
+                        const candidateId = row.querySelector('.candidate-detail-btn').getAttribute('data-candidate-id');
+                        const email = emailMapGlobal[candidateId];
+                        if (email) emails.push(email);
+                    });
+                    if (emails.length > 0 && recruiterUser && recruiterUser.email) {
+                        const subject = 'Regarding Your J-SAT Application';
+                        const body = `Dear Candidates,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
+                        const mailtoUrl = `mailto:${emails.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
+                        window.open(mailtoUrl, '_blank');
+                    } else {
+                        alert('No candidates selected or recruiter email not available');
+                    }
+                });
             }
         });
 
