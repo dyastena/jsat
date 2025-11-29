@@ -214,7 +214,7 @@
                     totalTestsEl.textContent = totalTests.toLocaleString();
                 }
                 if (avgScoreEl) {
-                    avgScoreEl.textContent = `${avgScore.toFixed(1)}%`;
+                    avgScoreEl.textContent = `${(avgScore * 10).toFixed(1)}%`;
                 }
 
                 // Hide pagination nav if fewer than 10 reports
@@ -377,7 +377,7 @@
                         const scores = monthlyData[month];
                         const avg = scores.reduce((a,b) => a + b, 0) / scores.length;
                         trendLabels.push(month);
-                        trendData.push(Math.round(avg));
+                        trendData.push(Math.round(avg * 10));
                     });
 
                     // If no data, fall back to defaults
@@ -392,10 +392,10 @@
                 new Chart(perfCtx, {
                     type: 'line',
                     data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        labels: trendLabels,
                         datasets: [{
                             label: 'Average Score',
-                            data: [72, 75, 78, 76, 79, 82],
+                            data: trendData,
                             borderColor: 'rgb(16, 185, 129)',
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             tension: 0.4,
@@ -420,51 +420,48 @@
                     }
                 });
 
-                // Fetch skill gap data - average evaluation factors mapped to skills
+                // Fetch skill gap data - average evaluation factors directly
                 const { data: skillData } = await supabase
                     .from('evaluation')
                     .select('correctness, line_code, time_taken, runtime, error_made, created_at')
                     .order('created_at', { ascending: false })
                     .limit(100);
 
-                let skillDataArr = [78, 82, 68, 85, 75, 71]; // default
+                let factorDataArr = [0, 0, 0, 0, 0]; // default to 0 if no data
 
                 if (skillData && skillData.length > 0) {
-                    // Map factors to skills (simplified mapping)
-                    // Algorithms: runtime, Problem Solving: correctness, Code Quality: line_code, Time: time_taken inverse, Errors: error_made inverse
-                    const algorithms = skillData.map(item => item.runtime || 0).filter(x => x > 0);
-                    const problemSolving = skillData.map(item => item.correctness || 0).filter(x => x > 0);
-                    const codeQuality = skillData.map(item => item.line_code || 0).filter(x => x > 0);
-                    const timeEfficiency = skillData.map(item => item.time_taken ? Math.max(0, 10 - item.time_taken) : 0).filter(x => x > 0);
-                    const errorHandling = skillData.map(item => item.error_made ? Math.max(0, 10 - item.error_made) : 0).filter(x => x > 0);
-                    const dataStructures = algorithms.map(x => x * 0.8); // proxy
+                    // Calculate averages for each of the 5 evaluation factors
+                    // Note: time_taken and error_made are inverted since lower values are better
+                    const correctnessList = skillData.map(item => item.correctness || 0).filter(x => x > 0);
+                    const lineCodeList = skillData.map(item => item.line_code || 0).filter(x => x > 0);
+                    const timeTakenList = skillData.map(item => item.time_taken ? Math.max(0, 10 - item.time_taken) : 0).filter(x => x > 0);
+                    const runtimeList = skillData.map(item => item.runtime || 0).filter(x => x > 0);
+                    const errorMadeList = skillData.map(item => item.error_made ? Math.max(0, 10 - item.error_made) : 0).filter(x => x > 0);
 
-                    const avgAlgorithms = algorithms.length > 0 ? algorithms.reduce((a,b) => a+b, 0) / algorithms.length : 78;
-                    const avgDataStructures = dataStructures.length > 0 ? dataStructures.reduce((a,b) => a+b, 0) / dataStructures.length : 82;
-                    const avgAsyncJs = timeEfficiency.length > 0 ? timeEfficiency.reduce((a,b) => a+b, 0) / timeEfficiency.length : 68;
-                    const avgDom = errorHandling.length > 0 ? errorHandling.reduce((a,b) => a+b, 0) / errorHandling.length : 85;
-                    const avgEs6 = codeQuality.length > 0 ? codeQuality.reduce((a,b) => a+b, 0) / codeQuality.length : 75;
-                    const avgProblemSolving = problemSolving.length > 0 ? problemSolving.reduce((a,b) => a+b, 0) / problemSolving.length : 71;
+                    const avgCorrectness = correctnessList.length > 0 ? correctnessList.reduce((a,b) => a+b, 0) / correctnessList.length : 0;
+                    const avgLineCode = lineCodeList.length > 0 ? lineCodeList.reduce((a,b) => a+b, 0) / lineCodeList.length : 0;
+                    const avgTimeEfficiency = timeTakenList.length > 0 ? timeTakenList.reduce((a,b) => a+b, 0) / timeTakenList.length : 0;
+                    const avgRuntime = runtimeList.length > 0 ? runtimeList.reduce((a,b) => a+b, 0) / runtimeList.length : 0;
+                    const avgErrorHandling = errorMadeList.length > 0 ? errorMadeList.reduce((a,b) => a+b, 0) / errorMadeList.length : 0;
 
-                    skillDataArr = [
-                        Math.round(avgAlgorithms),
-                        Math.round(avgDataStructures),
-                        Math.round(avgAsyncJs),
-                        Math.round(avgDom),
-                        Math.round(avgEs6),
-                        Math.round(avgProblemSolving)
+                    factorDataArr = [
+                        Math.round(avgCorrectness * 10),
+                        Math.round(avgLineCode * 10),
+                        Math.round(avgTimeEfficiency * 10),
+                        Math.round(avgRuntime * 10),
+                        Math.round(avgErrorHandling * 10)
                     ];
                 }
 
-                // Skill Gap Chart
+                // Skill Gap Chart (now based on 5 evaluation factors)
                 const gapCtx = document.getElementById('skillGapChart').getContext('2d');
                 new Chart(gapCtx, {
                     type: 'radar',
                     data: {
-                        labels: ['Algorithms', 'Data Structures', 'Async JS', 'DOM', 'ES6+', 'Problem Solving'],
+                        labels: ['Correctness', 'Code Quality', 'Time Efficiency', 'Runtime Efficiency', 'Error Handling'],
                         datasets: [{
                             label: 'Average Proficiency',
-                            data: skillDataArr,
+                            data: factorDataArr,
                             borderColor: 'rgb(168, 85, 247)',
                             backgroundColor: 'rgba(168, 85, 247, 0.2)',
                             borderWidth: 2

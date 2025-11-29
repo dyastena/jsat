@@ -200,8 +200,8 @@
                     .select('score');
 
                 if (!scoreError && scores.length) {
-                    const avgScore = (scores.reduce((sum, r) => sum + (r.score || 0), 0) / scores.length).toFixed(1);
-                    document.getElementById('avg-skill').textContent = avgScore;
+                    const avgScore = (scores.reduce((sum, r) => sum + (r.score || 0), 0) / scores.length);
+                    document.getElementById('avg-skill').textContent = `${(avgScore * 10).toFixed(1)}%`;
                 }
 
                 // Completion rate: percentage of completed tests (rough estimate)

@@ -80,10 +80,10 @@
                         <div class="md:col-span-2">
                             <div class="relative">
                                 <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
-                                <input type="text" placeholder="Search candidates by name, email..." class="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 placeholder-gray-500 focus:outline-none focus:border-emerald-500">
+                                <input type="text" id="searchInput" placeholder="Search candidates by name, email..." class="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 placeholder-gray-500 focus:outline-none focus:border-emerald-500">
                             </div>
                         </div>
-                        <select class="px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
+                        <select id="skillLevelSelect" class="px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
                             <option>All Skill Levels</option>
                             <option>Beginner</option>
                             <option>Novice</option>
@@ -107,12 +107,6 @@
                             </button>
                             <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
                                 <i data-lucide="user-check" class="w-4 h-4 inline mr-2"></i>Assign Test
-                            </button>
-                            <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
-                                <i data-lucide="tag" class="w-4 h-4 inline mr-2"></i>Add Tag
-                            </button>
-                            <button class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm">
-                                <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>Delete
                             </button>
                         </div>
                     </div>
@@ -153,11 +147,11 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div class="bg-gray-800/50 px-6 py-4 border-t border-gray-800">
+                    <div class="bg-gray-800/50 px-6 py-4 border-t border-gray-800 hidden" id="paginationContainer">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2 text-sm text-gray-400">
                                 <span>Show</span>
-                                <select class="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-gray-300 focus:outline-none focus:border-emerald-500">
+                                <select class="px-3 py-1 bg-gray-800 border border-gray-700 rounded text-gray-300 focus:outline-none focus:border-emerald-500" id="itemsPerPage">
                                     <option>10</option>
                                     <option>25</option>
                                     <option>50</option>
@@ -165,18 +159,8 @@
                                 </select>
                                 <span>entries per page</span>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50" disabled>
-                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                                </button>
-                                <button class="px-4 py-2 bg-emerald-500 text-white rounded-lg">1</button>
-                                <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">2</button>
-                                <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">3</button>
-                                <span class="px-3 text-gray-500">...</span>
-                                <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">12</button>
-                                <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">
-                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                </button>
+                            <div class="flex items-center space-x-2" id="paginationButtons">
+                                <!-- Pagination buttons will be generated dynamically -->
                             </div>
                         </div>
                     </div>
@@ -189,11 +173,30 @@
         import { protectPage } from '../js/guard.js';
         import { logout, supabase } from '../js/auth.js';
 
+        // Pagination state
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let totalCandidates = 0;
+        let allCandidates = [];
+        let emailMapGlobal = {};
+        let levelMapGlobal = {};
+        let resultMapGlobal = {};
+        let evalMapGlobal = {};
+        // Filter state
+        let searchTerm = '';
+        let selectedSkillLevel = 'All Skill Levels';
+
         // Protect this page, only 'recruiter' role is authorized
         protectPage(['recruiter']).then(async ({ user, profile }) => {
             if (user && profile) {
                 // User is authorized, proceed with rendering the candidates page
                 lucide.createIcons();
+
+                // Initialize pagination controls
+                initializePagination();
+
+                // Initialize filters
+                initializeFilters();
 
                 // Load candidates data from Supabase
                 await loadCandidates(user);
@@ -293,74 +296,19 @@
                     resultMap[result.evaluation_id] = result.score;
                 });
 
-                // Render candidates to table
-                const tbody = document.getElementById('candidatesTableBody');
-                tbody.innerHTML = ''; // Clear existing rows
+                // Store data globally for pagination
+                allCandidates = candidates || [];
+                emailMapGlobal = emailMap;
+                levelMapGlobal = levelMap;
+                resultMapGlobal = resultMap;
+                evalMapGlobal = evalMap;
+                totalCandidates = allCandidates.length;
 
-                const skillLevelColors = {
-                    'Beginner': 'bg-yellow-500/10 text-yellow-500',
-                    'Novice': 'bg-blue-500/10 text-blue-500',
-                    'Intermediate': 'bg-purple-500/10 text-purple-500',
-                    'Advanced': 'bg-emerald-500/10 text-emerald-500',
-                    'Expert': 'bg-red-500/10 text-red-500'
-                };
+                // Update pagination display
+                updatePaginationVisibility();
 
-                const randomColors = ['ef4444', 'f97316', 'eab308', '22c55e', '06b6d4', '3b82f6', '8b5cf6', 'ec4899'];
-
-                candidates.forEach((candidate, index) => {
-                    const skillLevel = levelMap[candidate.id] || 'Beginner';
-                    const latestEval = evalMap[candidate.id];
-                    const score = latestEval ? (resultMap[latestEval.id] || 0) : 0;
-                    const lastTest = latestEval ? formatTimeAgo(new Date(latestEval.created_at)) : 'Never';
-                    // Random color for avatar
-                    const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
-                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent((candidate.first_name || '') + ' ' + (candidate.last_name || ''))}&background=${randomColor}&color=fff`;
-
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-800/30 transition-colors';
-                    row.innerHTML = `
-                        <td class="px-6 py-4">
-                            <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-3">
-                                <img src="${avatarUrl}" alt="Avatar" class="w-10 h-10 rounded-full">
-                                <div>
-                                    <p class="text-sm font-medium text-white">${candidate.first_name || ''} ${candidate.last_name || ''}</p>
-                                    <p class="text-xs text-gray-500">ID: #${candidate.id.slice(-4).toUpperCase()}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-300">${emailMap[candidate.id] || 'Email not available'}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${skillLevelColors[skillLevel] || skillLevelColors['Beginner']}">
-                                ${skillLevel}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-400">${lastTest}</td>
-                        <td class="px-6 py-4">
-                            <span class="text-gray-300">${score.toFixed(1)}</span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-2">
-                                <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors candidate-detail-btn" title="View Details" data-candidate-id="${candidate.id}">
-                                    <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
-                                </button>
-                                <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
-                                    <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                                </button>
-                                <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
-                                    <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-
-                    tbody.appendChild(row);
-                });
-
-                // Re-initialize icons for new elements
-                lucide.createIcons();
+                // Render candidates with pagination
+                renderCandidates();
             } catch (error) {
                 console.error('Error loading candidates:', error);
                 // Show fallback message if loading fails
@@ -375,6 +323,110 @@
                 `;
                 lucide.createIcons();
             }
+        }
+
+        function renderCandidates() {
+            // Filter candidates based on search and skill level
+            let filteredCandidates = allCandidates.filter(candidate => {
+                // Search filter
+                const fullName = `${candidate.first_name || ''} ${candidate.last_name || ''}`.toLowerCase();
+                const email = emailMapGlobal[candidate.id] || '';
+                const matchesSearch = !searchTerm ||
+                    fullName.includes(searchTerm) ||
+                    email.toLowerCase().includes(searchTerm);
+
+                // Skill level filter
+                const skillLevel = levelMapGlobal[candidate.id] || 'Beginner';
+                const matchesSkill = selectedSkillLevel === 'All Skill Levels' ||
+                    skillLevel === selectedSkillLevel;
+
+                return matchesSearch && matchesSkill;
+            });
+
+            // Update total candidates count for pagination
+            totalCandidates = filteredCandidates.length;
+            updatePaginationVisibility();
+
+            // Check if current page is valid after filtering
+            const totalPages = Math.ceil(totalCandidates / itemsPerPage);
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            }
+
+            const tbody = document.getElementById('candidatesTableBody');
+            tbody.innerHTML = ''; // Clear existing rows
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalCandidates);
+            const candidatesToShow = filteredCandidates.slice(startIndex, endIndex);
+
+            const skillLevelColors = {
+                'Beginner': 'bg-yellow-500/10 text-yellow-500',
+                'Novice': 'bg-blue-500/10 text-blue-500',
+                'Intermediate': 'bg-purple-500/10 text-purple-500',
+                'Advanced': 'bg-emerald-500/10 text-emerald-500',
+                'Expert': 'bg-red-500/10 text-red-500'
+            };
+
+            const randomColors = ['ef4444', 'f97316', 'eab308', '22c55e', '06b6d4', '3b82f6', '8b5cf6', 'ec4899'];
+
+            candidatesToShow.forEach((candidate, index) => {
+                const skillLevel = levelMapGlobal[candidate.id] || 'Beginner';
+                const latestEval = evalMapGlobal[candidate.id];
+                const score = latestEval ? (resultMapGlobal[latestEval.id] || 0) : 0;
+                const lastTest = latestEval ? formatTimeAgo(new Date(latestEval.created_at)) : 'Never';
+                // Random color for avatar
+                const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
+                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent((candidate.first_name || '') + ' ' + (candidate.last_name || ''))}&background=${randomColor}&color=fff`;
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-800/30 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4">
+                        <input type="checkbox" class="candidate-checkbox w-4 h-4 rounded border-gray-700 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0">
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="${avatarUrl}" alt="Avatar" class="w-10 h-10 rounded-full">
+                            <div>
+                                <p class="text-sm font-medium text-white">${candidate.first_name || ''} ${candidate.last_name || ''}</p>
+                                <p class="text-xs text-gray-500">ID: #${candidate.id.slice(-4).toUpperCase()}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-300">${emailMapGlobal[candidate.id] || 'Email not available'}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${skillLevelColors[skillLevel] || skillLevelColors['Beginner']}">
+                            ${skillLevel}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${lastTest}</td>
+                    <td class="px-6 py-4">
+                        <span class="text-gray-300">${score.toFixed(1)}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors candidate-detail-btn" title="View Details" data-candidate-id="${candidate.id}">
+                                <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
+                            </button>
+                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
+                                <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
+                            </button>
+                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">
+                                <i data-lucide="more-vertical" class="w-4 h-4 text-gray-400"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            // Re-initialize icons for new elements
+            lucide.createIcons();
+
+            // Update pagination UI
+            generatePaginationButtons();
         }
 
         function formatTimeAgo(date) {
@@ -394,6 +446,132 @@
             } else {
                 return `${Math.floor(diffInWeeks)} weeks ago`;
             }
+        }
+
+        function initializePagination() {
+            // Set up event listener for items per page select
+            const itemsPerPageSelect = document.getElementById('itemsPerPage');
+            itemsPerPageSelect.value = itemsPerPage.toString();
+            itemsPerPageSelect.addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1; // Reset to first page
+                if (allCandidates.length > 0) {
+                    updatePaginationVisibility();
+                    renderCandidates();
+                }
+            });
+        }
+
+        function updatePaginationVisibility() {
+            const paginationContainer = document.getElementById('paginationContainer');
+            // Show pagination only if there are more candidates than items per page
+            if (totalCandidates > itemsPerPage) {
+                paginationContainer.classList.remove('hidden');
+            } else {
+                paginationContainer.classList.add('hidden');
+            }
+        }
+
+        function initializeFilters() {
+            // Set up event listener for search input
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                searchTerm = this.value.trim().toLowerCase();
+                currentPage = 1; // Reset to first page
+                if (allCandidates.length > 0) {
+                    renderCandidates();
+                }
+            });
+
+            // Set up event listener for skill level select
+            const skillLevelSelect = document.getElementById('skillLevelSelect');
+            skillLevelSelect.value = selectedSkillLevel;
+            skillLevelSelect.addEventListener('change', function() {
+                selectedSkillLevel = this.value;
+                currentPage = 1; // Reset to first page
+                if (allCandidates.length > 0) {
+                    renderCandidates();
+                }
+            });
+        }
+
+        function generatePaginationButtons() {
+            const paginationButtons = document.getElementById('paginationButtons');
+            const totalPages = Math.ceil(totalCandidates / itemsPerPage);
+
+            // Clear existing buttons
+            paginationButtons.innerHTML = '';
+
+            // Previous button
+            const prevButton = document.createElement('button');
+            prevButton.className = `px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`;
+            prevButton.innerHTML = '<i data-lucide="chevron-left" class="w-4 h-4"></i>';
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCandidates();
+                }
+            });
+            paginationButtons.appendChild(prevButton);
+
+            // Page numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Adjust start page if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            // Show first page if not in range
+            if (startPage > 1) {
+                const firstPageBtn = createPageButton(1);
+                paginationButtons.appendChild(firstPageBtn);
+            }
+
+            // Generate page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = createPageButton(i);
+                if (i === currentPage) {
+                    pageButton.className = 'px-4 py-2 bg-emerald-500 text-white rounded-lg';
+                }
+                paginationButtons.appendChild(pageButton);
+            }
+
+            // Show last page if not in range
+            if (endPage < totalPages) {
+                const lastPageBtn = createPageButton(totalPages);
+                paginationButtons.appendChild(lastPageBtn);
+            }
+
+            // Next button
+            const nextButton = document.createElement('button');
+            nextButton.className = `px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`;
+            nextButton.innerHTML = '<i data-lucide="chevron-right" class="w-4 h-4"></i>';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderCandidates();
+                }
+            });
+            paginationButtons.appendChild(nextButton);
+
+            // Re-initialize icons
+            lucide.createIcons();
+        }
+
+        function createPageButton(pageNumber) {
+            const button = document.createElement('button');
+            button.className = 'px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors';
+            button.textContent = pageNumber;
+            button.addEventListener('click', () => {
+                currentPage = pageNumber;
+                renderCandidates();
+            });
+            return button;
         }
 
         // Logout functionality
