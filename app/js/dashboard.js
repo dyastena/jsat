@@ -638,7 +638,7 @@ export async function loadRecent(userId) {
                     <span class="${getScoreColor(score * 10)} font-bold">${score}</span>
                 </td>
                 <td class="py-4">
-                    <button class="text-emerald-500 hover:text-emerald-400 text-sm font-medium">View Details</button>
+                    <button onclick="window.location.href='completion.html?evaluation_id=${evalData.id}'" class="text-emerald-500 hover:text-emerald-400 text-sm font-medium cursor-pointer">View Details</button>
                 </td>
             `;
 

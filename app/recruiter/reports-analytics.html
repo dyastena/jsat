@@ -247,8 +247,6 @@
                 tbody.innerHTML = '';
 
                 if (tableData && tableData.length > 0) {
-                    const emails = [];
-
                     // Collect profile IDs
                     const profileIds = tableData.map(item => item.evaluation.profile_id);
 
@@ -258,14 +256,21 @@
                         .select('id, first_name, last_name')
                         .in('id', profileIds);
 
+                    // Fetch emails
+                    const { data: emails } = await supabase.rpc('get_candidate_emails');
+
                     const profileMap = {};
+                    const emailMap = {};
                     profiles.forEach(p => {
                         profileMap[p.id] = `${p.first_name || ''} ${p.last_name || ''}`.trim();
+                    });
+                    emails.forEach(e => {
+                        emailMap[e.user_id] = e.email;
                     });
 
                     for (const item of tableData) {
                         const fullname = profileMap[item.evaluation.profile_id] || 'N/A';
-                        const email = 'N/A'; // Would need admin API for emails, simplifying for now
+                        const email = emailMap[item.evaluation.profile_id] || 'N/A';
                         const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullname)}&background=10b981&color=fff`;
                         const date = new Date(item.created_at).toLocaleDateString('en-US', {
                             year: 'numeric',

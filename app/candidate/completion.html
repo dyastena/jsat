@@ -245,31 +245,70 @@
             // Update user welcome message
             updateWelcomeMessage(profile);
 
-            // Get the user's most recent evaluation with result data
-            const { data: evaluationData, error: evalError } = await supabase
-                .from('evaluation')
-                .select(`
-                    id,
-                    correctness,
-                    line_code,
-                    time_taken,
-                    runtime,
-                    error_made,
-                    created_at,
-                    question (
-                        title,
-                        difficulty,
-                        category
-                    ),
-                    result (
-                        score,
-                        cart_eval
-                    )
-                `)
-                .eq('profile_id', user.user.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
+            // Check if a specific evaluation ID is requested via URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const requestedEvaluationId = urlParams.get('evaluation_id');
+
+            let evaluationData, evalError;
+
+            if (requestedEvaluationId) {
+                // Load specific evaluation by ID
+                const { data: specificEval, error: specificError } = await supabase
+                    .from('evaluation')
+                    .select(`
+                        id,
+                        correctness,
+                        line_code,
+                        time_taken,
+                        runtime,
+                        error_made,
+                        created_at,
+                        question (
+                            title,
+                            difficulty,
+                            category
+                        ),
+                        result (
+                            score,
+                            cart_eval
+                        )
+                    `)
+                    .eq('id', requestedEvaluationId)
+                    .eq('profile_id', user.user.id)
+                    .single();
+
+                evaluationData = specificEval;
+                evalError = specificError;
+            } else {
+                // Get the user's most recent evaluation with result data
+                const { data: recentEval, error: recentError } = await supabase
+                    .from('evaluation')
+                    .select(`
+                        id,
+                        correctness,
+                        line_code,
+                        time_taken,
+                        runtime,
+                        error_made,
+                        created_at,
+                        question (
+                            title,
+                            difficulty,
+                            category
+                        ),
+                        result (
+                            score,
+                            cart_eval
+                        )
+                    `)
+                    .eq('profile_id', user.user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                evaluationData = recentEval;
+                evalError = recentError;
+            }
 
             if (evalError || !evaluationData) {
                 console.error('Failed to load evaluation data:', evalError);

@@ -60,16 +60,7 @@
                         <h2 class="text-3xl font-bold text-white">Candidates</h2>
                         <p class="text-gray-400 mt-1">Manage and track all your candidates</p>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <button class="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors">
-                            <i data-lucide="download" class="w-4 h-4"></i>
-                            <span>Export</span>
-                        </button>
-                        <button class="flex items-center space-x-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i>
-                            <span>Add Candidate</span>
-                        </button>
-                    </div>
+
                 </div>
             </header>
 
@@ -191,6 +182,18 @@
             if (user && profile) {
                 // User is authorized, proceed with rendering the candidates page
                 lucide.createIcons();
+
+                // Event listener for candidate detail buttons
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.candidate-detail-btn')) {
+                        e.preventDefault();
+                        const btn = e.target.closest('.candidate-detail-btn');
+                        const candidateId = btn.getAttribute('data-candidate-id');
+                        if (candidateId) {
+                            window.location.href = `candidate-detail.html?id=${candidateId}`;
+                        }
+                    }
+                });
 
                 // Initialize pagination controls
                 initializePagination();
@@ -409,7 +412,7 @@
                             <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors candidate-detail-btn" title="View Details" data-candidate-id="${candidate.id}">
                                 <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
                             </button>
-                            <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email">
+                            <button class="send-email-btn p-2 hover:bg-gray-800 rounded-lg transition-colors" title="Send Email" data-candidate-id="${candidate.id}">
                                 <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
                             </button>
                             <button class="p-2 hover:bg-gray-800 rounded-lg transition-colors" title="More">

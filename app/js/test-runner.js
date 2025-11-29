@@ -28,6 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
         currentquestionIndex: 0,
         isTimed: false,
         startTime: null,
+        timerInterval: null,
+        timeRemaining: 0, // in seconds
         lastJudge0Result: null,
         totalRuns: 0,
         errorCount: 0
@@ -43,6 +45,28 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log('Loading question with id:', questionId);
 
             try {
+                // Get current user and their level first
+                const { data: user } = await supabase.auth.getUser();
+                if (!user.user) throw new Error('Not authenticated');
+
+                const { data: levelData, error: levelError } = await supabase
+                    .from('level')
+                    .select('level_status')
+                    .eq('profile_id', user.user.id)
+                    .single();
+
+                if (levelError) {
+                    console.error('Error fetching user level:', levelError);
+                    // Default to Beginner if level not found
+                }
+
+                const userLevel = levelData?.level_status || 'Beginner';
+                const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
+                const numericLevel = levelMapping[userLevel] || 1;
+
+                // Enable timing for Intermediate and above users
+                const isTimed = numericLevel >= 3; // Intermediate and above
+
                 const { data: question, error } = await supabase
                     .from('question')
                     .select('question_id, title, question, input, output, answer, difficulty, category')
@@ -58,14 +82,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Update instance
                 instance.id = questionId;
                 instance.questions = [question];
-                instance.isTimed = ['Intermediate', 'Advanced', 'Expert'].includes(question.difficulty);
-                instance.durationMinutes = instance.isTimed ? 30 : 0; // Set duration for timed tests
+                instance.isTimed = isTimed;
+                instance.durationMinutes = isTimed ? 30 : 0; // Set duration for timed tests
+                instance.userLevel = userLevel;
 
                 // Update UI
                 headerTitle.textContent = `Test: ${question.title}`;
                 progress.textContent = `${question.category} - ${question.difficulty} Level`;
 
                 console.log('Question loaded:', question);
+                console.log('User level:', userLevel, 'Is timed:', isTimed);
 
                 // If not timed, hide timer or show unlimited
                 if (!instance.isTimed) {
@@ -205,7 +231,70 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     };
 
-    // Timer
+    // Timer functions
+    const startTimer = () => {
+        if (!instance.isTimed) return;
+
+        instance.timeRemaining = instance.durationMinutes * 60; // Convert to seconds
+        updateTimerDisplay();
+
+        instance.timerInterval = setInterval(() => {
+            instance.timeRemaining--;
+
+            if (instance.timeRemaining <= 0) {
+                // Time's up - auto-submit the test
+                clearInterval(instance.timerInterval);
+                timerEl.textContent = "00:00:00";
+                timerEl.style.color = "#ef4444"; // Red color for expired timer
+
+                // Show time up warning and auto-submit
+                alert("Time's up! Your test will be automatically submitted.");
+                showSubmitModal();
+                return;
+            }
+
+            // Warning when 5 minutes remaining
+            if (instance.timeRemaining === 300) { // 5 minutes = 300 seconds
+                const timerContainer = document.querySelector('.bg-gray-800.px-6.py-3.rounded-lg.border.border-gray-700');
+                if (timerContainer) {
+                    timerContainer.classList.add('timer-warning');
+                    // Optional: Add visual warning
+                }
+            }
+
+            updateTimerDisplay();
+        }, 1000);
+    };
+
+    const updateTimerDisplay = () => {
+        if (!timerEl) return;
+
+        const minutes = Math.floor(instance.timeRemaining / 60);
+        const seconds = instance.timeRemaining % 60;
+
+        const mm = String(minutes).padStart(2, "0");
+        const ss = String(seconds).padStart(2, "0");
+
+        timerEl.textContent = `${mm}:${ss}:00`;
+
+        // Change color based on time remaining
+        if (instance.timeRemaining <= 300) { // 5 minutes or less
+            timerEl.style.color = "#f59e0b"; // Orange for warning
+        } else if (instance.timeRemaining <= 600) { // 10 minutes or less
+            timerEl.style.color = "#eab308"; // Yellow for caution
+        } else {
+            timerEl.style.color = "#10b981"; // Green for normal
+        }
+    };
+
+    const stopTimer = () => {
+        if (instance.timerInterval) {
+            clearInterval(instance.timerInterval);
+            instance.timerInterval = null;
+        }
+    };
+
+    // Display initial timer (static for non-timed tests)
     const displayTimer = (minutes) => {
         if (timerEl) {
             const mm = String(minutes).padStart(2, "0");
@@ -244,42 +333,25 @@ document.addEventListener("DOMContentLoaded", () => {
             const sourceCode = editor.value;
             const timeTaken = (Date.now() - instance.startTime) / (1000 * 60); // minutes
 
-            // Initialize all metrics to null
-            let correctness = null;
-            let lineCode = null;
-            let runtime = null;
-            let errorMade = null;
+            // Calculate ALL evaluation metrics for ALL users regardless of level
+            const correctness = Evaluation.evaluateCorrectness(
+                sourceCode,
+                question.answer || ''
+            );
 
-            // Calculate only metrics required for current level
-            if (numericLevel >= 1) {
-                // Always calculate correctness for all levels
-                correctness = Evaluation.evaluateCorrectness(
-                    sourceCode,
-                    question.answer || ''
-                );
-            }
+            // Time taken is always calculated and saved
+            // timeTaken variable is already calculated above
 
-            if (numericLevel >= 2) {
-                // For Novice and above, include time_taken (processed by database)
-                // timeTaken is always included, so no special handling needed here
-            }
+            // Code quality evaluation for all users
+            const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
+            const lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
 
-            if (numericLevel >= 3) {
-                // For Intermediate and above, include code quality
-                const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
-                lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
-            }
+            // Runtime evaluation for all users
+            const runtime = instance.lastJudge0Result?.time || 0;
 
-            if (numericLevel >= 4) {
-                // For Advanced and above, include runtime
-                runtime = instance.lastJudge0Result.time || 0;
-            }
-
-            if (numericLevel >= 5) {
-                // For Expert level, include error handling
-                const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
-                errorMade = Math.max(0, 10 - (errorRate * 10));
-            }
+            // Error handling evaluation for all users
+            const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
+            const errorMade = Math.max(0, 10 - (errorRate * 10));
 
             await supabase
                 .from('evaluation')
@@ -288,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     profile_id: user.user.id,
                     correctness: correctness,
                     line_code: lineCode,
-                    time_taken: numericLevel >= 2 ? timeTaken : null,
+                    time_taken: timeTaken, // Always save time taken for all users
                     runtime: runtime,
                     error_made: errorMade
                 });
@@ -370,30 +442,22 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="text-gray-400">Correctness:</span>
                             <span class="text-emerald-400">${evaluationResult.details.correctness}/10</span>
                         </div>
-                        ${numericLevel > 1 ? `
                         <div class="flex justify-between">
                             <span class="text-gray-400">Time Efficiency:</span>
                             <span class="text-yellow-400">${Math.max(0, 10 - evaluationResult.details.timeTaken)}/10</span>
                         </div>
-                        ` : ''}
-                        ${numericLevel > 2 ? `
                         <div class="flex justify-between">
                             <span class="text-gray-400">Code Quality:</span>
                             <span class="text-blue-400">${evaluationResult.details.lineCount > 20 ? 0 : Math.max(1, 11 - evaluationResult.details.lineCount)}/10</span>
                         </div>
-                        ` : ''}
-                        ${numericLevel > 3 ? `
                         <div class="flex justify-between">
                             <span class="text-gray-400">Runtime Performance:</span>
                             <span class="text-orange-400">${evaluationResult.details.runtime >= 0 ? Math.max(0, 10 - evaluationResult.details.runtime * 10) : 10}/10</span>
                         </div>
-                        ` : ''}
-                        ${numericLevel > 4 ? `
                         <div class="flex justify-between">
                             <span class="text-gray-400">Error Handling:</span>
                             <span class="text-red-400">${10 - (evaluationResult.details.totalRuns > 0 ? (evaluationResult.details.totalErrors / evaluationResult.details.totalRuns) * 10 : 0)}/10</span>
                         </div>
-                        ` : ''}
                         <div class="border-t border-gray-600 pt-2 mt-3">
                             <div class="flex justify-between font-bold">
                                 <span class="text-gray-300">Total Score:</span>
@@ -411,6 +475,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(modal);
 
         document.getElementById("confirmSubmit").onclick = async () => {
+            // Stop the timer first
+            stopTimer();
             // Submit test results to Supabase first
             await submitTestResults();
             modal.remove();
@@ -437,6 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
             renderquestion();
             displayTimer(instance.durationMinutes);
             instance.startTime = Date.now(); // Start tracking time
+            startTimer(); // Start the countdown timer for timed tests
         }
     };
 
