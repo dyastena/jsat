@@ -177,9 +177,12 @@
         let searchTerm = '';
         let selectedSkillLevel = 'All Skill Levels';
 
+        let recruiterUser = null;
+
         // Protect this page, only 'recruiter' role is authorized
         protectPage(['recruiter']).then(async ({ user, profile }) => {
             if (user && profile) {
+                recruiterUser = user;
                 // User is authorized, proceed with rendering the candidates page
                 lucide.createIcons();
 
@@ -191,6 +194,28 @@
                         const candidateId = btn.getAttribute('data-candidate-id');
                         if (candidateId) {
                             window.location.href = `candidate-detail.html?id=${candidateId}`;
+                        }
+                    }
+                });
+
+                // Event listener for send email buttons
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.send-email-btn')) {
+                        e.preventDefault();
+                        const btn = e.target.closest('.send-email-btn');
+                        const candidateId = btn.getAttribute('data-candidate-id');
+                        if (candidateId && recruiterUser && recruiterUser.email) {
+                            const candidateEmail = emailMapGlobal[candidateId];
+                            if (candidateEmail) {
+                                const subject = 'Regarding Your J-SAT Application';
+                                const body = `Dear Candidate,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
+                                const mailtoUrl = `mailto:${candidateEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
+                                window.location.href = mailtoUrl;
+                            } else {
+                                alert('Candidate email not available');
+                            }
+                        } else {
+                            alert('Unable to send email: Recruiter information not available');
                         }
                     }
                 });

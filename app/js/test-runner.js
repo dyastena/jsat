@@ -333,37 +333,52 @@ document.addEventListener("DOMContentLoaded", () => {
             const sourceCode = editor.value;
             const timeTaken = (Date.now() - instance.startTime) / (1000 * 60); // minutes
 
-            // Calculate ALL evaluation metrics for ALL users regardless of level
+            // Calculate evaluation metrics based on user level
             const correctness = Evaluation.evaluateCorrectness(
                 sourceCode,
                 question.answer || ''
             );
 
-            // Time taken is always calculated and saved
-            // timeTaken variable is already calculated above
+            const insertData = {
+                question_id: instance.id,
+                profile_id: user.user.id,
+                correctness: parseFloat(correctness.toFixed(1)),
+            };
 
-            // Code quality evaluation for all users
-            const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
-            const lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
+            // Add metrics progressively based on level
+            // Beginner: correctness
+            // Novice: + line_code
+            // Intermediate: + time_taken
+            // Advanced: + runtime
+            // Expert: + error_made
 
-            // Runtime evaluation for all users
-            const runtime = instance.lastJudge0Result?.time || 0;
+            if (numericLevel >= 2) {
+                // Code quality evaluation
+                const linesOfCode = sourceCode.split('\n').filter(line => line.trim().length > 0).length;
+                const lineCode = Math.max(1, Math.min(10, 11 - linesOfCode)); // Shorter better, cap at 10
+                insertData.line_code = parseFloat(lineCode.toFixed(1));
+            }
 
-            // Error handling evaluation for all users
-            const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
-            const errorMade = Math.max(0, 10 - (errorRate * 10));
+            if (numericLevel >= 3) {
+                insertData.time_taken = parseFloat(timeTaken.toFixed(1));
+            }
+
+            if (numericLevel >= 4) {
+                // Runtime evaluation
+                const runtime = instance.lastJudge0Result?.time || 0;
+                insertData.runtime = parseFloat(runtime.toFixed(1));
+            }
+
+            if (numericLevel >= 5) {
+                // Error handling evaluation
+                const errorRate = instance.totalRuns > 0 ? instance.errorCount / instance.totalRuns : 0;
+                const errorMade = Math.max(0, 10 - (errorRate * 10));
+                insertData.error_made = parseFloat(errorMade.toFixed(1));
+            }
 
             await supabase
                 .from('evaluation')
-                .insert({
-                    question_id: instance.id,
-                    profile_id: user.user.id,
-                    correctness: correctness,
-                    line_code: lineCode,
-                    time_taken: timeTaken, // Always save time taken for all users
-                    runtime: runtime,
-                    error_made: errorMade
-                });
+                .insert(insertData);
 
             // Store question title for quick access on completion page
             localStorage.setItem('lastTestQuestionTitle', question.title);

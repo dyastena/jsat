@@ -102,7 +102,7 @@
                     <div class="flex items-center justify-between mb-6 pb-6 border-b border-gray-800">
                         <div>
                             <h2 class="text-2xl font-bold text-white mb-1">Java Fundamentals Assessment</h2>
-                            <p class="text-gray-400">Completed on November 13, 2025</p>
+                            <p class="text-gray-400" id="completion-time"></p>
                         </div>
                         <div class="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center">
                             <i data-lucide="check-circle" class="w-10 h-10 text-emerald-500"></i>
@@ -355,7 +355,7 @@
     const updateTestSummary = (evaluationData, levelData) => {
         console.log('Updating test summary with data:', evaluationData);
         const testTitleEl = document.querySelector('h2.text-2xl.font-bold.text-white.mb-1');
-        const testDetailsEl = document.querySelector('.bg-gray-900.rounded-2xl.border.border-gray-800 p-8.mb-6 .text-gray-400');
+        const testDetailsEl = document.getElementById('completion-time');
 
         // First try localStorage (from submission), then database
         const questionTitle = localStorage.getItem('lastTestQuestionTitle') || (evaluationData.question ? evaluationData.question.title : 'Test Completed');
@@ -365,10 +365,11 @@
             console.log('Updated title to:', testTitleEl.textContent);
         }
 
-        if (testDetailsEl && evaluationData.created_at) {
-            const completionDate = new Date(evaluationData.created_at).toLocaleDateString();
-            testDetailsEl.textContent = `Completed on ${completionDate}`;
-            console.log('Updated date to:', testDetailsEl.textContent);
+        if (testDetailsEl && evaluationData.time_taken !== null) {
+            const timeTakenMinutes = Math.round(evaluationData.time_taken);
+            const timeText = timeTakenMinutes === 1 ? '1 minute' : `${timeTakenMinutes} minutes`;
+            testDetailsEl.textContent = `Completed in ${timeText}`;
+            console.log('Updated time to:', testDetailsEl.textContent);
         }
 
         // Clear localStorage after use
