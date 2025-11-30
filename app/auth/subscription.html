@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Plan - J-SAT</title>
+    <link href="../../dist/output.css" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-950 min-h-screen flex items-center justify-center p-4">
+
+    <!-- ===== SUBSCRIPTION CONTAINER ===== -->
+    <div class="w-full max-w-4xl">
+
+        <!-- ===== LOGO & BRANDING ===== -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 mb-3">
+                <div class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <i data-lucide="satellite" class="w-7 h-7 text-white"></i>
+                </div>
+                <span class="text-3xl font-bold text-white">J-SAT</span>
+            </div>
+            <p class="text-gray-400 text-sm">Choose the perfect plan for your career advancement</p>
+        </div>
+
+        <!-- ===== SUBSCRIPTION CARDS ===== -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+
+            <!-- ===== MONTHLY PLAN ===== -->
+            <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300">
+                <div class="p-8">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">Monthly Plan</h3>
+                        <div class="flex items-baseline justify-center gap-1 mb-4">
+                            <span class="text-4xl font-bold text-emerald-400">₱199</span>
+                            <span class="text-gray-400">/month</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Flexible monthly subscription</p>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Unlimited practice tests</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Detailed performance analytics</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Access to all test categories</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Email support</span>
+                        </li>
+                    </ul>
+
+                    <button
+                        onclick="selectPlan('monthly')"
+                        class="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <span>Choose Monthly</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== 6-MONTH PLAN ===== -->
+            <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 relative">
+                <div class="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    SAVE 8%
+                </div>
+                <div class="p-8">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">6-Month Plan</h3>
+                        <div class="flex items-baseline justify-center gap-1 mb-4">
+                            <span class="text-4xl font-bold text-emerald-400">₱999</span>
+                            <span class="text-gray-400">/6 months</span>
+                        </div>
+                        <p class="text-sm text-gray-400">₱167/month • Billed every 6 months</p>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Everything in Monthly plan</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Extended support period</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Progress tracking tools</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Priority email support</span>
+                        </li>
+                    </ul>
+
+                    <button
+                        onclick="selectPlan('6month')"
+                        class="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <span>Choose 6 Months</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== YEARLY PLAN ===== -->
+            <div class="bg-gray-900 rounded-2xl border-2 border-emerald-500 shadow-2xl overflow-hidden relative">
+                <div class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    SAVE 17%
+                </div>
+                <div class="p-8">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">Yearly Plan</h3>
+                        <div class="flex items-baseline justify-center gap-1 mb-4">
+                            <span class="text-4xl font-bold text-emerald-400">₱1,999</span>
+                            <span class="text-gray-400">/year</span>
+                        </div>
+                        <p class="text-sm text-gray-400">₱167/month • Billed annually</p>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Everything in Monthly plan</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Priority customer support</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Advanced analytics dashboard</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Early access to new features</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                            <span class="text-gray-300">Cancel anytime</span>
+                        </li>
+                    </ul>
+
+                    <button
+                        onclick="selectPlan('yearly')"
+                        class="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                        <span>Choose Yearly</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== FEATURES COMPARISON ===== -->
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl p-8 mb-8">
+            <h3 class="text-xl font-bold text-white text-center mb-6">Why Choose J-SAT?</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="briefcase" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Career Ready</h4>
+                    <p class="text-sm text-gray-400">Industry-relevant tests that prepare you for real job interviews</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Track Progress</h4>
+                    <p class="text-sm text-gray-400">Detailed analytics to monitor your improvement over time</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Community Support</h4>
+                    <p class="text-sm text-gray-400">Connect with other test takers and share study tips</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SIGN IN LINK ===== -->
+        <div class="text-center">
+            <p class="text-sm text-gray-400">
+                Already have an account?
+                <a href="login.html" class="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
+                    Sign in here
+                </a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-xs text-gray-600 mt-8">
+            © 2024 J-SAT App. All rights reserved.
+        </p>
+
+    </div>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script type="module">
+        // Initialize Lucide Icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+
+        // Plan selection function
+        window.selectPlan = function(plan) {
+            // Store selected plan (could be used later in signup)
+            localStorage.setItem('selectedPlan', plan);
+
+            // Redirect to signup page
+            window.location.href = 'signup.html';
+        }
+    </script>
+</body>
+</html>
