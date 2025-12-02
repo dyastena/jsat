@@ -218,11 +218,11 @@ RETURNS TRIGGER AS $$
 DECLARE
     factor_count int := 0;
     total numeric := 0;
-    calc_score numeric;
+    calc_score numeric := 0;
     avg_skill numeric := 0;
     cart_level text;
 BEGIN
-    -- Sum non-null factors for basic score calculation
+    -- 1. Sum non-null factors for basic score calculation
     IF NEW.correctness IS NOT NULL THEN
         total := total + NEW.correctness;
         factor_count := factor_count + 1;
@@ -244,9 +244,9 @@ BEGIN
         factor_count := factor_count + 1;
     END IF;
 
-    -- Calculate average score, capped at 10
+    -- 2. Calculate average score (decimal-safe) and cap at 10
     IF factor_count > 0 THEN
-        calc_score := total / factor_count;
+        calc_score := total / factor_count::numeric;
         IF calc_score > 10 THEN
             calc_score := 10;
         END IF;
@@ -254,9 +254,7 @@ BEGIN
         calc_score := 0;
     END IF;
 
-    -- Calculate CART skill average for classification
-    -- This mimics the frontend logic: average of 5 skills (0-10 scale each)
-    -- Where time and errors are inverted (less time/errors = higher score)
+    -- 3. Calculate CART skill average
     DECLARE
         problem_solving numeric := 0;
         algorithm_design numeric := 0;
@@ -295,34 +293,37 @@ BEGIN
             skill_count := skill_count + 1;
         END IF;
 
-        -- Calculate CART skill average
+        -- Decimal-safe CART skill average
         IF skill_count > 0 THEN
             avg_skill := (COALESCE(problem_solving, 0) + COALESCE(algorithm_design, 0) +
-                         COALESCE(code_quality, 0) + COALESCE(time_efficiency, 0) +
-                         COALESCE(error_handling, 0)) / skill_count;
+                          COALESCE(code_quality, 0) + COALESCE(time_efficiency, 0) +
+                          COALESCE(error_handling, 0)) / skill_count::numeric;
+        ELSE
+            avg_skill := 0;
         END IF;
 
-        -- Determine CART classification based on average skill (0-10 scale)
-        IF avg_skill <= 2 THEN
+        -- Determine CART classification
+        IF avg_skill <= 2.0 THEN
             cart_level := 'FOUNDATION';
-        ELSIF avg_skill <= 4 THEN
+        ELSIF avg_skill <= 4.0 THEN
             cart_level := 'BASIC';
-        ELSIF avg_skill <= 6 THEN
+        ELSIF avg_skill <= 6.0 THEN
             cart_level := 'PROFICIENT';
-        ELSIF avg_skill <= 8 THEN
+        ELSIF avg_skill <= 8.0 THEN
             cart_level := 'ADVANCED';
         ELSE
             cart_level := 'MASTERY';
         END IF;
     END;
 
-    -- Insert into result with calculated CART evaluation
+    -- 4. Insert into result with calculated CART evaluation
     INSERT INTO public.result(evaluation_id, cart_eval, score)
     VALUES (NEW.id, cart_level, calc_score);
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION accumulate_level_progress_after_result()
 RETURNS TRIGGER AS $$
