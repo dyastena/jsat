@@ -152,9 +152,57 @@
 
     </div>
 
-    <!-- Initialize Lucide Icons & Password Toggle -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
     <script type="module">
-        import { login } from '../js/auth.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.getElementById('login-form-message').innerHTML = '<div class="bg-red-500/10 text-red-300 border border-red-600/30 px-4 py-3 rounded-lg text-sm">Configuration error: Supabase credentials not found.</div>';
+        } else {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Helper functions
+        function redirectUser(role) {
+            const rolePaths = {
+                admin: '/jsat/app/admin/users.html',
+                recruiter: '/jsat/app/recruiter/dashboard.html',
+                candidate: '/jsat/app/candidate/dashboard.html',
+            };
+            const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
+            window.location.href = redirectPath;
+        }
+
+        async function login(email, password) {
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+            if (authError) {
+                return { data: null, error: authError };
+            }
+
+            if (authData.user) {
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role, is_role_finalized')
+                    .eq('id', authData.user.id)
+                    .single();
+
+                if (profileError) {
+                    return { data: null, error: profileError };
+                }
+
+                if (profileData && !profileData.is_role_finalized) {
+                    window.location.href = '/jsat/app/auth/role_selection.html';
+                    return { data: profileData, error: null };
+                } else if (profileData) {
+                    redirectUser(profileData.role);
+                    return { data: profileData, error: null };
+                } else {
+                    return { data: null, error: new Error("User profile not found.") };
+                }
+            }
+
+            return { data: authData, error: null };
+        }
 
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
@@ -213,6 +261,7 @@
             }
             // On success, the login function handles the redirection automatically.
         });
+        }
     </script>
 </body>
 </html>

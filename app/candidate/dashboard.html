@@ -388,55 +388,55 @@
     </div>
 
     <script>lucide.createIcons();</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
     <script type="module">
-        import { protectPage } from '../js/guard.js';
-        import { logout } from '../js/auth.js';
-import { loadUserLevelData, initializeUserLevel, loadUpcomingTests, loadRecent, initializeDifficultyDropdown } from '../js/dashboard.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 
-        // Protect this page, only 'candidate' role is authorized
-        protectPage(['candidate']).then(async ({ user, profile }) => {
-            if (user && profile) {
-                // User is authorized, proceed with rendering the dashboard
-                lucide.createIcons();
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                    <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                        <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77-.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
+                        <p class="text-gray-300 mb-4 leading-relaxed">Supabase credentials not found.</p>
+                    </div>
+                </div>`;
+        } else {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-                // Initialize level system for new users and load level data
-                await initializeUserLevel(user.id, 'Beginner', 0);
-                const levelData = await loadUserLevelData(user.id);
+        // Helper functions
+        function redirectUser(role) {
+            const rolePaths = {
+                admin: '/jsat/app/admin/users.html',
+                recruiter: '/jsat/app/recruiter/dashboard.html',
+                candidate: '/jsat/app/candidate/dashboard.html',
+            };
+            const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
+            window.location.href = redirectPath;
+        }
 
-                // Store user info globally
-                window.currentUser = user;
-                window.currentLevel = levelData ? levelData.level_status : null;
+        async function logout() {
+            await supabase.auth.signOut();
+        }
 
-                // Load upcoming tests and recent completions
-                if (levelData) {
-                    await loadUpcomingTests(user.id, levelData.level_status);
-                } else {
-                    // Fallback: get level directly
-                    const supabase = (await import('../js/auth.js')).supabase;
-                    const { data: level } = await supabase
-                        .from('level')
-                        .select('level_status')
-                        .eq('profile_id', user.id)
-                        .single();
-                    if (level) {
-                        window.currentLevel = level.level_status;
-                        await loadUpcomingTests(user.id, level.level_status);
-                    }
-                }
-                await loadRecent(user.id);
-
-                // Initialize difficulty dropdown
-                initializeDifficultyDropdown(user.id);
-            }
-        });
-
-        // Logout functionality
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            if (confirm('Are you sure you want to logout?')) {
-                await logout();
+        async function protectPage(authorizedRoles = []) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
                 window.location.href = '/jsat/app/auth/login.html';
+                return null;
             }
-        });
+
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('role, is_role_finalized')
+                .eq('id', user.id)
+                .single();
+
     </script>
 </body>
 </html>

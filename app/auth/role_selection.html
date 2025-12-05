@@ -97,8 +97,26 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
     <script type="module">
-        import { supabase, redirectUser } from '../js/auth.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.getElementById('role-selection-message').innerHTML = '<div class="bg-red-500/10 text-red-300 border border-red-600/30 px-4 py-3 rounded-lg text-sm">Configuration error: Supabase credentials not found.</div>';
+        } else {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Helper functions
+        function redirectUser(role) {
+            const rolePaths = {
+                admin: '/jsat/app/admin/users.html',
+                recruiter: '/jsat/app/recruiter/dashboard.html',
+                candidate: '/jsat/app/candidate/dashboard.html',
+            };
+            const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
+            window.location.href = redirectPath;
+        }
 
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
@@ -254,7 +272,7 @@
                 document.getElementById('loading-overlay').classList.add('hidden');
             }
         })();
-
+        }
     </script>
 </body>
 </html>
