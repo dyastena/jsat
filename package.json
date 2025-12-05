@@ -1,19 +1,30 @@
 {
     "name": "jsat",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "description": "Java Skill Assessment Tool - Assess Java skills in minutes",
+    "main": "server.js",
     "scripts": {
-        "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+        "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+        "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+        "start": "node server.js",
+        "railway-build": "npm run build"
     },
-    "keywords": [],
+    "keywords": [
+        "java",
+        "assessment",
+        "skill-test"
+    ],
     "author": "",
     "license": "ISC",
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "devDependencies": {
         "dotenv": "^17.2.3",
         "tailwindcss": "^3.3.5"
     },
     "dependencies": {
-        "@supabase/supabase-js": "^2.81.1"
+        "@supabase/supabase-js": "^2.81.1",
+        "express": "^4.22.1"
     }
 }

@@ -1,13 +1,23 @@
 # Node / build artifacts (if any)
 node_modules/
-/dist/
 
-# Local Supabase credentials
+# Local Supabase credentials - DO NOT commit real credentials
 **/config.js
+.env
+.env.local
+.env.production
 
 # OS files
 .DS_Store
 Thumbs.db
 
+# IDE
 .gemini/
+.vscode/
+*.swp
+
+# Credentials
 gha-creds-*.json
+
+# PHP vendor (not used in Railway deployment)
+vendor/
