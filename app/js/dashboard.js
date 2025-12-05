@@ -12,26 +12,20 @@ export async function loadUserLevelData(userId, recreateIcons = true) {
     try {
         console.log('Attempting to load user data for user:', userId);
 
-        // First, fetch user's profile data
-        const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', userId)
-            .single();
+        // Fetch both profile and level data in parallel
+        const [profileResult, levelResult] = await Promise.all([
+            supabase.from('profiles').select('first_name, last_name').eq('id', userId).single(),
+            supabase.from('level').select('level_status, progress').eq('profile_id', userId).single()
+        ]);
+
+        const { data: profileData, error: profileError } = profileResult;
+        const { data: levelData, error } = levelResult;
 
         if (profileError) {
             console.error('Error fetching profile data:', profileError);
         } else if (profileData) {
-            // Update welcome message with user's name
             updateWelcomeMessage(profileData.first_name, profileData.last_name);
         }
-
-        // Then fetch user's level data from Level table
-        const { data: levelData, error } = await supabase
-            .from('level')
-            .select('level_status, progress')
-            .eq('profile_id', userId)
-            .single();
 
         console.log('Level Supabase response:', { data: levelData, error });
 
@@ -185,19 +179,17 @@ export async function updateDashboardStats(userId) {
         let accuracy = 0;
         let totalPoints = 0;
         if (userEvaluations && userEvaluations.length > 0) {
+            // Fetch results in parallel with evaluation processing
             const evaluationIds = userEvaluations.map(e => e.id);
-            const { data: results, error: resultError } = await supabase
-                .from('result')
-                .select('score')
-                .in('evaluation_id', evaluationIds);
-
-            // Calculate total points as sum of non-null values from evaluation table
-            // Using same logic as results.html calculateAverages function
+            const resultsPromise = supabase.from('result').select('score').in('evaluation_id', evaluationIds);
+            
+            // Calculate total points while results are loading
             userEvaluations.forEach(evaluation => {
-                // Sum all non-null values for total points
                 totalPoints += (evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0);
-                console.log(`DEBUG Evaluation ${evaluation.id}: correctness=${evaluation.correctness}, line_code=${evaluation.line_code}, time_taken=${evaluation.time_taken}, runtime=${evaluation.runtime}, error_made=${evaluation.error_made}, sum=${(evaluation.correctness || 0) + (evaluation.line_code || 0) + (evaluation.time_taken || 0) + (evaluation.runtime || 0) + (evaluation.error_made || 0)}`);
             });
+            
+            const { data: results, error: resultError } = await resultsPromise;
+
             console.log(`DEBUG Total evaluations: ${userEvaluations.length}, totalPoints calculated: ${totalPoints}`);
 
             // Get average accuracy from result scores if available
@@ -413,23 +405,32 @@ export function calculateLevelFromprogress(totalprogress) {
  * @param {string} selectedDifficulty - Optional selected difficulty from dropdown
  */
 export async function loadUpcomingTests(userId, levelStatus, selectedDifficulty = null) {
+    const upcomingContainer = document.getElementById('upcoming-tests-container');
+    if (!upcomingContainer) return;
+    
+    // Show loading state
+    upcomingContainer.innerHTML = `
+        <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700 text-center">
+            <div class="flex items-center justify-center space-x-3">
+                <div class="animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent"></div>
+                <span class="text-gray-400">Loading upcoming tests...</span>
+            </div>
+        </div>
+    `;
+    
     try {
-        // Get questions already completed by the user to exclude them
-        const { data: completedEvaluations, error: evalError } = await supabase
-            .from('evaluation')
-            .select('question_id')
-            .eq('profile_id', userId);
-
-        const completedquestionIds = completedEvaluations ? completedEvaluations.map(e => e.question_id) : [];
-
-        // Fetch up to 5 questions from the question table for the selected difficulty, excluding completed ones
         const currentDifficulty = selectedDifficulty || levelStatus;
-
-        // First get all questions for the difficulty
-        const { data: allquestions, error: qError } = await supabase
-            .from('question')
-            .select('question_id, title, category')
-            .eq('difficulty', currentDifficulty);
+        
+        // Fetch completed questions and available questions in parallel
+        const [completedResult, questionsResult] = await Promise.all([
+            supabase.from('evaluation').select('question_id').eq('profile_id', userId),
+            supabase.from('question').select('question_id, title, category').eq('difficulty', currentDifficulty)
+        ]);
+        
+        const { data: completedEvaluations, error: evalError } = completedResult;
+        const { data: allquestions, error: qError } = questionsResult;
+        
+        const completedquestionIds = completedEvaluations ? completedEvaluations.map(e => e.question_id) : [];
 
         if (qError) throw qError;
 
@@ -477,12 +478,7 @@ export async function loadUpcomingTests(userId, levelStatus, selectedDifficulty 
             };
         });
 
-
-
-        // Update the upcoming tests section
-        const upcomingContainer = document.querySelector('.bg-gray-900.rounded-xl.p-6.border.border-gray-800 .space-y-4');
-        if (!upcomingContainer) return;
-
+        // Clear loading and populate data
         upcomingContainer.innerHTML = '';
 
         if (!tests || tests.length === 0) {
@@ -542,6 +538,21 @@ export async function loadUpcomingTests(userId, levelStatus, selectedDifficulty 
  * @param {string} userId - The user's ID
  */
 export async function loadRecent(userId) {
+    const tableBody = document.getElementById('recent-completions-tbody');
+    if (!tableBody) return;
+    
+    // Show loading state
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="6" class="py-8 text-center">
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent"></div>
+                    <span class="text-gray-400">Loading recent completions...</span>
+                </div>
+            </td>
+        </tr>
+    `;
+    
     try {
         // Get recent evaluations for the user, limit to 5, ordered by date desc
         const { data: evaluations, error } = await supabase
@@ -588,10 +599,7 @@ export async function loadRecent(userId) {
             }
         }
 
-        // Update the recent completions table
-        const tableBody = document.querySelector('.bg-gray-900.rounded-xl.p-6.border.border-gray-800 table tbody');
-        if (!tableBody) return;
-
+        // Clear loading and populate data
         tableBody.innerHTML = '';
 
         if (!evaluations || evaluations.length === 0) {

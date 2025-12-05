@@ -102,7 +102,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800">
-                                <!-- Dynamically populated from Supabase -->
+                                <!-- Reports will be loaded here -->
                             </tbody>
                         </table>
                     </div>
@@ -225,6 +225,21 @@
                     paginationNav.style.display = 'flex';
                 }
 
+                // Show loading state
+                const tbody = document.querySelector('tbody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+                                    <span class="text-gray-400 text-lg">Loading reports...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
                 // Fetch table data
                 const { data: tableData } = await supabase
                     .from('result')
@@ -243,7 +258,6 @@
                     .order('created_at', { ascending: false })
                     .limit(10);
 
-                const tbody = document.querySelector('tbody');
                 tbody.innerHTML = '';
 
                 if (tableData && tableData.length > 0) {

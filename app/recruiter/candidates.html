@@ -133,6 +133,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800" id="candidatesTableBody">
+                                <!-- Candidates will be loaded here -->
                             </tbody>
                         </table>
                     </div>
@@ -278,6 +279,21 @@
         });
 
         async function loadCandidates() {
+            const tbody = document.getElementById('candidatesTableBody');
+            if (!tbody) return;
+            
+            // Show loading state
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex items-center justify-center space-x-3">
+                            <div class="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+                            <span class="text-gray-400 text-lg">Loading candidates...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
             try {
                 // Step 1: Fetch candidate profiles
                 const { data: candidates, error: candidatesError } = await supabase

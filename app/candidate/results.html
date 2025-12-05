@@ -251,8 +251,8 @@
         <script type="module">
         import { protectPage } from '../js/guard.js';
         import { logout } from '../js/auth.js';
-        import { loadResults, populateClassificationCard, populateTestBreakdown } from '../js/results.js';
-        import { getAveragePerformance } from '../js/results.js';
+        import { loadResults, populateClassificationCard, populateTestBreakdown } from '../js/results.js?v=2';
+        import { getAveragePerformance } from '../js/results.js?v=2';
 
         // Protect this page, only 'candidate' role is authorized
         protectPage(['candidate']).then(async ({ user, profile }) => {
@@ -261,11 +261,14 @@
                 lucide.createIcons();
 
                 // Load results data and average performance data
+                console.log('Fetching results and average performance...');
                 const [resultData, avgPerformance] = await Promise.all([
                     loadResults(user.id),
                     getAveragePerformance()
                 ]);
+                console.log('avgPerformance received:', avgPerformance);
                 const averages = resultData.averages || [0, 0, 0, 0, 0];
+                console.log('User averages:', averages);
 
                 // Populate classification card with total score, test count, and individual factors
                 const totalScore = resultData.totalScore || 0;
@@ -278,12 +281,27 @@
 
                 // Map averages to chart labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime']
                 // averages: [accuracy, efficiency, avgTime, style, errors]
+                // Map radar values: 
+                // - Accuracy, Efficiency, Code Style: higher = better (use directly)
+                // - Errors, Time Taken: these are "bad" metrics shown as percentages in cards
+                //   On radar, show them as-is (low value = good) so the visual matches the card percentages
+                //   Rename radar labels to match: "Errors" not "Error Handling", "Time Taken" not "Runtime"
                 const chartData = [
                     averages[0], // Accuracy (direct: higher is better)
                     averages[1], // Efficiency (direct: higher is better)
                     averages[3], // Code Style (direct: higher is better)
-                    averages[4] === 0 ? 0 : Math.max(0, 100 - averages[4]), // Error Handling (if no data/errors=0, show 0; else invert since fewer errors = better)
-                    averages[2] === 0 ? 0 : Math.max(0, 100 - averages[2])  // Runtime (if no data/time=0, show 0; else invert since less time = better)
+                    averages[4], // Errors (direct: lower is better, matches card %)
+                    averages[2]  // Time Taken (direct: lower is better, matches card %)
+                ];
+
+                // Map avgPerformance to same order as chartData
+                // avgPerformance from getAveragePerformance(): [accuracy, efficiency, style, errors, time]
+                const avgChartData = [
+                    avgPerformance[0], // Accuracy
+                    avgPerformance[1], // Efficiency
+                    avgPerformance[2], // Code Style (was index 2 = style)
+                    avgPerformance[3], // Errors (was index 3 = errors)
+                    avgPerformance[4]  // Time Taken (was index 4 = time)
                 ];
 
                 // Radar Chart
@@ -291,7 +309,7 @@
                 new Chart(ctx, {
                     type: 'radar',
                     data: {
-                        labels: ['Accuracy', 'Efficiency', 'Code Style', 'Error Handling', 'Runtime'],
+                        labels: ['Accuracy', 'Efficiency', 'Code Style', 'Errors', 'Time Taken'],
                         datasets: [{
                             label: 'Your Performance',
                             data: chartData,
@@ -301,7 +319,7 @@
                             pointBackgroundColor: 'rgba(16, 185, 129, 1)'
                         }, {
                             label: 'Average Performance',
-                            data: avgPerformance,
+                            data: avgChartData,
                             backgroundColor: 'rgba(100, 116, 139, 0.2)',
                             borderColor: 'rgba(100, 116, 139, 1)',
                             borderWidth: 2,

@@ -9,6 +9,17 @@ export function setCurrentUser(user) {
 
 // Function to load challenges from Supabase based on difficulty
 export async function loadChallenges(difficulty) {
+    const challengeContainer = document.getElementById('challenges-container');
+    if (!challengeContainer) return;
+    
+    // Show loading state
+    challengeContainer.innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+            <span class="ml-3 text-gray-400">Loading challenges...</span>
+        </div>
+    `;
+    
     try {
         const { data: questions, error } = await supabase
             .from('question')
@@ -17,11 +28,7 @@ export async function loadChallenges(difficulty) {
 
         if (error) throw error;
 
-        // Update the challenge list
-        const challengeContainer = document.querySelector('.space-y-3.max-h-96.overflow-y-auto');
-        if (!challengeContainer) return;
-
-        // Clear existing challenges
+        // Clear loading state
         challengeContainer.innerHTML = '';
 
         if (!questions || questions.length === 0) {

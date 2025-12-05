@@ -103,6 +103,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-800" id="testHistoryTableBody">
+                                <!-- Test history will be loaded here -->
                             </tbody>
                         </table>
                     </div>
@@ -144,6 +145,21 @@
         });
 
         async function loadCandidateDetails(candidateId) {
+            const tbody = document.getElementById('testHistoryTableBody');
+            if (tbody) {
+                // Show loading state
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex items-center justify-center space-x-3">
+                                <div class="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent"></div>
+                                <span class="text-gray-400 text-lg">Loading test history...</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
             try {
                 // Fetch candidate profile
                 const { data: candidate, error: candidateError } = await supabase

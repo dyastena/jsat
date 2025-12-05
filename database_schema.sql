@@ -434,9 +434,10 @@ BEGIN
     user_stats AS (
         SELECT
             e.profile_id,
-            COUNT(*) as test_count,
-            COALESCE(AVG(NULLIF(e.correctness, 0)) * 10, 0) as avg_accuracy
+            COUNT(DISTINCT e.id) as test_count,
+            COALESCE((AVG(r.score) / 10.0) * 100, 0) as avg_accuracy
         FROM evaluation e
+        LEFT JOIN result r ON r.evaluation_id = e.id
         WHERE (start_date IS NULL OR e.created_at >= start_date)
         GROUP BY e.profile_id
     )

@@ -5,7 +5,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
  * Fetch average performance metrics across all users
- * @returns {Promise<Array>} [accuracy, efficiency, style, errorHandling, runtime]
+ * @returns {Promise<Array>} [accuracy, efficiency, style, errors, time] - all 0-100 scale
  */
 export async function getAveragePerformance() {
     try {
@@ -16,7 +16,7 @@ export async function getAveragePerformance() {
 
         if (error) {
             console.error('Error fetching average performance:', error);
-            return [75, 70, 72, 68, 75]; // Fallback to defaults
+            return [50, 50, 50, 50, 50]; // Fallback to mid-range defaults
         }
 
         if (!evaluations || evaluations.length === 0) {
@@ -24,7 +24,6 @@ export async function getAveragePerformance() {
         }
 
         // Calculate averages
-        const totalEntries = evaluations.length;
         let totalCorrectness = 0, countCorrectness = 0;
         let totalLineCode = 0, countLineCode = 0;
         let totalRuntime = 0, countRuntime = 0;
@@ -54,25 +53,34 @@ export async function getAveragePerformance() {
             }
         });
 
-        // Calculate average percentages (assuming raw scores are 0-1 or 0-10)
-        const avgAccuracy = countCorrectness > 0 ? (totalCorrectness / countCorrectness) * 10 : 0;
-        const avgEfficiency = countRuntime > 0 ? (totalRuntime / countRuntime) * 10 : 0;
-        const avgStyle = countLineCode > 0 ? (totalLineCode / countLineCode) * 10 : 0;
-        const avgErrors = countErrors > 0 ? (totalErrors / countErrors) * 10 : 0; // Scale to 0-100 range
-        const avgTime = countTime > 0 ? (totalTimeTaken / countTime) * 10 : 0;
+        // Calculate raw averages (0-10 scale from database)
+        const rawAccuracy = countCorrectness > 0 ? totalCorrectness / countCorrectness : 0;
+        const rawEfficiency = countRuntime > 0 ? totalRuntime / countRuntime : 0;
+        const rawStyle = countLineCode > 0 ? totalLineCode / countLineCode : 0;
+        const rawErrors = countErrors > 0 ? totalErrors / countErrors : 0;
+        const rawTime = countTime > 0 ? totalTimeTaken / countTime : 0;
 
-        // Return in chart format: [Accuracy, Efficiency, Style, ErrorHandling (inverted), Runtime (inverted)]
-        // For inverted metrics: if no data (avg=0), show 0; if data exists, invert (100 - value)
+        // Scale to 0-100 (multiply by 10 since DB values are 0-10)
+        const avgAccuracy = rawAccuracy * 10;
+        const avgEfficiency = rawEfficiency * 10;
+        const avgStyle = rawStyle * 10;
+        const avgErrors = rawErrors * 10;
+        const avgTime = rawTime * 10;
+
+        console.log('Average Performance raw values:', { rawAccuracy, rawEfficiency, rawStyle, rawErrors, rawTime });
+        console.log('Average Performance scaled (0-100):', { avgAccuracy, avgEfficiency, avgStyle, avgErrors, avgTime });
+
+        // Return in order: [accuracy, efficiency, style, errors, time]
         return [
             Math.min(100, Math.max(0, avgAccuracy)),
             Math.min(100, Math.max(0, avgEfficiency)),
             Math.min(100, Math.max(0, avgStyle)),
-            Math.min(100, Math.max(0, avgErrors === 0 ? 0 : 100 - avgErrors)), // Fewer errors = better; if no data, show 0
-            Math.min(100, Math.max(0, avgTime === 0 ? 0 : 100 - avgTime))     // Less time = better; if no data, show 0
+            Math.min(100, Math.max(0, avgErrors)),
+            Math.min(100, Math.max(0, avgTime))
         ];
     } catch (err) {
         console.error('Error getting average performance:', err);
-        return [75, 70, 72, 68, 75];
+        return [50, 50, 50, 50, 50]; // Fallback to mid-range defaults
     }
 }
 
@@ -343,14 +351,14 @@ export function populateClassificationCard(totalScore, testCount, averages) {
             { id: 'error-handling', score: errorHandling }
         ];
 
-        // Map classification factors to correspond with the small card display order
-        // Small cards show: [0]Accuracy, [3]Code Style, [2]Time Taken, [1]Code Efficiency, [4]Errors
+        // Map classification factors to the correct averages indices
+        // averages array: [0]=Accuracy, [1]=Efficiency, [2]=Time, [3]=Style, [4]=Errors
         const factorMappings = [
-            { id: 'problem-solving', averageIndex: 0 },  // maps to Accuracy %
-            { id: 'algorithm-design', averageIndex: 3 },  // maps to Code Style %
-            { id: 'code-quality', averageIndex: 2 },     // maps to Time Taken %
-            { id: 'time-efficiency', averageIndex: 1 },  // maps to Code Efficiency %
-            { id: 'error-handling', averageIndex: 4 }    // maps to Errors %
+            { id: 'problem-solving', averageIndex: 0 },   // Accuracy (higher = better)
+            { id: 'algorithm-design', averageIndex: 1 },  // Efficiency/Runtime (higher = better)
+            { id: 'code-quality', averageIndex: 3 },      // Code Style (higher = better)
+            { id: 'time-efficiency', averageIndex: 2 },   // Time Taken (lower = better, shown as-is)
+            { id: 'error-handling', averageIndex: 4 }     // Errors (lower = better, shown as-is)
         ];
 
         console.log('Populating factor scores:', factorMappings);
@@ -503,18 +511,19 @@ export function populateTestBreakdown(testResults) {
 function populateUI(overall, averages, totalCorrect, countCorrectness, totalPoints) {
     let countTestsTaken = countCorrectness / 10; // Assuming max_per_test = 10
     let avgScore = countTestsTaken > 0 ? totalCorrect / countTestsTaken : 0;
-    let overallPercent;
-    if (totalCorrect === 17 && countCorrectness === 20) {
-        // Default data: average score 8.5, so 85%
-        overallPercent = 85.0;
-    } else {
-        overallPercent = avgScore * 10; // Convert average score (out of 10) to percentage
-    }
+    
+    // Calculate percentage: (average score / max score per test) * 100
+    // avgScore is already the average score per test (e.g., 6.2 out of 10)
+    // So percentage = (6.2 / 10) * 100 = 62%
+    let overallPercent = countTestsTaken > 0 ? (avgScore / 10) * 100 : 0;
+    
+    // Ensure percentage is capped at 100%
+    overallPercent = Math.min(100, Math.max(0, overallPercent));
 
     // Overall score: percentage based on average of test scores
     const overallElement = document.getElementById('overall-score');
     if (overallElement) {
-        overallElement.textContent = `${overallPercent}%`;
+        overallElement.textContent = `${overallPercent.toFixed(1)}%`;
     }
 
     // Score fraction: shows number of tests taken
