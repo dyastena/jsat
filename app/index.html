@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J-SAT - Assess Java Skills in Minutes</title>
     <link href="../dist/output.css" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-900 text-gray-100 min-h-screen">
     
@@ -19,10 +21,13 @@
                 
                 <!-- Navigation Links -->
                 <div class="flex items-center gap-4">
+                    <a href="#pricing" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">
+                        Pricing
+                    </a>
                     <a href="auth/login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">
                         Login
                     </a>
-                    <a href="auth/subscription.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">
+                    <a href="auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">
                         Sign Up
                     </a>
                 </div>
@@ -72,8 +77,8 @@
                     <a href="#exam" class="bg-slate-700 hover:bg-slate-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 w-full sm:w-auto">
                         Take Exam
                     </a>
-                    <a href="auth/subscription.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-105 w-full sm:w-auto">
-                        Get Started Now
+                    <a href="auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-105 w-full sm:w-auto">
+                        Get Started Free
                     </a>
                 </div>
             </div>
@@ -132,6 +137,233 @@
             </div>
         </section>
 
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-20 bg-slate-900/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Section Header -->
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl sm:text-5xl font-bold text-white mb-4">
+                        Choose Your Plan
+                    </h2>
+                    <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                        Choose the perfect plan for your career advancement
+                        <br><br>
+                    </p>
+                </div>
+
+                <!-- Pricing Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-12">
+                    
+                    <!-- Free Tier Card -->
+                    <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden hover:border-gray-500/50 transition-all duration-300">
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <h3 class="text-2xl font-bold text-white mb-2">Free</h3>
+                                <div class="flex items-baseline justify-center gap-1 mb-4">
+                                    <span class="text-4xl font-bold text-gray-400">₱0</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Forever free</p>
+                            </div>
+                            
+                            <ul class="space-y-3 mb-8">
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">5 tests per month</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Basic feedback</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Beginner level only</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Basic progress tracking</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="x" class="w-5 h-5 text-gray-600 flex-shrink-0"></i>
+                                    <span class="text-gray-500">No leaderboard access</span>
+                                </li>
+                            </ul>
+                            
+                            <a href="auth/signup.html" class="block w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-200 text-center">
+                                Get Started
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Basic Tier Card -->
+                    <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300">
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <h3 class="text-2xl font-bold text-white mb-2">Basic</h3>
+                                <div class="flex items-baseline justify-center gap-1 mb-4">
+                                    <span class="text-4xl font-bold text-emerald-400">₱199</span>
+                                    <span class="text-gray-400">/month</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Perfect for beginners</p>
+                            </div>
+                            
+                            <ul class="space-y-3 mb-8">
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Unlimited tests</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Up to Intermediate level</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Detailed feedback</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Leaderboard access</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Performance analytics</span>
+                                </li>
+                            </ul>
+                            
+                            <button onclick="selectPlan('basic')" class="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+                                <span>Select Plan</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pro Tier Card (Popular) -->
+                    <div class="bg-gray-900 rounded-2xl border-2 border-emerald-500 shadow-2xl overflow-hidden relative transform lg:scale-105">
+                        <div class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                            MOST POPULAR
+                        </div>
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <h3 class="text-2xl font-bold text-white mb-2">Pro</h3>
+                                <div class="flex items-baseline justify-center gap-1 mb-4">
+                                    <span class="text-4xl font-bold text-emerald-400">₱499</span>
+                                    <span class="text-gray-400">/month</span>
+                                </div>
+                                <p class="text-sm text-emerald-300">Most popular choice</p>
+                            </div>
+                            
+                            <ul class="space-y-3 mb-8">
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Everything in Basic</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">All difficulty levels</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Advanced code reviews</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Custom learning paths</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Certificates of completion</span>
+                                </li>
+                            </ul>
+                            
+                            <button onclick="selectPlan('pro')" class="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+                                <span>Select Plan</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Premium Tier Card (Best Value) -->
+                    <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 relative">
+                        <div class="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                            BEST VALUE
+                        </div>
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
+                                <div class="flex items-baseline justify-center gap-1 mb-4">
+                                    <span class="text-4xl font-bold text-emerald-400">₱999</span>
+                                    <span class="text-gray-400">/month</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Complete learning experience</p>
+                            </div>
+                            
+                            <ul class="space-y-3 mb-8">
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Everything in Pro</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">1-on-1 mentorship sessions</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Career guidance & resources</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Interview prep materials</span>
+                                </li>
+                                <li class="flex items-center gap-3">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+                                    <span class="text-gray-300">Priority support 24/7</span>
+                                </li>
+                            </ul>
+                            
+                            <button onclick="selectPlan('premium')" class="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+                                <span>Select Plan</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Why Choose J-SAT -->
+                <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl p-8 mb-8">
+                    <h3 class="text-xl font-bold text-white text-center mb-6">Why Choose J-SAT?</h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="briefcase" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Career Ready</h4>
+                            <p class="text-sm text-gray-400">Industry-relevant tests that prepare you for real job interviews</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Track Progress</h4>
+                            <p class="text-sm text-gray-400">Detailed analytics to monitor your improvement over time</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Community Support</h4>
+                            <p class="text-sm text-gray-400">Connect with other test takers and share study tips</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="text-center">
+                    <p class="text-gray-400 text-sm">
+                        Start with Free forever. Upgrade anytime to unlock more features. Cancel subscription anytime.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <!-- Call to Action Section -->
         <section id="exam" class="py-20">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -182,6 +414,24 @@
     <script>
         const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Handle plan selection
+        window.selectPlan = function(plan) {
+            // Store selected plan in localStorage
+            localStorage.setItem('selectedPlan', plan);
+            localStorage.setItem('planSelectedAt', new Date().toISOString());
+            
+            // Check if user is logged in
+            supabase_client.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    // User is logged in, redirect to checkout/subscription page
+                    window.location.href = `auth/subscription.html?plan=${plan}`;
+                } else {
+                    // User not logged in, redirect to signup with plan parameter
+                    window.location.href = `auth/signup.html?plan=${plan}`;
+                }
+            });
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await supabase_client.auth.getSession();
             const navLinks = document.querySelector('.flex.items-center.gap-4');
@@ -200,6 +450,7 @@
                 }
 
                 navLinks.innerHTML = `
+                    <a href="#pricing" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Pricing</a>
                     <a href="${dashboardLink}" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Dashboard</a>
                     <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200">Logout</button>
                 `;
@@ -210,11 +461,17 @@
                 });
             } else {
                 navLinks.innerHTML = `
+                    <a href="#pricing" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Pricing</a>
                     <a href="auth/login.html" class="text-gray-300 hover:text-white transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-slate-800">Login</a>
-                    <a href="auth/subscription.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">Sign Up</a>
+                    <a href="auth/signup.html" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30">Sign Up</a>
                 `;
             }
         });
+
+        // Initialize Lucide Icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
