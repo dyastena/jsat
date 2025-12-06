@@ -1,7 +1,10 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Use the global supabase instance from UMD
+if (!window.supabase) {
+    throw new Error('Supabase not available. Make sure the UMD script is loaded.');
+}
+const supabase = window.supabase;
 
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
