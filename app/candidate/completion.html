@@ -175,53 +175,106 @@
     </div>
 
     <script type="module">
-        import { protectPage } from '../js/guard.js';
-        import { logout } from '../js/auth.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 
-        // Protect this page, only 'candidate' role is authorized
-        protectPage(['candidate']).then(({ user, profile }) => {
-            if (user && profile) {
-                // User is authorized, proceed with rendering the completion page
-                lucide.createIcons();
-
-                // Confetti effect
-                function createConfetti() {
-                    const colors = ['#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899'];
-                    for (let i = 0; i < 50; i++) {
-                        setTimeout(() => {
-                            const confetti = document.createElement('div');
-                            confetti.className = 'confetti';
-                            confetti.style.left = Math.random() * 100 + '%';
-                            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                            confetti.style.animationDelay = Math.random() * 0.5 + 's';
-                            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                            document.body.appendChild(confetti);
-
-                            setTimeout(() => confetti.remove(), 3500);
-                        }, i * 30);
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                    <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                        <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77-.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
+                    <p class="text-gray-300 mb-4 leading-relaxed">Supabase credentials not found.</p>
+                </div>
+            </div>`;
+        } else {
+            // Wait for supabase to be available before proceeding
+            function waitForSupabase() {
+                return new Promise((resolve) => {
+                    function checkSupabase() {
+                        if (window.supabase && window.supabase.createClient) {
+                            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                            resolve(supabase);
+                        } else {
+                            setTimeout(checkSupabase, 10);
+                        }
                     }
-                }
-
-                // Trigger confetti on load
-                window.addEventListener('load', createConfetti);
+                    checkSupabase();
+                });
             }
-        });
 
-        // Logout functionality
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            await logout();
-            window.location.href = '/jsat/app/auth/login.html';
-        });
+            const supabase = await waitForSupabase();
+
+            // Now dynamically import the guard and auth modules
+            const { protectPage } = await import('../js/guard.js');
+            const { logout } = await import('../js/auth.js');
+
+            // Protect this page, only 'candidate' role is authorized
+            protectPage(['candidate']).then(({ user, profile }) => {
+                if (user && profile) {
+                    // User is authorized, proceed with rendering the completion page
+                    lucide.createIcons();
+
+                    // Confetti effect
+                    function createConfetti() {
+                        const colors = ['#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899'];
+                        for (let i = 0; i < 50; i++) {
+                            setTimeout(() => {
+                                const confetti = document.createElement('div');
+                                confetti.className = 'confetti';
+                                confetti.style.left = Math.random() * 100 + '%';
+                                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                                document.body.appendChild(confetti);
+
+                                setTimeout(() => confetti.remove(), 3500);
+                            }, i * 30);
+                        }
+                    }
+
+                    // Trigger confetti on load
+                    window.addEventListener('load', createConfetti);
+                }
+            });
+
+            // Logout functionality with proper Supabase instance
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await logout();
+                window.location.href = '/jsat/app/auth/login.html';
+            });
+        }
     </script>
       <script>lucide.createIcons();</script>
 
 <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        console.error('Supabase configuration not found');
+    } else {
+        // Wait for Supabase to be available before proceeding
+        function waitForSupabase() {
+            return new Promise((resolve) => {
+                function checkSupabase() {
+                    if (window.supabase && window.supabase.createClient) {
+                        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                        resolve(supabase);
+                    } else {
+                        setTimeout(checkSupabase, 10);
+                    }
+                }
+                checkSupabase();
+            });
+        }
 
-    // Load user's latest test results
+        const supabase = await waitForSupabase();
+
+        // Load user's latest test results
     const loadCompletionData = async () => {
         try {
             // Get current user
@@ -572,6 +625,7 @@
 
     // Load data when page loads
     document.addEventListener('DOMContentLoaded', loadCompletionData);
+    }
 </script>
 
 </body>
