@@ -14,7 +14,7 @@
             <div class="p-6 border-b border-gray-800">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                        <i data-lucide="code-2" class="w-6 h-6 text-white"></i>
+                        <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-white">J-SAT</h1>
@@ -303,18 +303,11 @@
                         e.preventDefault();
                         const btn = e.target.closest('.send-email-btn');
                         const candidateId = btn.getAttribute('data-candidate-id');
-                        if (candidateId && recruiterUser && recruiterUser.email) {
-                            const candidateEmail = emailMapGlobal[candidateId];
-                            if (candidateEmail) {
-                                const subject = 'Regarding Your J-SAT Application';
-                                const body = `Dear Candidate,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
-                                const mailtoUrl = `mailto:${candidateEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
-                                window.open(mailtoUrl, '_blank');
-                            } else {
-                                alert('Candidate email not available');
-                            }
+                        if (candidateId) {
+                            // Navigate to compose email page with candidate ID
+                            window.location.href = `send-email.html?id=${candidateId}`;
                         } else {
-                            alert('Unable to send email: Recruiter information not available');
+                            alert('Unable to send email: Candidate ID not available');
                         }
                     }
                 });
@@ -356,14 +349,22 @@
                 // Event listener for bulk send email
                 document.getElementById('bulkSendEmailBtn').addEventListener('click', () => {
                     const selectedCheckboxes = document.querySelectorAll('.candidate-checkbox:checked');
+                    const candidateIds = [];
                     const emails = [];
                     selectedCheckboxes.forEach(cb => {
                         const row = cb.closest('tr');
                         const candidateId = row.querySelector('.candidate-detail-btn').getAttribute('data-candidate-id');
                         const email = emailMapGlobal[candidateId];
-                        if (email) emails.push(email);
+                        if (candidateId && email) {
+                            candidateIds.push(candidateId);
+                            emails.push(email);
+                        }
                     });
-                    if (emails.length > 0 && recruiterUser && recruiterUser.email) {
+                    if (candidateIds.length === 1) {
+                        // Single candidate - use compose page
+                        window.location.href = `send-email.html?id=${candidateIds[0]}`;
+                    } else if (emails.length > 1 && recruiterUser && recruiterUser.email) {
+                        // Multiple candidates - use mailto
                         const subject = 'Regarding Your J-SAT Application';
                         const body = `Dear Candidates,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
                         const mailtoUrl = `mailto:${emails.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
