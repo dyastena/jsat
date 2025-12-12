@@ -844,7 +844,7 @@
                                 <p class="text-emerald-500 font-bold text-lg">${score}/10</p>
                                 <p class="text-sm text-gray-400">${cartEval}</p>
                             </div>
-                            <button class="px-2 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded transition duration-200" onclick="window.location.href='completion.html'">
+                            <button class="px-2 py-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium rounded transition duration-200" onclick="console.log('Result button clicked for evaluation_id:', ${result.evaluation_id}); window.location.href='completion.html?evaluation_id=${result.evaluation_id}'">
                                 Result
                             </button>
                         </div>

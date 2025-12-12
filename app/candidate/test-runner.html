@@ -743,7 +743,9 @@ public class Main {
                     console.log('Inserting into Supabase...');
                     const result = await supabase
                         .from('evaluation')
-                        .insert(insertData);
+                        .insert(insertData)
+                        .select('id')
+                        .single();
 
                     console.log('Insert result:', result);
 
@@ -752,11 +754,15 @@ public class Main {
                         throw result.error;
                     }
 
+                    const evaluationId = result.data?.id;
+                    console.log('Evaluation ID:', evaluationId);
+
                     // Store question title for quick access on completion page
                     localStorage.setItem('lastTestQuestionTitle', question.title);
                     localStorage.setItem('lastTestQuestionId', instance.id);
 
                     console.log('Test results saved successfully');
+                    return evaluationId;
                 } catch (error) {
                     console.error('Failed to save test results:', error);
                     alert('Failed to submit test results. Please try again.');
@@ -865,9 +871,9 @@ public class Main {
                     // Stop the timer first
                     stopTimer();
                     // Submit test results to Supabase first
-                    await submitTestResults();
+                    const evaluationId = await submitTestResults();
                     modal.remove();
-                    window.location.href = "completion.html";
+                    window.location.href = evaluationId ? `completion.html?evaluation_id=${evaluationId}` : "completion.html";
                 };
 
                 document.getElementById("cancelSubmit").onclick = () => modal.remove();

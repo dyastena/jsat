@@ -646,7 +646,7 @@
                                 class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg transition flex items-center space-x-2"
                             >
                                 <i data-lucide='play' class='w-4 h-4'></i>
-                                <span>${index === 0 ? 'Start Test' : 'Preview'}</span>
+                                <span>Start Test</span>
                             </button>
                         </div>
                     `;
@@ -672,7 +672,6 @@
                     .eq('profile_id', userId)
                     .order('created_at', { ascending: false })
                     .limit(5);
-
                 if (error) throw error;
 
                 // Get question details for each evaluation
