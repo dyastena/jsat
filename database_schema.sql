@@ -31,6 +31,7 @@ CREATE TABLE profiles (
 
     first_name TEXT,
     last_name TEXT,
+    profile_picture_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -471,7 +472,29 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
+CREATE POLICY "Users can upload their own profile pictures" ON storage.objects
+FOR INSERT WITH CHECK (
+  bucket_id = 'profile-pictures' 
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
 
+-- Allow public read access to profile pictures
+CREATE POLICY "Public read access to profile pictures" ON storage.objects
+FOR SELECT USING (bucket_id = 'profile-pictures');
+
+-- Allow users to update their own profile pictures
+CREATE POLICY "Users can update their own profile pictures" ON storage.objects
+FOR UPDATE USING (
+  bucket_id = 'profile-pictures' 
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Allow users to delete their own profile pictures
+CREATE POLICY "Users can delete their own profile pictures" ON storage.objects
+FOR DELETE USING (
+  bucket_id = 'profile-pictures' 
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
 
 -- Disable RLS temporarily to allow the trigger to run (best practice)
 ALTER FUNCTION public.handle_new_user() SET search_path = public, ext_http;

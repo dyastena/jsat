@@ -83,9 +83,13 @@
 
                         <div class="flex items-start space-x-8 mb-8">
                             <div class="flex-shrink-0">
-                                <img src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff&size=120" alt="Profile" class="w-24 h-24 rounded-full">
-                                <button class="mt-3 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                                <img id="profile-picture" src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff&size=120" alt="Profile" class="w-24 h-24 rounded-full object-cover">
+                                <input type="file" id="photo-upload" accept="image/*" class="hidden">
+                                <button id="change-photo-btn" class="mt-3 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
                                     Change Photo
+                                </button>
+                                <button id="remove-photo-btn" class="mt-1 w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-sm hidden">
+                                    Remove Photo
                                 </button>
                             </div>
 
@@ -102,18 +106,7 @@
                                     <label class="block text-sm font-medium text-gray-400 mb-2">Email</label>
                                     <input type="email" value="john.doe@company.com" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500" readonly>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-2">Phone</label>
-                                    <input type="tel" value="+1 (555) 123-4567" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-2">Company</label>
-                                    <input type="text" value="TechCorp Inc." class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-2">Job Title</label>
-                                    <input type="text" value="Senior Recruiter" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                                </div>
+                              
                             </div>
                         </div>
 
@@ -127,57 +120,7 @@
                         </div>
                     </div>
 
-                    <!-- Preferences -->
-                    <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
-                        <h3 class="text-xl font-semibold text-white mb-6">Preferences</h3>
-
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Email Notifications</h4>
-                                    <p class="text-sm text-gray-400">Receive email updates about candidate progress and exam completions</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Proctoring Alerts</h4>
-                                    <p class="text-sm text-gray-400">Get notified immediately when proctoring violations are detected</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Weekly Reports</h4>
-                                    <p class="text-sm text-gray-400">Receive weekly summary reports of hiring metrics and performance</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Auto-save Drafts</h4>
-                                    <p class="text-sm text-gray-400">Automatically save exam drafts as you work</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
+                   
                     <!-- Security Settings -->
                     <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
                         <h3 class="text-xl font-semibold text-white mb-6">Security</h3>
@@ -207,18 +150,6 @@
                                 </div>
                             </div>
 
-                            <div class="pt-6 border-t border-gray-800">
-                                <h4 class="text-lg font-medium text-white mb-4">Two-Factor Authentication</h4>
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-gray-400">Add an extra layer of security to your account</p>
-                                        <p class="text-xs text-gray-500 mt-1">Status: <span class="text-emerald-500">Enabled</span></p>
-                                    </div>
-                                    <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
-                                        Configure
-                                    </button>
-                                </div>
-                            </div>
 
                             
                         </div>
@@ -335,10 +266,62 @@
         // Protect this page, only 'recruiter' role is authorized
         protectPage(['recruiter']).then(({ user, profile }) => {
             if (user && profile) {
-                // User is authorized, proceed with rendering the settings page
+                        // User is authorized, proceed with rendering the settings page
                 lucide.createIcons();
+
+                // Load user profile data
+                supabase
+                    .from('profiles')
+                    .select('first_name, last_name, profile_picture_url')
+                    .eq('id', user.id)
+                    .single()
+                    .then(({ data: profile, error }) => {
+                        if (error) {
+                            console.error('Profile load error:', error);
+                        } else {
+                            populateUserSettings(user, profile);
+                        }
+                    });
             }
         });
+
+        // Function to populate user settings with real data
+        function populateUserSettings(user, profile) {
+            console.log('Populating recruiter settings with user data:', { user, profile });
+
+            // Update profile picture
+            const profileImg = document.getElementById('profile-picture');
+            if (profileImg) {
+                if (profile.profile_picture_url) {
+                    profileImg.src = profile.profile_picture_url;
+                    document.getElementById('remove-photo-btn').classList.remove('hidden');
+                } else {
+                    const displayName = `${profile.first_name || 'Recruiter'} ${profile.last_name || ''}`.trim();
+                    profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=120`;
+                    document.getElementById('remove-photo-btn').classList.add('hidden');
+                }
+            }
+
+            // Update first name
+            const firstNameInput = document.querySelectorAll('input[type="text"]')[0];
+            if (firstNameInput && profile.first_name) {
+                firstNameInput.value = profile.first_name;
+            }
+
+            // Update last name
+            const lastNameInput = document.querySelectorAll('input[type="text"]')[1];
+            if (lastNameInput && profile.last_name) {
+                lastNameInput.value = profile.last_name;
+            }
+
+            // Update email (already handled by auth user data)
+            const emailInput = document.querySelector('input[type="email"]');
+            if (emailInput && user.email) {
+                emailInput.value = user.email;
+            }
+
+            console.log('Recruiter settings populated with real user data');
+        }
 
         // Logout functionality
         document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -427,6 +410,115 @@
             } catch (error) {
                 console.error('Error updating password:', error);
                 alert('Failed to update password. Please try again.');
+            }
+        });
+
+        // Photo upload functionality
+        document.getElementById('change-photo-btn').addEventListener('click', () => {
+            document.getElementById('photo-upload').click();
+        });
+
+        document.getElementById('photo-upload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type and size
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // Upload file to Supabase Storage
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${user.id}/profile.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('profile-pictures')
+                    .upload(fileName, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('profile-pictures')
+                    .getPublicUrl(fileName);
+
+                // Update profile in database
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ profile_picture_url: publicUrl })
+                    .eq('id', user.id);
+
+                if (updateError) throw updateError;
+
+                // Update UI
+                document.getElementById('profile-picture').src = publicUrl;
+                document.getElementById('remove-photo-btn').classList.remove('hidden');
+
+                alert('Profile picture updated successfully!');
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                alert('Failed to upload photo. Please try again.');
+            }
+        });
+
+        // Remove photo functionality
+        document.getElementById('remove-photo-btn').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to remove your profile picture?')) {
+                return;
+            }
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // Delete from storage
+                const { error: deleteError } = await supabase.storage
+                    .from('profile-pictures')
+                    .remove([`${user.id}/profile.jpg`, `${user.id}/profile.png`, `${user.id}/profile.jpeg`, `${user.id}/profile.gif`]);
+
+                if (deleteError) throw deleteError;
+
+                // Update profile in database
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ profile_picture_url: null })
+                    .eq('id', user.id);
+
+                if (updateError) throw updateError;
+
+                // Reset to default avatar
+                const profileImg = document.getElementById('profile-picture');
+                const firstName = document.querySelectorAll('input[type="text"]')[0].value || 'Recruiter';
+                const lastName = document.querySelectorAll('input[type="text"]')[1].value || '';
+                const displayName = `${firstName} ${lastName}`.trim();
+
+                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=120`;
+                document.getElementById('remove-photo-btn').classList.add('hidden');
+
+                alert('Profile picture removed successfully!');
+            } catch (error) {
+                console.error('Error removing photo:', error);
+                alert('Failed to remove photo. Please try again.');
             }
         });
         }

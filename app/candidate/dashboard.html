@@ -79,7 +79,13 @@
                         <p class="text-gray-400 mt-1">Track your progress and continue your learning journey</p>
                     </div>
                     <div class="flex items-center space-x-4">
-                       
+                        <div class="flex items-center space-x-3 pl-4 border-l border-gray-800">
+                            <img src="https://ui-avatars.com/api/?name=Candidate&background=10b981&color=fff" alt="Profile" class="w-10 h-10 rounded-full">
+                            <div>
+                                <p class="text-sm font-medium text-white">Candidate</p>
+                                <p class="text-xs text-gray-400">Student</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -1081,13 +1087,32 @@
             try {
                 const { data: profile, error } = await supabase
                     .from('profiles')
-                    .select('first_name, last_name')
+                    .select('first_name, last_name, profile_picture_url')
                     .eq('id', userId)
                     .single();
 
                 if (!error && profile) {
                     const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
                     const displayName = fullName || 'Candidate';
+
+                    // Update the name in the header
+                    const nameElement = document.querySelector('.flex.items-center.space-x-3.pl-4.border-l.border-gray-800 p.text-sm.font-medium.text-white');
+                    if (nameElement) {
+                        nameElement.textContent = displayName;
+                    }
+
+                    // Update the avatar URL - use profile picture if available, otherwise fallback to UI avatar
+                    const avatarImg = document.querySelector('.flex.items-center.space-x-3.pl-4.border-l.border-gray-800 img');
+                    if (avatarImg) {
+                        if (profile.profile_picture_url) {
+                            avatarImg.src = profile.profile_picture_url;
+                            avatarImg.alt = `${displayName} Profile Picture`;
+                        } else {
+                            avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff`;
+                            avatarImg.alt = `${displayName} Profile`;
+                        }
+                    }
+
                     console.log('Candidate profile loaded:', displayName);
                 }
             } catch (error) {

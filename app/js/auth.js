@@ -1,10 +1,7 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 
-// Use the global supabase instance from UMD
-if (!window.supabase) {
-    throw new Error('Supabase not available. Make sure the UMD script is loaded.');
-}
-const supabase = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
  * Handles user login and the gatekeeper flow.

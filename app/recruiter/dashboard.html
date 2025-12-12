@@ -363,7 +363,7 @@
             try {
                 const { data: profile, error } = await supabase
                     .from('profiles')
-                    .select('first_name, last_name')
+                    .select('first_name, last_name, profile_picture_url')
                     .eq('id', userId)
                     .single();
 
@@ -374,10 +374,15 @@
                     // Update the name in the header
                     document.querySelector('.flex.items-center.space-x-3.pl-4.border-l.border-gray-800 p.text-sm.font-medium.text-white').textContent = displayName;
 
-                    // Update the avatar URL with the actual name
+                    // Update the avatar URL - use profile picture if available, otherwise fallback to UI avatar
                     const avatarImg = document.querySelector('.flex.items-center.space-x-3.pl-4.border-l.border-gray-800 img');
-                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff`;
-                    avatarImg.alt = `${displayName} Profile`;
+                    if (profile.profile_picture_url) {
+                        avatarImg.src = profile.profile_picture_url;
+                        avatarImg.alt = `${displayName} Profile Picture`;
+                    } else {
+                        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff`;
+                        avatarImg.alt = `${displayName} Profile`;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading recruiter profile:', error);

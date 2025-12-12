@@ -90,10 +90,14 @@
 
                         <div class="flex items-start space-x-8 mb-8">
                             <div class="flex-shrink-0">
-                                <img src="https://ui-avatars.com/api/?name=Alex+Thompson&background=10b981&color=fff&size=120" alt="Profile" class="w-24 h-24 rounded-full">
-                                <button class="mt-3 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                                <img id="profile-picture" src="https://ui-avatars.com/api/?name=Alex+Thompson&background=10b981&color=fff&size=120" alt="Profile" class="w-24 h-24 rounded-full">
+                                <button id="change-photo-btn" class="mt-3 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
                                     Change Photo
                                 </button>
+                                <button id="remove-photo-btn" class="mt-2 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg transition-colors text-sm hidden">
+                                    Remove Photo
+                                </button>
+                                <input type="file" id="photo-upload" accept="image/*" class="hidden">
                             </div>
 
                             <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -221,7 +225,7 @@
                 // Load user profile data
                 supabase
                     .from('profiles')
-                    .select('first_name, last_name, role, is_role_finalized, created_at')
+                    .select('first_name, last_name, profile_picture_url, role, is_role_finalized, created_at')
                     .eq('id', user.id)
                     .single()
                     .then(({ data: profile, error }) => {
@@ -246,15 +250,21 @@
             function populateUserSettings(user, profile) {
                 console.log('Populating settings with user data:', { user, profile });
 
-                // Update profile picture (using user's email for avatar)
-                const profileImg = document.querySelector('img[alt="Profile"]');
-                if (profileImg && user.email) {
-                    const email = encodeURIComponent(user.email);
-                    profileImg.src = `https://ui-avatars.com/api/?name=${email}&background=10b981&color=fff&size=120`;
+                // Update profile picture
+                const profileImg = document.getElementById('profile-picture');
+                if (profileImg) {
+                    if (profile.profile_picture_url) {
+                        profileImg.src = profile.profile_picture_url;
+                        document.getElementById('remove-photo-btn').classList.remove('hidden');
+                    } else {
+                        const displayName = `${profile.first_name || 'User'} ${profile.last_name || ''}`.trim();
+                        profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=120`;
+                        document.getElementById('remove-photo-btn').classList.add('hidden');
+                    }
                 }
 
                 // Update first name
-                const firstNameInput = document.querySelector('input[placeholder], input[value]').closest('div').querySelector('input[type="text"]');
+                const firstNameInput = document.querySelectorAll('input[type="text"]')[0];
                 if (firstNameInput && profile.first_name) {
                     firstNameInput.value = profile.first_name;
                 }
@@ -270,8 +280,6 @@
                 if (emailInput && user.email) {
                     emailInput.value = user.email;
                 }
-
-                // Username field removed as requested
 
                 console.log('Settings populated with real user data');
             }
@@ -426,6 +434,120 @@
             } catch (error) {
                 console.error('Error resetting progress:', error);
                 alert('Failed to reset progress. Please try again.');
+            }
+        });
+
+        // Photo upload functionality
+        const changePhotoBtn = document.getElementById('change-photo-btn');
+        const photoUpload = document.getElementById('photo-upload');
+
+        if (changePhotoBtn && photoUpload) {
+            changePhotoBtn.addEventListener('click', () => {
+                photoUpload.click();
+            });
+
+            photoUpload.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type and size
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // Upload file to Supabase Storage
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${user.id}/profile.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('profile-pictures')
+                    .upload(fileName, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('profile-pictures')
+                    .getPublicUrl(fileName);
+
+                // Update profile in database
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ profile_picture_url: publicUrl })
+                    .eq('id', user.id);
+
+                if (updateError) throw updateError;
+
+                // Update UI
+                document.getElementById('profile-picture').src = publicUrl;
+                document.getElementById('remove-photo-btn').classList.remove('hidden');
+
+                alert('Profile picture updated successfully!');
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                alert('Failed to upload photo. Please try again.');
+            }
+        });
+        }
+
+        // Remove photo functionality
+        document.getElementById('remove-photo-btn').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to remove your profile picture?')) {
+                return;
+            }
+
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // Delete from storage
+                const { error: deleteError } = await supabase.storage
+                    .from('profile-pictures')
+                    .remove([`${user.id}/profile.jpg`, `${user.id}/profile.png`, `${user.id}/profile.jpeg`, `${user.id}/profile.gif`]);
+
+                if (deleteError) throw deleteError;
+
+                // Update profile in database
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ profile_picture_url: null })
+                    .eq('id', user.id);
+
+                if (updateError) throw updateError;
+
+                // Reset to default avatar
+                const profileImg = document.getElementById('profile-picture');
+                const firstName = document.querySelectorAll('input[type="text"]')[0].value || 'User';
+                const lastName = document.querySelectorAll('input[type="text"]')[1].value || '';
+                const displayName = `${firstName} ${lastName}`.trim();
+
+                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=120`;
+                document.getElementById('remove-photo-btn').classList.add('hidden');
+
+                alert('Profile picture removed successfully!');
+            } catch (error) {
+                console.error('Error removing photo:', error);
+                alert('Failed to remove photo. Please try again.');
             }
         });
 

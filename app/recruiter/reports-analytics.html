@@ -78,13 +78,21 @@
                                     <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
                                     <input type="text" placeholder="Search reports..." class="pl-9 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-emerald-500">
                                 </div>
-                                <select class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
+                                <select id="skillLevelFilter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
                                     <option>All Levels</option>
                                     <option>Beginner</option>
                                     <option>Novice</option>
                                     <option>Intermediate</option>
                                     <option>Advanced</option>
                                     <option>Expert</option>
+                                </select>
+                                <select id="sortOrder" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-emerald-500">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="score_desc">Highest Score</option>
+                                    <option value="score_asc">Lowest Score</option>
+                                    <option value="name_asc">Name A-Z</option>
+                                    <option value="name_desc">Name Z-A</option>
                                 </select>
                             </div>
                         </div>
@@ -110,18 +118,17 @@
                 <!-- Pagination -->
                 <div class="bg-gray-800/50 px-6 py-4 border-t border-gray-800">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-400 pagination">Showing 1-10 of 0 reports</span>
+                        <span class="text-sm text-gray-400 pagination-info">Showing 1-10 of 0 reports</span>
                         <div class="flex items-center space-x-2 pagination-nav">
-                                <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50" disabled>
-                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                                </button>
-                                <button class="px-4 py-2 bg-emerald-500 text-white rounded-lg">1</button>
-                                <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">2</button>
-                                <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">3</button>
-                                <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors">
-                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                </button>
+                            <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50 pagination-prev" disabled>
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </button>
+                            <div class="flex items-center space-x-1 pagination-buttons">
+                                <!-- Pagination buttons will be generated dynamically -->
                             </div>
+                            <button class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors disabled:opacity-50 pagination-next">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -275,6 +282,11 @@
             return { user, profile };
         }
 
+        // Pagination state
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let totalItems = 0;
+
         // Protect this page, only 'recruiter' role is authorized
         protectPage(['recruiter']).then(({ user, profile }) => {
             if (user && profile) {
@@ -286,11 +298,26 @@
 
                 // Initialize charts
                 loadChartsData();
+
+                // Initialize sort order event listener
+                document.getElementById('sortOrder').addEventListener('change', () => {
+                    currentPage = 1; // Reset to first page
+                    loadAnalyticsData();
+                });
+
+                // Initialize skill level filter event listener
+                document.getElementById('skillLevelFilter').addEventListener('change', () => {
+                    currentPage = 1; // Reset to first page
+                    loadAnalyticsData();
+                });
             }
         });
 
         async function loadAnalyticsData() {
             try {
+                const sortOrder = document.getElementById('sortOrder').value;
+                const skillLevelFilter = document.getElementById('skillLevelFilter').value;
+
                 // Fetch summary stats
                 const { data: summaryData } = await supabase
                     .from('result')
@@ -323,8 +350,45 @@
                     paginationNav.style.display = 'flex';
                 }
 
-                // Fetch table data
-                const { data: tableData } = await supabase
+                // Map skill level filter to cart_eval values
+                const levelMapping = {
+                    'Beginner': 'FOUNDATION',
+                    'Novice': 'BASIC',
+                    'Intermediate': 'PROFICIENT',
+                    'Advanced': 'ADVANCED',
+                    'Expert': 'MASTERY'
+                };
+                const targetCartEval = levelMapping[skillLevelFilter];
+
+                // Determine order for query
+                let orderColumn = 'created_at';
+                let ascending = false;
+
+                if (sortOrder === 'oldest') {
+                    ascending = true;
+                } else if (sortOrder === 'score_desc') {
+                    orderColumn = 'score';
+                    ascending = false;
+                } else if (sortOrder === 'score_asc') {
+                    orderColumn = 'score';
+                    ascending = true;
+                }
+
+                // Get filtered count first for pagination
+                let countQuery = supabase
+                    .from('result')
+                    .select('id', { count: 'exact', head: true });
+
+                if (targetCartEval) {
+                    countQuery = countQuery.eq('cart_eval', targetCartEval);
+                }
+
+                const { count } = await countQuery;
+                totalItems = count || 0;
+
+                // Fetch table data with pagination
+                const offset = (currentPage - 1) * itemsPerPage;
+                let query = supabase
                     .from('result')
                     .select(`
                         score,
@@ -338,8 +402,15 @@
                             )
                         )
                     `)
-                    .order('created_at', { ascending: false })
-                    .limit(10);
+                    .order(orderColumn, { ascending })
+                    .range(offset, offset + itemsPerPage - 1);
+
+                // Apply skill level filter if selected
+                if (targetCartEval) {
+                    query = query.eq('cart_eval', targetCartEval);
+                }
+
+                const { data: tableData } = await query;
 
                 const tbody = document.querySelector('tbody');
                 tbody.innerHTML = '';
@@ -366,6 +437,19 @@
                         emailMap[e.user_id] = e.email;
                     });
 
+                    // Sort by name if needed
+                    if (sortOrder === 'name_asc' || sortOrder === 'name_desc') {
+                        tableData.sort((a, b) => {
+                            const nameA = profileMap[a.evaluation.profile_id] || '';
+                            const nameB = profileMap[b.evaluation.profile_id] || '';
+                            if (sortOrder === 'name_asc') {
+                                return nameA.localeCompare(nameB);
+                            } else {
+                                return nameB.localeCompare(nameA);
+                            }
+                        });
+                    }
+
                     for (const item of tableData) {
                         const fullname = profileMap[item.evaluation.profile_id] || 'N/A';
                         const email = emailMap[item.evaluation.profile_id] || 'N/A';
@@ -387,7 +471,7 @@
 
                         const row = `
                             <tr class="hover:bg-gray-800/30 transition-colors">
-                                <td class="px-6 py-4 cursor-pointer" title="View Candidate Details">
+                                <td class="px-6 py-4">
                                     <div class="flex items-center space-x-3">
                                         <img src="${avatar}" alt="Avatar" class="w-10 h-10 rounded-full">
                                         <div>
@@ -417,10 +501,8 @@
                     }
 
                     // Update pagination
-                    const paginationSpan = document.querySelector('.pagination');
-                    if (paginationSpan) {
-                        paginationSpan.textContent = `Showing 1-${Math.min(tableData.length, 10)} of ${totalTests} reports`;
-                    }
+                    updatePaginationInfo();
+                    generatePaginationButtons();
                 } else {
                     // No data case
                     tbody.innerHTML = `
@@ -591,6 +673,119 @@
             } catch (error) {
                 console.error('Error loading chart data:', error);
             }
+        }
+
+        // Pagination functions
+        function updatePaginationInfo() {
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            const paginationInfoEl = document.querySelector('.pagination-info');
+
+            if (paginationInfoEl) {
+                paginationInfoEl.textContent = `Showing ${startItem}-${endItem} of ${totalItems} reports`;
+            }
+        }
+
+        function generatePaginationButtons() {
+            const paginationButtonsEl = document.querySelector('.pagination-buttons');
+            const prevBtn = document.querySelector('.pagination-prev');
+            const nextBtn = document.querySelector('.pagination-next');
+
+            if (!paginationButtonsEl) return;
+
+            // Clear existing buttons
+            paginationButtonsEl.innerHTML = '';
+
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const maxVisiblePages = 5;
+
+            // Enable/disable prev/next buttons
+            if (prevBtn) {
+                prevBtn.disabled = currentPage <= 1;
+                prevBtn.classList.toggle('opacity-50', currentPage <= 1);
+                prevBtn.classList.toggle('cursor-not-allowed', currentPage <= 1);
+            }
+            if (nextBtn) {
+                nextBtn.disabled = currentPage >= totalPages;
+                nextBtn.classList.toggle('opacity-50', currentPage >= totalPages);
+                nextBtn.classList.toggle('cursor-not-allowed', currentPage >= totalPages);
+            }
+
+            // Calculate page range to show
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Adjust start page if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            // Add first page if not in range
+            if (startPage > 1) {
+                const firstBtn = createPageButton(1);
+                paginationButtonsEl.appendChild(firstBtn);
+
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'px-2 py-2 text-gray-400';
+                    ellipsis.textContent = '...';
+                    paginationButtonsEl.appendChild(ellipsis);
+                }
+            }
+
+            // Generate page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = createPageButton(i);
+                if (i === currentPage) {
+                    pageBtn.className = 'px-4 py-2 bg-emerald-500 text-white rounded-lg font-semibold';
+                }
+                paginationButtonsEl.appendChild(pageBtn);
+            }
+
+            // Add last page if not in range
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'px-2 py-2 text-gray-400';
+                    ellipsis.textContent = '...';
+                    paginationButtonsEl.appendChild(ellipsis);
+                }
+
+                const lastBtn = createPageButton(totalPages);
+                paginationButtonsEl.appendChild(lastBtn);
+            }
+
+            // Add event listeners
+            if (prevBtn && !prevBtn.hasEventListener) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        loadAnalyticsData();
+                    }
+                });
+                prevBtn.hasEventListener = true;
+            }
+
+            if (nextBtn && !nextBtn.hasEventListener) {
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        loadAnalyticsData();
+                    }
+                });
+                nextBtn.hasEventListener = true;
+            }
+        }
+
+        function createPageButton(pageNumber) {
+            const button = document.createElement('button');
+            button.className = 'px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors';
+            button.textContent = pageNumber;
+            button.addEventListener('click', () => {
+                currentPage = pageNumber;
+                loadAnalyticsData();
+            });
+            return button;
         }
 
         // Logout functionality
