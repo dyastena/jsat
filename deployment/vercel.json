@@ -4,6 +4,12 @@
   "devCommand": "npm run build",
   "installCommand": "npm install",
   "framework": null,
+  "routes": [
+    {
+      "src": "/dist/output.css",
+      "headers": { "Content-Type": "text/css; charset=utf-8" }
+    }
+  ],
   "headers": [
     {
       "source": "/dist/(.*)",
