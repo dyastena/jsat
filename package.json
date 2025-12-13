@@ -1,12 +1,14 @@
 {
     "name": "jsat",
     "version": "1.0.0",
-    "description": "",
+    "description": "Java Skill Assessment Tool - A comprehensive platform for assessing Java programming skills",
     "main": "index.js",
     "scripts": {
-        "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+        "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+        "build": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+        "vercel-build": "npm run build"
     },
-    "keywords": [],
+    "keywords": ["java", "assessment", "skill-testing", "education"],
     "author": "",
     "license": "ISC",
     "devDependencies": {

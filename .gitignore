@@ -1,13 +1,38 @@
-# Node / build artifacts (if any)
+# Node modules and build artifacts
 node_modules/
-/dist/
 
-# Local Supabase credentials
-**/config.js
+# PHP dependencies
+vendor/
+
+# Environment variables
+.env
+.env.local
+.env.production
 
 # OS files
 .DS_Store
 Thumbs.db
 
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Database
+database.db
+*.sqlite
+
+# Temporary files
+command.txt
+txt.txt
+txtx.txt
+
+# Internal documentation
 .gemini/
 gha-creds-*.json
+
+# Vercel (keep vercel.json and .vercelignore - they're needed in root)
+.vercel
