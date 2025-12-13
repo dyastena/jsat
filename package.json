@@ -5,8 +5,7 @@
     "main": "index.js",
     "scripts": {
         "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
-        "build": "tailwindcss -i ./src/input.css -o ./app/dist/output.css --minify",
-        "vercel-build": "npm run build"
+        "build": "tailwindcss -i ./src/input.css -o ./app/dist/output.css --minify"
     },
     "keywords": ["java", "assessment", "skill-testing", "education"],
     "author": "",
