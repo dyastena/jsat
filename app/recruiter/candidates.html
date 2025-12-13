@@ -205,7 +205,7 @@
         async function protectPage(authorizedRoles = []) {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                window.location.href = '/jsat/app/auth/login.html';
+                window.location.href = '/auth/login.html';
                 return null;
             }
 
@@ -217,12 +217,12 @@
 
             if (error || !profile) {
                 console.error('Error fetching profile or profile not found. Redirecting to login.');
-                window.location.href = '/jsat/app/auth/login.html';
+                window.location.href = '/auth/login.html';
                 return null;
             }
 
             if (!profile.is_role_finalized) {
-                window.location.href = '/jsat/app/auth/role_selection.html';
+                window.location.href = '/auth/role_selection.html';
                 return null;
             }
 
@@ -310,18 +310,10 @@
                         e.preventDefault();
                         const btn = e.target.closest('.send-email-btn');
                         const candidateId = btn.getAttribute('data-candidate-id');
-                        if (candidateId && recruiterUser && recruiterUser.email) {
-                            const candidateEmail = emailMapGlobal[candidateId];
-                            if (candidateEmail) {
-                                const subject = 'Regarding Your J-SAT Application';
-                                const body = `Dear Candidate,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
-                                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(candidateEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
-                                window.open(gmailUrl, '_blank');
-                            } else {
-                                alert('Candidate email not available');
-                            }
+                        if (candidateId) {
+                            window.location.href = `send-email.html?id=${candidateId}`;
                         } else {
-                            alert('Unable to send email: Recruiter information not available');
+                            alert('Candidate information not available');
                         }
                     }
                 });

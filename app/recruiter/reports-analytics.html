@@ -216,7 +216,7 @@
         async function protectPage(authorizedRoles = []) {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                window.location.href = '/jsat/app/auth/login.html';
+                window.location.href = '/auth/login.html';
                 return null;
             }
 
@@ -228,12 +228,12 @@
 
             if (error || !profile) {
                 console.error('Error fetching profile or profile not found. Redirecting to login.');
-                window.location.href = '/jsat/app/auth/login.html';
+                window.location.href = '/auth/login.html';
                 return null;
             }
 
             if (!profile.is_role_finalized) {
-                window.location.href = '/jsat/app/auth/role_selection.html';
+                window.location.href = '/auth/role_selection.html';
                 return null;
             }
 
@@ -788,7 +788,7 @@
         // Logout functionality
         document.getElementById('logout-btn').addEventListener('click', async () => {
             await logout();
-            window.location.href = '/jsat/app/auth/login.html';
+            window.location.href = '/auth/login.html';
         });
         }
     </script>

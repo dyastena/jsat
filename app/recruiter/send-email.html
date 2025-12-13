@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compose Email - JSAT Recruiter Panel</title>
+    <link href="/dist/output.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+            <div class="p-6 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">J-SAT</h1>
+                        <p class="text-xs text-gray-400">Recruiter Panel</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-1">
+                <a href="/recruiter/dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="/recruiter/candidates.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-emerald-500/10 text-emerald-500 transition-colors">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span class="font-medium">Candidates</span>
+                </a>
+                <a href="/recruiter/reports-analytics.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span class="font-medium">Analytics</span>
+                </a>
+                <a href="/recruiter/settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="font-medium">Settings</span>
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-gray-800">
+                <button id="logout-btn" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors w-full">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="font-medium">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="bg-gray-900 border-b border-gray-800 px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <a href="/recruiter/candidates.html" class="p-2 hover:bg-gray-800 rounded-lg transition-colors">
+                            <i data-lucide="arrow-left" class="w-5 h-5 text-gray-400"></i>
+                        </a>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Compose Email</h2>
+                            <p class="text-gray-400 mt-1">Send a message to candidates</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Email Compose Form -->
+            <div class="p-8 max-w-4xl mx-auto">
+                <!-- Recipient Info Card -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6" id="recipientCard">
+                    <div class="flex items-center space-x-4">
+                        <div id="recipientAvatar" class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                            JD
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-white" id="recipientName">John Doe</h3>
+                            <p class="text-sm text-gray-400" id="recipientEmail">john.doe@example.com</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 mt-1" id="recipientLevel">
+                                Intermediate
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Form -->
+                <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <form id="emailForm">
+                        <!-- From Field -->
+                        <div class="p-6 border-b border-gray-800">
+                            <label class="flex items-center text-sm font-medium text-gray-400 mb-2">
+                                <i data-lucide="user" class="w-4 h-4 mr-2"></i>
+                                From
+                            </label>
+                            <input type="email" id="fromEmail" readonly class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 cursor-not-allowed">
+                        </div>
+
+                        <!-- To Field -->
+                        <div class="p-6 border-b border-gray-800">
+                            <label class="flex items-center text-sm font-medium text-gray-400 mb-2">
+                                <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                                To
+                            </label>
+                            <input type="email" id="toEmail" readonly class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 cursor-not-allowed">
+                        </div>
+
+                        <!-- Subject Field -->
+                        <div class="p-6 border-b border-gray-800">
+                            <label class="flex items-center text-sm font-medium text-gray-400 mb-2">
+                                <i data-lucide="type" class="w-4 h-4 mr-2"></i>
+                                Subject
+                            </label>
+                            <input type="text" id="subjectInput" placeholder="Enter email subject" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 placeholder-gray-500 focus:outline-none focus:border-emerald-500" value="Regarding Your J-SAT Test Results">
+                        </div>
+
+                        <!-- Quick Templates -->
+                        <div class="p-6 border-b border-gray-800">
+                            <label class="flex items-center text-sm font-medium text-gray-400 mb-3">
+                                <i data-lucide="zap" class="w-4 h-4 mr-2"></i>
+                                Quick Templates
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <button type="button" class="template-btn px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left transition-colors" data-template="interview">
+                                    <p class="text-sm font-medium text-white">Interview Invitation</p>
+                                    <p class="text-xs text-gray-400 mt-1">Invite for next stage</p>
+                                </button>
+                                <button type="button" class="template-btn px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left transition-colors" data-template="feedback">
+                                    <p class="text-sm font-medium text-white">Test Feedback</p>
+                                    <p class="text-xs text-gray-400 mt-1">Share test results</p>
+                                </button>
+                                <button type="button" class="template-btn px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-left transition-colors" data-template="followup">
+                                    <p class="text-sm font-medium text-white">Follow Up</p>
+                                    <p class="text-xs text-gray-400 mt-1">Check availability</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Message Field -->
+                        <div class="p-6 border-b border-gray-800">
+                            <label class="flex items-center text-sm font-medium text-gray-400 mb-2">
+                                <i data-lucide="message-square" class="w-4 h-4 mr-2"></i>
+                                Message
+                            </label>
+                            <textarea id="messageInput" rows="10" placeholder="Write your message here..." class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 placeholder-gray-500 focus:outline-none focus:border-emerald-500 resize-none">Dear John,
+
+I hope this email finds you well.
+
+I am writing to inform you about your recent J-SAT assessment. Your performance demonstrates strong potential, and we are impressed with your technical skills.
+
+We would like to invite you for the next stage of our recruitment process. Please let us know your availability for an interview in the coming week.
+
+Looking forward to hearing from you.
+
+Best regards,</textarea>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <span id="charCount">0</span> characters
+                            </p>
+                        </div>
+
+                        <!-- Attachments -->
+                        <div class="p-6 border-b border-gray-800">
+                            <label class="flex items-center text-sm font-medium text-gray-400 mb-2">
+                                <i data-lucide="paperclip" class="w-4 h-4 mr-2"></i>
+                                Attachments
+                            </label>
+                            <button type="button" id="addAttachmentBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                <span>Add Attachment</span>
+                            </button>
+                            <p class="text-xs text-gray-500 mt-2">No files attached</p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="p-6 flex items-center justify-between bg-gray-800/50">
+                            <div class="flex items-center space-x-3">
+                                <button type="button" id="previewBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    <span>Preview</span>
+                                </button>
+                                <button type="button" id="saveDraftBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                                    <i data-lucide="save" class="w-4 h-4"></i>
+                                    <span>Save Draft</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <a href="/recruiter/candidates.html" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="flex items-center space-x-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors font-medium">
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                    <span>Send Email</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-500/10 rounded-full mb-3">
+                            <i data-lucide="mail" class="w-6 h-6 text-blue-500"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-1" id="emailsSent">47</h3>
+                        <p class="text-sm text-gray-400">Emails Sent</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/10 rounded-full mb-3">
+                            <i data-lucide="mail-open" class="w-6 h-6 text-emerald-500"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-1" id="emailsOpened">38</h3>
+                        <p class="text-sm text-gray-400">Emails Opened</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-purple-500/10 rounded-full mb-3">
+                            <i data-lucide="reply" class="w-6 h-6 text-purple-500"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-1" id="repliesReceived">23</h3>
+                        <p class="text-sm text-gray-400">Replies Received</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl max-w-md w-full mx-4 p-8 text-center">
+            <div class="w-16 h-16 bg-emerald-500/20 border-2 border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="check" class="w-8 h-8 text-emerald-400"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Email Sent Successfully!</h2>
+            <p class="text-gray-300 mb-6">Your message has been delivered to <span id="successRecipient" class="text-emerald-400 font-medium">John Doe</span>.</p>
+            <div class="bg-gray-800/50 rounded-lg p-4 mb-6 text-left">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-400">To:</span>
+                    <span class="text-sm text-white" id="successTo">john.doe@example.com</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-400">Subject:</span>
+                    <span class="text-sm text-white" id="successSubject">Regarding Your J-SAT Test Results</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-400">Time:</span>
+                    <span class="text-sm text-white" id="successTime">11:51 AM</span>
+                </div>
+            </div>
+            <button id="backToCandidatesBtn" class="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors font-medium flex items-center justify-center space-x-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Back to Candidates</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            window.location.href = '/auth/login.html';
+        } else {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // Helper functions
+            async function logout() {
+                await supabase.auth.signOut();
+            }
+
+            async function protectPage(authorizedRoles = []) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    window.location.href = '/auth/login.html';
+                    return null;
+                }
+
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('role, is_role_finalized')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error || !profile) {
+                    window.location.href = '/auth/login.html';
+                    return null;
+                }
+
+                if (!profile.is_role_finalized) {
+                    window.location.href = '/auth/role_selection.html';
+                    return null;
+                }
+
+                if (authorizedRoles.length > 0 && !authorizedRoles.includes(profile.role)) {
+                    window.location.href = '/recruiter/dashboard.html';
+                    return null;
+                }
+
+                return { user, profile };
+            }
+
+            // Initialize page
+            protectPage(['recruiter']).then(async ({ user, profile }) => {
+                if (user && profile) {
+                    lucide.createIcons();
+
+                    // Get candidate ID from URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const candidateId = urlParams.get('id');
+
+                    if (candidateId) {
+                        await loadCandidateData(candidateId);
+                    } else {
+                        // If no ID, redirect back
+                        window.location.href = '/recruiter/candidates.html';
+                    }
+
+                    // Set recruiter email
+                    const { data: userData } = await supabase.auth.getUser();
+                    document.getElementById('fromEmail').value = userData.user.email;
+
+                    // Character counter
+                    const messageInput = document.getElementById('messageInput');
+                    const charCount = document.getElementById('charCount');
+                    
+                    function updateCharCount() {
+                        charCount.textContent = messageInput.value.length;
+                    }
+                    updateCharCount();
+                    messageInput.addEventListener('input', updateCharCount);
+
+                    // Template buttons
+                    document.querySelectorAll('.template-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const template = this.dataset.template;
+                            applyTemplate(template);
+                        });
+                    });
+
+                    // Form submission
+                    document.getElementById('emailForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        sendEmail();
+                    });
+
+                    // Back to candidates button
+                    document.getElementById('backToCandidatesBtn').addEventListener('click', () => {
+                        window.location.href = '/recruiter/candidates.html';
+                    });
+
+                    // Logout
+                    document.getElementById('logout-btn').addEventListener('click', async () => {
+                        await logout();
+                        window.location.href = '/auth/login.html';
+                    });
+                }
+            });
+
+            async function loadCandidateData(candidateId) {
+                try {
+                    // Fetch candidate profile
+                    const { data: candidate, error: candidateError } = await supabase
+                        .from('profiles')
+                        .select('id, first_name, last_name')
+                        .eq('id', candidateId)
+                        .single();
+
+                    if (candidateError) throw candidateError;
+
+                    // Fetch email
+                    const { data: emailData, error: emailError } = await supabase
+                        .rpc('get_candidate_emails');
+
+                    const candidateEmail = emailData?.find(e => e.user_id === candidateId)?.email || '';
+
+                    // Fetch level
+                    const { data: levelData } = await supabase
+                        .from('level')
+                        .select('level_status')
+                        .eq('profile_id', candidateId)
+                        .single();
+
+                    const fullName = `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim();
+                    const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const level = levelData?.level_status || 'Beginner';
+
+                    // Update UI
+                    document.getElementById('recipientName').textContent = fullName;
+                    document.getElementById('recipientEmail').textContent = candidateEmail;
+                    document.getElementById('recipientAvatar').textContent = initials;
+                    document.getElementById('recipientLevel').textContent = level;
+                    document.getElementById('toEmail').value = candidateEmail;
+
+                    // Update message template with candidate name
+                    const firstName = candidate.first_name || 'Candidate';
+                    const messageInput = document.getElementById('messageInput');
+                    messageInput.value = messageInput.value.replace('Dear John', `Dear ${firstName}`);
+
+                } catch (error) {
+                    console.error('Error loading candidate:', error);
+                    alert('Failed to load candidate information');
+                    window.location.href = '/recruiter/candidates.html';
+                }
+            }
+
+            function applyTemplate(templateType) {
+                const messageInput = document.getElementById('messageInput');
+                const subjectInput = document.getElementById('subjectInput');
+                const candidateName = document.getElementById('recipientName').textContent.split(' ')[0];
+
+                const templates = {
+                    interview: {
+                        subject: 'Interview Invitation - J-SAT Recruitment',
+                        message: `Dear ${candidateName},
+
+I hope this email finds you well.
+
+I am pleased to inform you that based on your excellent performance in the J-SAT assessment, we would like to invite you for an interview as the next stage of our recruitment process.
+
+We would like to invite you for the next stage of our recruitment process. Please let us know your availability for an interview in the coming week.
+
+Looking forward to hearing from you.
+
+Best regards,`
+                    },
+                    feedback: {
+                        subject: 'Your J-SAT Test Results and Feedback',
+                        message: `Dear ${candidateName},
+
+I hope this email finds you well.
+
+I am writing to inform you about your recent J-SAT assessment. Your performance demonstrates strong potential, and we are impressed with your technical skills.
+
+Your results show proficiency in several key areas, and we believe you would be a great fit for our team.
+
+We will be in touch soon regarding the next steps.
+
+Best regards,`
+                    },
+                    followup: {
+                        subject: 'Follow Up - J-SAT Application Status',
+                        message: `Dear ${candidateName},
+
+I hope this email finds you well.
+
+I wanted to follow up regarding your J-SAT assessment and application status. We are currently reviewing all candidate profiles and will be making decisions in the coming days.
+
+Please let us know if you have any questions or if there have been any changes to your availability.
+
+Looking forward to hearing from you.
+
+Best regards,`
+                    }
+                };
+
+                const template = templates[templateType];
+                if (template) {
+                    subjectInput.value = template.subject;
+                    messageInput.value = template.message;
+                    messageInput.dispatchEvent(new Event('input'));
+                }
+            }
+
+            function sendEmail() {
+                const to = document.getElementById('toEmail').value;
+                const subject = document.getElementById('subjectInput').value;
+                const message = document.getElementById('messageInput').value;
+                const recipientName = document.getElementById('recipientName').textContent;
+
+                // Update success modal
+                document.getElementById('successRecipient').textContent = recipientName;
+                document.getElementById('successTo').textContent = to;
+                document.getElementById('successSubject').textContent = subject;
+                
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                document.getElementById('successTime').textContent = timeString;
+
+                // Show success modal
+                document.getElementById('successModal').classList.remove('hidden');
+                lucide.createIcons();
+
+                // In a real implementation, you would send the email via an API here
+                console.log('Sending email:', { to, subject, message });
+
+                // Note: Currently using mailto as actual email sending would require backend API
+                // Uncomment below for mailto fallback
+                // const mailtoUrl = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                // window.open(mailtoUrl, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

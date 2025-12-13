@@ -25,6 +25,7 @@
     { "source": "/recruiter/exams", "destination": "/recruiter/exams.html" },
     { "source": "/recruiter/reports-analytics", "destination": "/recruiter/reports-analytics.html" },
     { "source": "/recruiter/settings", "destination": "/recruiter/settings.html" },
+    { "source": "/recruiter/send-email", "destination": "/recruiter/send-email.html" },
     { "source": "/index", "destination": "/index.html" }
   ],
   "headers": [
