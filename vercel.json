@@ -4,6 +4,7 @@
   "devCommand": "npm run build",
   "installCommand": "npm install",
   "framework": null,
+  "cleanUrls": true,
   "routes": [
     {
       "src": "/dist/output.css",
