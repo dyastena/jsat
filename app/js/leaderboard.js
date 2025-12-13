@@ -376,7 +376,7 @@ function updateRankingsTable() {
                     </div>
                 </td>
                 <td class="px-6 py-4 text-white">${user.accuracy_percent}%</td>
-                <td class="px-6 py-4 text-white">${user.total_tests}</td>
+                <td class="px-6 py-4 text-white">${user.total_tests || 0}</td>
                 <td class="px-6 py-4">
                     <div class="flex items-center space-x-1">
                         ${getBadges(user)}
