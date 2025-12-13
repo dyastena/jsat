@@ -1,0 +1,15 @@
+node_modules
+vendor
+.git
+.github
+.env
+*.log
+database.db
+sandbox-server
+api_save
+command.txt
+txt.txt
+txtx.txt
+progress_report.md
+GEMINI.md
+guidelines

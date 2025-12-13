@@ -164,9 +164,109 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
     <script type="module">
-        import { protectPage } from '../js/guard.js';
-        import { supabase } from '../js/auth.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                    <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                        <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
+                        <p class="text-gray-300 mb-4 leading-relaxed">Supabase credentials not found.</p>
+                    </div>
+                </div>`;
+        } else {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Helper functions
+        function redirectUser(role) {
+            const rolePaths = {
+                admin: '/jsat/app/admin/users.html',
+                recruiter: '/jsat/app/recruiter/dashboard.html',
+                candidate: '/jsat/app/candidate/dashboard.html',
+            };
+            const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
+            window.location.href = redirectPath;
+        }
+
+        async function protectPage(authorizedRoles = []) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = '/jsat/app/auth/login.html';
+                return null;
+            }
+
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('role, is_role_finalized')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !profile) {
+                console.error('Error fetching profile or profile not found. Redirecting to login.');
+                window.location.href = '/jsat/app/auth/login.html';
+                return null;
+            }
+
+            if (!profile.is_role_finalized) {
+                window.location.href = '/jsat/app/auth/role_selection.html';
+                return null;
+            }
+
+            if (authorizedRoles.length > 0 && !authorizedRoles.includes(profile.role)) {
+                document.body.innerHTML = `
+                    <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                        <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                            <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                            </div>
+                            <h1 class="text-2xl font-bold text-red-400 mb-2">Access Denied</h1>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                You don't have permission to access this page.
+                            </p>
+                            <div class="bg-gray-800/50 rounded-lg p-4 mb-6">
+                                <div class="text-sm text-gray-400 mb-1">Your current role:</div>
+                                <div class="text-lg font-semibold text-blue-400 capitalize">${profile.role}</div>
+                                <div class="text-sm text-gray-400 mt-2 mb-1">Required role(s):</div>
+                                <div class="text-lg font-semibold text-yellow-400">${authorizedRoles.join(', ')}</div>
+                            </div>
+                            <p class="text-gray-500 text-sm">
+                                Redirecting you to your dashboard in <span id="countdown" class="text-blue-400 font-semibold">3</span> seconds...
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                let countdown = 3;
+                const countdownEl = document.getElementById('countdown');
+                const timer = setInterval(() => {
+                    countdown--;
+                    if (countdownEl) countdownEl.textContent = countdown;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        redirectUser(profile.role);
+                    }
+                }, 1000);
+
+                return null;
+            }
+
+            return { user, profile };
+        }
+
+        // Logout functionality
+        async function logout() {
+            await supabase.auth.signOut();
+        }
 
         // Protect this page, only 'recruiter' role is authorized
         protectPage(['recruiter']).then(async ({ user, profile }) => {
@@ -263,7 +363,7 @@
             try {
                 const { data: profile, error } = await supabase
                     .from('profiles')
-                    .select('first_name, last_name')
+                    .select('first_name, last_name, profile_picture_url')
                     .eq('id', userId)
                     .single();
 
@@ -274,10 +374,15 @@
                     // Update the name in the header
                     document.querySelector('.flex.items-center.space-x-3.pl-4.border-l.border-gray-800 p.text-sm.font-medium.text-white').textContent = displayName;
 
-                    // Update the avatar URL with the actual name
+                    // Update the avatar URL - use profile picture if available, otherwise fallback to UI avatar
                     const avatarImg = document.querySelector('.flex.items-center.space-x-3.pl-4.border-l.border-gray-800 img');
-                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff`;
-                    avatarImg.alt = `${displayName} Profile`;
+                    if (profile.profile_picture_url) {
+                        avatarImg.src = profile.profile_picture_url;
+                        avatarImg.alt = `${displayName} Profile Picture`;
+                    } else {
+                        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff`;
+                        avatarImg.alt = `${displayName} Profile`;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading recruiter profile:', error);
@@ -370,6 +475,7 @@
             await logout();
             window.location.href = '/jsat/app/auth/login.html';
         });
+        }
     </script>
 </body>
 </html>

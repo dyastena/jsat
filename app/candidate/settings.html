@@ -78,17 +78,7 @@
                 <!-- Settings Tabs -->
                 <div class="mb-8" >
                     <div class="border-b border-gray-800">
-                        <nav class="flex space-x-8">
-                            <button class="px-1 py-4 border-b-2 border-emerald-500 text-emerald-500 font-medium text-sm">
-                                Profile
-                            </button>
-                            <button class="px-1 py-4 border-b-2 border-transparent text-gray-400 hover:text-white transition-colors text-sm">
-                                Preferences
-                            </button>
-                            <button class="px-1 py-4 border-b-2 border-transparent text-gray-400 hover:text-white transition-colors text-sm">
-                                Privacy
-                            </button>
-                        </nav>
+                        
                     </div>
                 </div>
 
@@ -100,10 +90,14 @@
 
                         <div class="flex items-start space-x-8 mb-8">
                             <div class="flex-shrink-0">
-                                <img src="https://ui-avatars.com/api/?name=Alex+Thompson&background=10b981&color=fff&size=120" alt="Profile" class="w-24 h-24 rounded-full">
-                                <button class="mt-3 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
+                                <img id="profile-picture" src="https://ui-avatars.com/api/?name=Alex+Thompson&background=10b981&color=fff&size=120" alt="Profile" class="w-24 h-24 rounded-full">
+                                <button id="change-photo-btn" class="mt-3 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-sm">
                                     Change Photo
                                 </button>
+                                <button id="remove-photo-btn" class="mt-2 w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg transition-colors text-sm hidden">
+                                    Remove Photo
+                                </button>
+                                <input type="file" id="photo-upload" accept="image/*" class="hidden">
                             </div>
 
                             <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -117,127 +111,29 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-400 mb-2">Email</label>
-                                    <input type="email" value="alex.thompson@email.com" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
+                                    <input type="email" value="alex.thompson@email.com" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500" readonly>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-2">Username</label>
-                                    <input type="text" value="@alexthompson" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-2">Country</label>
-                                    <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                                        <option>United States</option>
-                                        <option>Canada</option>
-                                        <option>United Kingdom</option>
-                                        <option>Germany</option>
-                                        <option>France</option>
-                                        <option>Japan</option>
-                                        <option>Australia</option>
-                                        <option>Other</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-400 mb-2">Time Zone</label>
-                                    <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
-                                        <option>UTC-8 (Pacific)</option>
-                                        <option>UTC-5 (Eastern)</option>
-                                        <option>UTC+0 (GMT)</option>
-                                        <option>UTC+1 (CET)</option>
-                                        <option>UTC+8 (Asia/Manila)</option>
-                                        <option>UTC+9 (Japan)</option>
-                                    </select>
-                                </div>
+
                             </div>
                         </div>
 
                         <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-800">
-                            <button class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors">
+                            <button id="cancel-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors">
                                 Cancel
                             </button>
-                            <button class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors">
+                            <button id="save-changes-btn" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors">
                                 Save Changes
                             </button>
                         </div>
                     </div>
 
-                    <!-- Learning Preferences -->
-                    <div class="bg-gray-900 rounded-xl border border-gray-800 p-8 animate-slide-in">
-                        <h3 class="text-xl font-semibold text-white mb-6">Learning Preferences</h3>
-
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Email Notifications</h4>
-                                    <p class="text-sm text-gray-400">Receive updates about test results and achievements</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Achievement Alerts</h4>
-                                    <p class="text-sm text-gray-400">Get notified when you unlock new achievements</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Weekly Progress Reports</h4>
-                                    <p class="text-sm text-gray-400">Receive weekly summaries of your learning progress</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Practice Reminders</h4>
-                                    <p class="text-sm text-gray-400">Daily reminders to maintain your learning streak</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Privacy Settings -->
                     <div class="bg-gray-900 rounded-xl border border-gray-800 p-8 animate-slide-in">
                         <h3 class="text-xl font-semibold text-white mb-6">Privacy & Security</h3>
 
                         <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Profile Visibility</h4>
-                                    <p class="text-sm text-gray-400">Make your profile visible on leaderboards</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-lg font-medium text-white">Show Statistics</h4>
-                                    <p class="text-sm text-gray-400">Display your performance stats publicly</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                                </label>
-                            </div>
-
+                           
                             <div>
                                 <h4 class="text-lg font-medium text-white mb-4">Change Password</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -256,7 +152,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <button class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors">
+                                    <button id="update-password-btn" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors">
                                         Update Password
                                     </button>
                                 </div>
@@ -277,7 +173,7 @@
                                     <h4 class="text-lg font-medium text-white">Reset Progress</h4>
                                     <p class="text-sm text-gray-400">Reset all your test results and progress data</p>
                                 </div>
-                                <button class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-sm border border-red-500/20">
+                                <button id="reset-progress-btn" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-sm border border-red-500/20">
                                     Reset Progress
                                 </button>
                             </div>
@@ -287,7 +183,7 @@
                                     <h4 class="text-lg font-medium text-white">Delete Account</h4>
                                     <p class="text-sm text-gray-400">Permanently delete your account and all data</p>
                                 </div>
-                                <button class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-sm border border-red-500/20">
+                                <button id="delete-account-btn" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors text-sm border border-red-500/20">
                                     Delete Account
                                 </button>
                             </div>
@@ -299,30 +195,425 @@
     </div>
 
     <script type="module">
-        import { protectPage } from '../js/guard.js';
-        import { logout } from '../js/auth.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-        // Protect this page, only 'candidate' role is authorized
-        protectPage(['candidate']).then(({ user, profile }) => {
-            if (user && profile) {
-                // User is authorized, proceed with rendering the settings page
-                lucide.createIcons();
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                    <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                        <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77-.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
+                    <p class="text-gray-300 mb-4 leading-relaxed">Supabase credentials not found.</p>
+                </div>
+            </div>`;
+        } else {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-                // Practice goal slider
-                const practiceGoal = document.getElementById('practiceGoal');
-                const practiceGoalValue = document.getElementById('practiceGoalValue');
+            // Check authentication and load user profile
+            supabase.auth.getUser().then(({ data: { user } }) => {
+                if (!user) {
+                    window.location.href = '/jsat/app/auth/login.html';
+                    return;
+                }
 
-                practiceGoal.addEventListener('input', function() {
-                    practiceGoalValue.textContent = this.value + ' min';
-                });
+                // Load user profile data
+                supabase
+                    .from('profiles')
+                    .select('first_name, last_name, profile_picture_url, role, is_role_finalized, created_at')
+                    .eq('id', user.id)
+                    .single()
+                    .then(({ data: profile, error }) => {
+                        if (error || !profile) {
+                            console.error('Profile load error:', error);
+                            window.location.href = '/jsat/app/auth/login.html';
+                            return;
+                        }
+
+                        if (!profile.is_role_finalized || profile.role !== 'candidate') {
+                            window.location.href = '/jsat/app/auth/login.html';
+                            return;
+                        }
+
+                        // User is authorized, populate the settings page
+                        lucide.createIcons();
+                        populateUserSettings(user, profile);
+                    });
+            });
+
+            // Function to populate user settings with real data
+            function populateUserSettings(user, profile) {
+                console.log('Populating settings with user data:', { user, profile });
+
+                // Update profile picture
+                const profileImg = document.getElementById('profile-picture');
+                if (profileImg) {
+                    if (profile.profile_picture_url) {
+                        profileImg.src = profile.profile_picture_url;
+                        document.getElementById('remove-photo-btn').classList.remove('hidden');
+                    } else {
+                        const displayName = `${profile.first_name || 'User'} ${profile.last_name || ''}`.trim();
+                        profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=120`;
+                        document.getElementById('remove-photo-btn').classList.add('hidden');
+                    }
+                }
+
+                // Update first name
+                const firstNameInput = document.querySelectorAll('input[type="text"]')[0];
+                if (firstNameInput && profile.first_name) {
+                    firstNameInput.value = profile.first_name;
+                }
+
+                // Update last name
+                const lastNameInput = document.querySelectorAll('input[type="text"]')[1];
+                if (lastNameInput && profile.last_name) {
+                    lastNameInput.value = profile.last_name;
+                }
+
+                // Update email
+                const emailInput = document.querySelector('input[type="email"]');
+                if (emailInput && user.email) {
+                    emailInput.value = user.email;
+                }
+
+                console.log('Settings populated with real user data');
             }
-        });
+        }
 
         // Logout functionality
         document.getElementById('logout-btn').addEventListener('click', async () => {
             if (confirm('Are you sure you want to logout?')) {
-                await logout();
+                const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                if (supabase) {
+                    await supabase.auth.signOut();
+                }
                 window.location.href = '/jsat/app/auth/login.html';
+            }
+        });
+
+        // Save profile changes functionality
+        document.getElementById('save-changes-btn').addEventListener('click', async () => {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            const firstName = document.querySelectorAll('input[type="text"]')[0].value.trim();
+            const lastName = document.querySelectorAll('input[type="text"]')[1].value.trim();
+
+            if (!firstName || !lastName) {
+                alert('First name and last name are required');
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({
+                        first_name: firstName,
+                        last_name: lastName
+                    })
+                    .eq('id', user.id);
+
+                if (error) throw error;
+
+                alert('Profile updated successfully!');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile. Please try again.');
+            }
+        });
+
+        // Cancel changes functionality
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+            // Reload the page to reset form values
+            window.location.reload();
+        });
+
+        // Update password functionality
+        document.getElementById('update-password-btn').addEventListener('click', async () => {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const currentPassword = document.querySelector('input[placeholder="Current Password"]').value;
+            const newPassword = document.querySelector('input[placeholder="New Password"]').value;
+            const confirmPassword = document.querySelector('input[placeholder="Confirm New Password"]').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('All password fields are required');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('New password must be at least 6 characters long');
+                return;
+            }
+
+            try {
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) throw error;
+
+                alert('Password updated successfully!');
+
+                // Clear password fields
+                document.querySelector('input[placeholder="Current Password"]').value = '';
+                document.querySelector('input[placeholder="New Password"]').value = '';
+                document.querySelector('input[placeholder="Confirm New Password"]').value = '';
+            } catch (error) {
+                console.error('Error updating password:', error);
+                alert('Failed to update password. Please try again.');
+            }
+        });
+
+        // Reset progress functionality
+        document.getElementById('reset-progress-btn').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to reset all your progress? This action cannot be undone.')) {
+                return;
+            }
+
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // First, get all evaluation IDs for this user
+                const { data: evaluations, error: evalFetchError } = await supabase
+                    .from('evaluation')
+                    .select('id')
+                    .eq('profile_id', user.id);
+
+                if (evalFetchError) throw evalFetchError;
+
+                // Delete result records first (to avoid foreign key constraints)
+                if (evaluations && evaluations.length > 0) {
+                    const evalIds = evaluations.map(e => e.id);
+                    const { error: resultError } = await supabase
+                        .from('result')
+                        .delete()
+                        .in('evaluation_id', evalIds);
+
+                    if (resultError) throw resultError;
+                }
+
+                // Delete all evaluation records
+                const { error: evalError } = await supabase
+                    .from('evaluation')
+                    .delete()
+                    .eq('profile_id', user.id);
+
+                if (evalError) throw evalError;
+
+                // Reset level progress to 0
+                const { error: levelError } = await supabase
+                    .from('level')
+                    .update({ progress: 0 })
+                    .eq('profile_id', user.id);
+
+                if (levelError) throw levelError;
+
+                alert('Progress reset successfully!');
+            } catch (error) {
+                console.error('Error resetting progress:', error);
+                alert('Failed to reset progress. Please try again.');
+            }
+        });
+
+        // Photo upload functionality
+        const changePhotoBtn = document.getElementById('change-photo-btn');
+        const photoUpload = document.getElementById('photo-upload');
+
+        if (changePhotoBtn && photoUpload) {
+            changePhotoBtn.addEventListener('click', () => {
+                photoUpload.click();
+            });
+
+            photoUpload.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type and size
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // Upload file to Supabase Storage
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${user.id}/profile.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('profile-pictures')
+                    .upload(fileName, file, { upsert: true });
+
+                if (uploadError) throw uploadError;
+
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('profile-pictures')
+                    .getPublicUrl(fileName);
+
+                // Update profile in database
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ profile_picture_url: publicUrl })
+                    .eq('id', user.id);
+
+                if (updateError) throw updateError;
+
+                // Update UI
+                document.getElementById('profile-picture').src = publicUrl;
+                document.getElementById('remove-photo-btn').classList.remove('hidden');
+
+                alert('Profile picture updated successfully!');
+            } catch (error) {
+                console.error('Error uploading photo:', error);
+                alert('Failed to upload photo. Please try again.');
+            }
+        });
+        }
+
+        // Remove photo functionality
+        document.getElementById('remove-photo-btn').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to remove your profile picture?')) {
+                return;
+            }
+
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // Delete from storage
+                const { error: deleteError } = await supabase.storage
+                    .from('profile-pictures')
+                    .remove([`${user.id}/profile.jpg`, `${user.id}/profile.png`, `${user.id}/profile.jpeg`, `${user.id}/profile.gif`]);
+
+                if (deleteError) throw deleteError;
+
+                // Update profile in database
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ profile_picture_url: null })
+                    .eq('id', user.id);
+
+                if (updateError) throw updateError;
+
+                // Reset to default avatar
+                const profileImg = document.getElementById('profile-picture');
+                const firstName = document.querySelectorAll('input[type="text"]')[0].value || 'User';
+                const lastName = document.querySelectorAll('input[type="text"]')[1].value || '';
+                const displayName = `${firstName} ${lastName}`.trim();
+
+                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=120`;
+                document.getElementById('remove-photo-btn').classList.add('hidden');
+
+                alert('Profile picture removed successfully!');
+            } catch (error) {
+                console.error('Error removing photo:', error);
+                alert('Failed to remove photo. Please try again.');
+            }
+        });
+
+        // Delete account functionality
+        document.getElementById('delete-account-btn').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data.')) {
+                return;
+            }
+
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('User not authenticated');
+                return;
+            }
+
+            try {
+                // First, get all evaluation IDs for this user
+                const { data: evaluations, error: evalFetchError } = await supabase
+                    .from('evaluation')
+                    .select('id')
+                    .eq('profile_id', user.id);
+
+                if (evalFetchError) throw evalFetchError;
+
+                // Delete result records first (to avoid foreign key constraints)
+                if (evaluations && evaluations.length > 0) {
+                    const evalIds = evaluations.map(e => e.id);
+                    const { error: resultError } = await supabase
+                        .from('result')
+                        .delete()
+                        .in('evaluation_id', evalIds);
+
+                    if (resultError) throw resultError;
+                }
+
+                // Delete all evaluation records
+                const { error: evalError } = await supabase
+                    .from('evaluation')
+                    .delete()
+                    .eq('profile_id', user.id);
+
+                if (evalError) throw evalError;
+
+                // Delete level record
+                const { error: levelError } = await supabase
+                    .from('level')
+                    .delete()
+                    .eq('profile_id', user.id);
+
+                if (levelError) throw levelError;
+
+                // Delete profile
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('id', user.id);
+
+                if (profileError) throw profileError;
+
+                alert('Account deleted successfully. You will be redirected to the login page.');
+                window.location.href = '/jsat/app/auth/login.html';
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                alert('Failed to delete account. Please try again.');
             }
         });
     </script>

@@ -1,6 +1,27 @@
 # JSAT (Java Skill Assessment Tool)
 
-JSAT is a comprehensive platform for assessing Java programming skills. It provides a complete solution for recruiters, administrators, and candidates, from user management and question generation to automated evaluation and feedback.
+A comprehensive platform for assessing Java programming skills with role-based access for Admins, Recruiters, and Candidates.
+
+## 🚀 Quick Start
+
+### Development
+```bash
+npm install
+npm run dev
+```
+
+### Deployment
+All deployment files and instructions are in the **`deployment/`** folder.
+
+**To deploy to Vercel:**
+```powershell
+cd deployment
+.\deploy.ps1
+```
+
+Or see `deployment/README.md` for detailed instructions.
+
+---
 
 ## Features
 
@@ -59,24 +80,45 @@ JSAT is a comprehensive platform for assessing Java programming skills. It provi
 
 1.  Clone the repo
     ```sh
-    git clone https://github.com/your_username_/JSAT.git
+    git clone https://github.com/dyastena/jsat.git
+    cd jsat
     ```
 2.  Install NPM packages
     ```sh
     npm install
     ```
-3.  **Configure Supabase Environment Variables:**
-    Create a `.env` file in the root directory of the project and add your Supabase credentials:
-    ```
-    SUPABASE_URL="YOUR_SUPABASE_URL"
-    SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
-    ```
-    *Note: For client-side applications, these keys are often directly embedded or served via a build process. For local development, ensure your `auth.js` file correctly references these or has placeholders.*
-4.  Serve the application using a static file server. For example, if using `serve`:
+3.  **Configure Supabase:**
+    Update `app/config.js` with your Supabase credentials, or use environment variables (see `deployment/.env.example`).
+
+4.  Build CSS
     ```sh
-    npx serve .
+    npm run build
+    ```
+
+5.  Serve the application using a static file server. For example, if using `serve`:
+    ```sh
+    npx serve app
     ```
     Then open your browser to the address provided (e.g., `http://localhost:5000`).
+
+## Deployment
+
+**Ready to deploy?** All deployment files are organized in the `deployment/` folder:
+
+- 📖 `deployment/README.md` - Start here!
+- 🚀 `deployment/deploy.ps1` - Automated deployment (Windows)
+- 🚀 `deployment/deploy.sh` - Automated deployment (Linux/Mac)
+- ⚙️ `deployment/vercel.json` - Vercel configuration
+- ✅ `deployment/CHECKLIST.md` - Pre-deployment checklist
+- 🔧 `deployment/TROUBLESHOOTING.md` - Common issues & solutions
+
+```powershell
+# Quick deploy to Vercel
+cd deployment
+.\deploy.ps1
+```
+
+See `deployment/README.md` for complete deployment instructions.
 
 ## Usage
 

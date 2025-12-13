@@ -94,14 +94,14 @@
                         </svg>
                     </div>
                     <h1 class="text-5xl font-bold text-white mt-6 mb-3">Test Completed!</h1>
-                    <p class="text-xl text-gray-400">Excellent work, Alex! Your responses have been submitted successfully.</p>
+                    <p class="text-xl text-gray-400">Excellent work! Your responses have been submitted successfully.</p>
                 </div>
 
                 <!-- Test Summary Card -->
                 <div class="bg-gray-900 rounded-2xl border border-gray-800 p-8 mb-6">
                     <div class="flex items-center justify-between mb-6 pb-6 border-b border-gray-800">
                         <div>
-                            <h2 class="text-2xl font-bold text-white mb-1">Java Fundamentals Assessment</h2>
+                            <h2 id="test-title" class="text-2xl font-bold text-white mb-1">Java Fundamentals Assessment</h2>
                             <p class="text-gray-400" id="completion-time"></p>
                         </div>
                         <div class="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center">
@@ -116,11 +116,11 @@
                                 <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-lg font-bold text-white mb-2">Preliminary Score</h3>
+                                <h3 class="text-lg font-bold text-white mb-2">Score</h3>
                                 <div class="flex items-center space-x-4 mb-3">
-                                    <div class="text-4xl font-bold text-emerald-400">87%</div>
+                                    <div class="text-4xl font-bold text-emerald-400">0%</div>
                                     <div>
-                                        <p class="text-sm text-gray-300">17 out of 20 correct</p>
+                                        <p class="text-sm text-gray-300"></p>
                                         <p class="text-xs text-gray-400">Final results pending recruiter review</p>
                                     </div>
                                 </div>
@@ -144,8 +144,8 @@
 
                     <div class="bg-gray-900/50 rounded-lg p-6">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-emerald-400 font-bold">INTERMEDIATE</span>
-                            <span class="text-white font-bold">183 / 200 pts</span>
+                            <span class="text-emerald-400 font-bold">BEGINNER</span>
+                            <span class="text-white font-bold">0 / 100 pts</span>
                         </div>
                         <div class="w-full h-4 bg-gray-800 rounded-full overflow-hidden mb-2">
                             <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000" style="width: 91.5%"></div>
@@ -163,7 +163,7 @@
                         <i data-lucide="bar-chart" class="w-5 h-5"></i>
                         <span>View Results</span>
                     </button>
-                    <button onclick="window.location.href='exam.html'" class="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center space-x-2">
+                    <button onclick="window.location.href='dashboard.html'" class="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center space-x-2">
                         <i data-lucide="home" class="w-5 h-5"></i>
                         <span>Go to Dashboard</span>
                     </button>
@@ -174,405 +174,982 @@
         </main>
     </div>
 
+    <script>
+        console.log('Basic script test - completion page loaded');
+    </script>
     <script type="module">
-        import { protectPage } from '../js/guard.js';
-        import { logout } from '../js/auth.js';
+        console.log('Module script starting...');
 
-        // Protect this page, only 'candidate' role is authorized
-        protectPage(['candidate']).then(({ user, profile }) => {
-            if (user && profile) {
-                // User is authorized, proceed with rendering the completion page
-                lucide.createIcons();
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-                // Confetti effect
-                function createConfetti() {
-                    const colors = ['#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899'];
-                    for (let i = 0; i < 50; i++) {
-                        setTimeout(() => {
-                            const confetti = document.createElement('div');
-                            confetti.className = 'confetti';
-                            confetti.style.left = Math.random() * 100 + '%';
-                            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                            confetti.style.animationDelay = Math.random() * 0.5 + 's';
-                            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                            document.body.appendChild(confetti);
+        console.log('Config imported:', { SUPABASE_URL: SUPABASE_URL ? 'present' : 'missing', SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? 'present' : 'missing' });
 
-                            setTimeout(() => confetti.remove(), 3500);
-                        }, i * 30);
-                    }
+        // UI update functions (shared between test and main functions)
+        const updateTestSummary = (evaluationData, levelData) => {
+            console.log('Updating test summary with data:', evaluationData);
+            const testTitleEl = document.getElementById('test-title');
+            const testDetailsEl = document.getElementById('completion-time');
+
+            // Try localStorage first (from test submission)
+            const storedData = localStorage.getItem('lastEvaluationData');
+            let evaluationInfo = null;
+
+            if (storedData) {
+                try {
+                    evaluationInfo = JSON.parse(storedData);
+                    console.log('Using stored evaluation data:', evaluationInfo);
+                } catch (error) {
+                    console.error('Error parsing stored data:', error);
+                }
+            }
+
+            // Use stored data or fall back to database data
+            const questionTitle = evaluationInfo?.questionTitle ||
+                        localStorage.getItem('lastTestQuestionTitle') ||
+                        (evaluationData?.question ? evaluationData.question.title : 'Test Completed');
+
+            if (testTitleEl) {
+                testTitleEl.textContent = questionTitle;
+                console.log('Updated title to:', testTitleEl.textContent);
+            }
+
+            const createdAt = evaluationInfo?.created_at || evaluationData?.created_at;
+            if (testDetailsEl && createdAt) {
+                const completionDate = new Date(createdAt);
+                const formattedDate = completionDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                testDetailsEl.textContent = `Test taken on ${formattedDate}`;
+                console.log('Updated time to:', testDetailsEl.textContent);
+            }
+
+            // Clear localStorage after use
+            localStorage.removeItem('lastEvaluationData');
+            localStorage.removeItem('lastTestQuestionTitle');
+            localStorage.removeItem('lastTestQuestionId');
+        };
+
+        const updatePreliminaryScore = (evaluationData, levelData) => {
+            console.log('Updating preliminary score with data:', evaluationData, levelData);
+
+            // Find the preliminary results container
+            const prelimContainer = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10');
+            console.log('Found preliminary container:', prelimContainer);
+
+            // Find the percentage element (large green number) within the container
+            const prelimScoreEl = prelimContainer?.querySelector('.text-4xl.font-bold.text-emerald-400');
+
+            // Find the factor count element (the first small gray text under the percentage within the flex-1 container)
+            const prelimDetailsEl = prelimContainer?.querySelector('.flex-1 p.text-sm.text-gray-300');
+
+            // Try localStorage first (from test submission)
+            const storedData = localStorage.getItem('lastEvaluationData');
+            let evaluationInfo = null;
+
+            if (storedData) {
+                try {
+                    evaluationInfo = JSON.parse(storedData);
+                    console.log('Using stored evaluation data for score:', evaluationInfo);
+                } catch (error) {
+                    console.error('Error parsing stored data for score:', error);
+                }
+            }
+
+            // Use stored data or fall back to database data
+            const dataToUse = evaluationInfo || evaluationData;
+
+            if (prelimDetailsEl && dataToUse && levelData) {
+                // Get user's level to determine which factors were evaluated
+                const userLevel = evaluationInfo?.userLevel || levelData.level_status || 'Beginner';
+                const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
+                const numericLevel = levelMapping[userLevel] || 1;
+
+                // Initialize factors array and count of total possible factors
+                let factors = [];
+                let totalFactors = 0;
+
+                // Always include correctness (all levels)
+                if (dataToUse.correctness !== null && dataToUse.correctness !== undefined) {
+                    factors.push(dataToUse.correctness >= 7 ? 1 : 0);
+                    totalFactors++;
                 }
 
-                // Trigger confetti on load
-                window.addEventListener('load', createConfetti);
-            }
-        });
+                // Time efficiency (Novice and above)
+                if (numericLevel >= 2 && dataToUse.time_taken !== null && dataToUse.time_taken !== undefined) {
+                    factors.push(dataToUse.time_taken >= 7 ? 1 : 0); // Higher score = better (less time)
+                    totalFactors++;
+                }
 
-        // Logout functionality
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            await logout();
-            window.location.href = '/jsat/app/auth/login.html';
-        });
-    </script>
-      <script>lucide.createIcons();</script>
+                // Code quality (Intermediate and above)
+                if (numericLevel >= 3 && dataToUse.line_code !== null && dataToUse.line_code !== undefined) {
+                    factors.push(dataToUse.line_code >= 7 ? 1 : 0);
+                    totalFactors++;
+                }
 
-<script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+                // Runtime performance (Advanced and above)
+                if (numericLevel >= 4 && dataToUse.runtime !== null && dataToUse.runtime !== undefined) {
+                    factors.push(dataToUse.runtime >= 7 ? 1 : 0); // Higher score = better (faster)
+                    totalFactors++;
+                }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                // Error handling (Expert level)
+                if (numericLevel >= 5 && dataToUse.error_made !== null && dataToUse.error_made !== undefined) {
+                    factors.push(dataToUse.error_made >= 7 ? 1 : 0); // Higher score = better (fewer errors)
+                    totalFactors++;
+                }
 
-    // Load user's latest test results
-    const loadCompletionData = async () => {
-        try {
-            // Get current user
-            const { data: user, error: authError } = await supabase.auth.getUser();
-            if (authError || !user.user) {
-                console.error('Authentication error:', authError);
-                return;
-            }
+                const factorsCorrect = factors.filter(Boolean).length;
 
-            // Get user's profile data for name
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('first_name, last_name')
-                .eq('id', user.user.id)
-                .single();
+                // Calculate percentage as factors correct / total factors evaluated for level
+                const percentage = totalFactors > 0 ? Math.round((factorsCorrect / totalFactors) * 100) : 0;
 
-            if (profileError) {
-                console.log('Profile data not available:', profileError);
-            }
+                // Update percentage display
+                if (prelimScoreEl) {
+                    prelimScoreEl.textContent = `${percentage}%`;
+                    console.log('Updated percentage to:', prelimScoreEl.textContent);
+                }
 
-            // Update user welcome message
-            updateWelcomeMessage(profile);
-
-            // Check if a specific evaluation ID is requested via URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const requestedEvaluationId = urlParams.get('evaluation_id');
-
-            let evaluationData, evalError;
-
-            if (requestedEvaluationId) {
-                // Load specific evaluation by ID
-                const { data: specificEval, error: specificError } = await supabase
-                    .from('evaluation')
-                    .select(`
-                        id,
-                        correctness,
-                        line_code,
-                        time_taken,
-                        runtime,
-                        error_made,
-                        created_at,
-                        question (
-                            title,
-                            difficulty,
-                            category
-                        ),
-                        result (
-                            score,
-                            cart_eval
-                        )
-                    `)
-                    .eq('id', requestedEvaluationId)
-                    .eq('profile_id', user.user.id)
-                    .single();
-
-                evaluationData = specificEval;
-                evalError = specificError;
-            } else {
-                // Get the user's most recent evaluation with result data
-                const { data: recentEval, error: recentError } = await supabase
-                    .from('evaluation')
-                    .select(`
-                        id,
-                        correctness,
-                        line_code,
-                        time_taken,
-                        runtime,
-                        error_made,
-                        created_at,
-                        question (
-                            title,
-                            difficulty,
-                            category
-                        ),
-                        result (
-                            score,
-                            cart_eval
-                        )
-                    `)
-                    .eq('profile_id', user.user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
-
-                evaluationData = recentEval;
-                evalError = recentError;
-            }
-
-            if (evalError || !evaluationData) {
-                console.error('Failed to load evaluation data:', evalError);
-                return;
-            }
-
-            // Get user's current level
-            const { data: levelData, error: levelError } = await supabase
-                .from('level')
-                .select('level_status, progress')
-                .eq('profile_id', user.user.id)
-                .single();
-
-            if (levelError) {
-                console.log('Level data not available:', levelError);
-            }
-
-            // Update test summary
-            updateTestSummary(evaluationData, levelData);
-
-            // Update preliminary score
-            updatePreliminaryScore(evaluationData, levelData);
-
-            // Update level progress
-            updateLevelProgress(evaluationData, levelData);
-
-        } catch (error) {
-            console.error('Error loading completion data:', error);
-            // Fallback to default values
-            updateDefaultData();
-        }
-    };
-
-    const updateWelcomeMessage = (profile) => {
-        const welcomeEl = document.querySelector('.text-center.mb-8 p.text-xl.text-gray-400');
-        if (welcomeEl && profile) {
-            const firstName = profile.first_name || '';
-            const lastName = profile.last_name || '';
-            const fullName = `${firstName} ${lastName}`.trim() || 'User';
-            welcomeEl.textContent = `Excellent work, ${fullName}! Your responses have been submitted successfully.`;
-        }
-    };
-
-    const updateTestSummary = (evaluationData, levelData) => {
-        console.log('Updating test summary with data:', evaluationData);
-        const testTitleEl = document.querySelector('h2.text-2xl.font-bold.text-white.mb-1');
-        const testDetailsEl = document.getElementById('completion-time');
-
-        // First try localStorage (from submission), then database
-        const questionTitle = localStorage.getItem('lastTestQuestionTitle') || (evaluationData.question ? evaluationData.question.title : 'Test Completed');
-
-        if (testTitleEl) {
-            testTitleEl.textContent = questionTitle;
-            console.log('Updated title to:', testTitleEl.textContent);
-        }
-
-        if (testDetailsEl && evaluationData.created_at) {
-            const completionDate = new Date(evaluationData.created_at);
-            const formattedDate = completionDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            testDetailsEl.textContent = `Test taken on ${formattedDate}`;
-            console.log('Updated time to:', testDetailsEl.textContent);
-        }
-
-        // Clear localStorage after use
-        localStorage.removeItem('lastTestQuestionTitle');
-        localStorage.removeItem('lastTestQuestionId');
-    };
-
-    const updatePreliminaryScore = (evaluationData, levelData) => {
-        console.log('Updating preliminary score with data:', evaluationData, levelData);
-
-        // Find the preliminary results container
-        const prelimContainer = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10');
-
-        // Find the percentage element (large green number) within the container
-        const prelimScoreEl = prelimContainer?.querySelector('.text-4xl.font-bold.text-emerald-400');
-
-        // Find the factor count element (the first small gray text under the percentage within the flex-1 container)
-        const prelimDetailsEl = prelimContainer?.querySelector('.flex-1 p.text-sm.text-gray-300');
-
-        if (prelimDetailsEl && evaluationData && levelData) {
-            // Get user's level to determine which factors were evaluated
-            const userLevel = levelData.level_status || 'Beginner';
-            const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
-            const numericLevel = levelMapping[userLevel] || 1;
-
-            // Initialize factors array and count of total possible factors
-            let factors = [];
-            let totalFactors = 0;
-
-            // Always include correctness (all levels)
-            if (evaluationData.correctness !== null) {
-                factors.push(evaluationData.correctness >= 7 ? 1 : 0);
-                totalFactors++;
-            }
-
-            // Time efficiency (Novice and above)
-            if (numericLevel >= 2 && evaluationData.time_taken !== null) {
-                factors.push(evaluationData.time_taken >= 7 ? 1 : 0); // Higher score = better (less time)
-                totalFactors++;
-            }
-
-            // Code quality (Intermediate and above)
-            if (numericLevel >= 3 && evaluationData.line_code !== null) {
-                factors.push(evaluationData.line_code >= 7 ? 1 : 0);
-                totalFactors++;
-            }
-
-            // Runtime performance (Advanced and above)
-            if (numericLevel >= 4 && evaluationData.runtime !== null) {
-                factors.push(evaluationData.runtime >= 7 ? 1 : 0); // Higher score = better (faster)
-                totalFactors++;
-            }
-
-            // Error handling (Expert level)
-            if (numericLevel >= 5 && evaluationData.error_made !== null) {
-                factors.push(evaluationData.error_made >= 7 ? 1 : 0); // Higher score = better (fewer errors)
-                totalFactors++;
-            }
-
-            const factorsCorrect = factors.filter(Boolean).length;
-
-            // Calculate percentage as factors correct / total factors evaluated for level
-            const percentage = totalFactors > 0 ? Math.round((factorsCorrect / totalFactors) * 100) : 0;
-
-            // Update percentage display
-            if (prelimScoreEl) {
-                prelimScoreEl.textContent = `${percentage}%`;
-                console.log('Updated percentage to:', prelimScoreEl.textContent);
-            }
-
-            // Update factor count text
-            prelimDetailsEl.textContent = `${factorsCorrect} out of ${totalFactors} factors correct`;
-            console.log('Updated factors to:', prelimDetailsEl.textContent);
-        }
-    };
-
-    const updateLevelProgress = (evaluationData, levelData) => {
-        console.log('Updating level progress with data:', levelData);
-
-        // Level configuration
-        const levelConfig = {
-            'Beginner': {
-                title: 'Welcome to Coding!',
-                color: 'from-green-500/10 to-emerald-500/10',
-                border: 'border-green-500/30',
-                iconBg: 'bg-green-500',
-                progressMsg: 'Keep going, you\'re building the foundation! 🌱',
-                nextLevelThreshold: 100
-            },
-            'Novice': {
-                title: 'Building Momentum!',
-                color: 'from-blue-500/10 to-cyan-500/10',
-                border: 'border-blue-500/30',
-                iconBg: 'bg-blue-500',
-                progressMsg: 'You\'re learning fast! Keep it up! 💪',
-                nextLevelThreshold: 150
-            },
-            'Intermediate': {
-                title: 'Level Progress Updated!',
-                color: 'from-purple-500/10 to-pink-500/10',
-                border: 'border-purple-500/30',
-                iconBg: 'bg-purple-500',
-                progressMsg: 'Only few points to reach Advanced level! 🚀',
-                nextLevelThreshold: 200
-            },
-            'Advanced': {
-                title: 'Advanced Skills Achieved!',
-                color: 'from-orange-500/10 to-red-500/10',
-                border: 'border-orange-500/30',
-                iconBg: 'bg-orange-500',
-                progressMsg: 'Push further to reach Expert level! 🔥',
-                nextLevelThreshold: 300
-            },
-            'Expert': {
-                title: 'Expert Level Reached!',
-                color: 'from-red-500/10 to-pink-500/10',
-                border: 'border-red-500/30',
-                iconBg: 'bg-red-500',
-                progressMsg: 'Congratulations! You\'re at the top! 👑',
-                nextLevelThreshold: 500
+                // Update factor count text
+                prelimDetailsEl.textContent = `${factorsCorrect} out of ${totalFactors} factors correct`;
+                console.log('Updated factors to:', prelimDetailsEl.textContent);
             }
         };
 
-        // Get current level config
-        const currentLevel = levelData?.level_status || 'Beginner';
-        const config = levelConfig[currentLevel] || levelConfig['Beginner'];
-        const currentProgress = Math.round(levelData?.progress || 0);
+        const updateLevelProgress = (evaluationData, levelData) => {
+            console.log('Updating level progress with data:', levelData);
 
-        // Keep card styling consistent (purple theme)
-        // Card container styling and icon background remain the same
+            // Level configuration
+            const levelConfig = {
+                'Beginner': {
+                    title: 'Welcome to Coding!',
+                    color: 'from-green-500/10 to-emerald-500/10',
+                    border: 'border-green-500/30',
+                    iconBg: 'bg-green-500',
+                    progressMsg: 'Keep going, you\'re building the foundation! 🌱',
+                    nextLevelThreshold: 100
+                },
+                'Novice': {
+                    title: 'Building Momentum!',
+                    color: 'from-blue-500/10 to-cyan-500/10',
+                    border: 'border-blue-500/30',
+                    iconBg: 'bg-blue-500',
+                    progressMsg: 'You\'re learning fast! Keep it up! 💪',
+                    nextLevelThreshold: 150
+                },
+                'Intermediate': {
+                    title: 'Level Progress Updated!',
+                    color: 'from-purple-500/10 to-pink-500/10',
+                    border: 'border-purple-500/30',
+                    iconBg: 'bg-purple-500',
+                    progressMsg: 'Only few points to reach Advanced level! 🚀',
+                    nextLevelThreshold: 200
+                },
+                'Advanced': {
+                    title: 'Advanced Skills Achieved!',
+                    color: 'from-orange-500/10 to-red-500/10',
+                    border: 'border-orange-500/30',
+                    iconBg: 'bg-orange-500',
+                    progressMsg: 'Push further to reach Expert level! 🔥',
+                    nextLevelThreshold: 300
+                },
+                'Expert': {
+                    title: 'Expert Level Reached!',
+                    color: 'from-red-500/10 to-pink-500/10',
+                    border: 'border-red-500/30',
+                    iconBg: 'bg-red-500',
+                    progressMsg: 'Congratulations! You\'re at the top! 👑',
+                    nextLevelThreshold: 500
+                }
+            };
 
-        // Update card title and subtitle (level progress card only)
-        const levelCardTitle = document.querySelector('.bg-gradient-to-br + .bg-gradient-to-br .text-2xl.font-bold.text-white.mb-1');
+            // Get current level config
+            const currentLevel = levelData?.level_status || 'Beginner';
+            const config = levelConfig[currentLevel] || levelConfig['Beginner'];
+            const currentProgress = Math.round(levelData?.progress || 0);
 
-        if (levelCardTitle) levelCardTitle.textContent = config.title;
-        
+            // Keep card styling consistent (purple theme)
+            // Card container styling and icon background remain the same
 
-        // Update progress section
-        const levelContainer = document.querySelector('.bg-gray-900\\/50.rounded-lg');
-        const levelNameEl = levelContainer ? levelContainer.querySelector('span.text-emerald-400') : null;
-        const levelScoreEl = levelContainer ? levelContainer.querySelector('span.text-white.font-bold') : null;
-        const progressBar = levelContainer ? levelContainer.querySelector('.h-full') : null;
-        const progressMsgEl = levelContainer ? levelContainer.querySelector('.text-sm.text-gray-400') : null;
+            // Update card title and subtitle (level progress card only)
+            const levelCardTitle = document.querySelector('.bg-gradient-to-br.from-purple-500\\/10 h3.text-2xl.font-bold.text-white');
 
-        if (levelNameEl) {
-            levelNameEl.textContent = currentLevel.toUpperCase();
-        }
+            if (levelCardTitle) levelCardTitle.textContent = config.title;
 
-        if (levelScoreEl) {
-            levelScoreEl.textContent = `${currentProgress} / ${config.nextLevelThreshold} pts`;
-        }
 
-        if (progressBar) {
-            const widthPercent = Math.min(100, (currentProgress / config.nextLevelThreshold) * 100);
-            progressBar.style.width = `${widthPercent}%`;
-        }
+            // Update progress section
+            const levelContainer = document.querySelector('.bg-gray-900\\/50.rounded-lg');
+            const levelNameEl = levelContainer ? levelContainer.querySelector('span.text-emerald-400') : null;
+            const levelScoreEl = levelContainer ? levelContainer.querySelector('span.text-white.font-bold') : null;
+            const progressBar = levelContainer ? levelContainer.querySelector('.h-full') : null;
+            const progressMsgEl = levelContainer ? levelContainer.querySelector('.text-sm.text-gray-400') : null;
 
-        if (progressMsgEl) {
-            // Calculate remaining points
-            const remaining = Math.max(0, config.nextLevelThreshold - currentProgress);
-            let message = config.progressMsg;
-
-            if (remaining > 0 && currentLevel !== 'Beginner') {
-                message = `Only ${remaining} points to reach ${getNextLevel(currentLevel)} level! 🚀`;
+            if (levelNameEl) {
+                levelNameEl.textContent = currentLevel.toUpperCase();
             }
 
-            progressMsgEl.textContent = message;
+            if (levelScoreEl) {
+                levelScoreEl.textContent = `${currentProgress} / ${config.nextLevelThreshold} pts`;
+            }
+
+            if (progressBar) {
+                const widthPercent = Math.min(100, (currentProgress / config.nextLevelThreshold) * 100);
+                progressBar.style.width = `${widthPercent}%`;
+            }
+
+            if (progressMsgEl) {
+                // Calculate remaining points
+                const remaining = Math.max(0, config.nextLevelThreshold - currentProgress);
+                let message = config.progressMsg;
+
+                if (remaining > 0 && currentLevel !== 'Beginner') {
+                    message = `Only ${remaining} points to reach ${getNextLevel(currentLevel)} level! 🚀`;
+                }
+
+                progressMsgEl.textContent = message;
+            }
+
+            console.log('Updated level card for:', currentLevel, 'with progress:', currentProgress);
+        };
+
+        const getNextLevel = (currentLevel) => {
+            const levels = ['Beginner', 'Novice', 'Intermediate', 'Advanced', 'Expert'];
+            const currentIndex = levels.indexOf(currentLevel);
+            return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : 'Master';
+        };
+
+        const updateScoreFromResult = (evaluationData, resultData) => {
+            console.log('Updating score directly from result data:', resultData);
+
+            // Update the preliminary score display with the actual score from result table
+            const prelimScoreEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-4xl.font-bold.text-emerald-400');
+            const prelimDetailsEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .flex-1 p.text-sm.text-gray-300');
+
+            if (prelimScoreEl && resultData?.score !== undefined) {
+                // Display the actual score from result table
+                const scoreValue = Math.round(resultData.score * 10); // Assuming score is 0-10, convert to percentage
+                prelimScoreEl.textContent = `${scoreValue}%`;
+                console.log('Updated score display to:', prelimScoreEl.textContent);
+            }
+
+            if (prelimDetailsEl && resultData?.cart_eval) {
+                // Display the CART evaluation from result table
+                prelimDetailsEl.textContent = `CART Evaluation: ${resultData.cart_eval}`;
+                console.log('Updated details to:', prelimDetailsEl.textContent);
+            }
+        };
+
+        // Simple test function
+        async function testCompletionPage() {
+            console.log('testCompletionPage function called');
+
+            try {
+                // Just load the URL parameter and log it
+                const urlParams = new URLSearchParams(window.location.search);
+                const requestedEvaluationId = urlParams.get('evaluation_id');
+                console.log('Requested evaluation ID from URL:', requestedEvaluationId);
+
+                // Use the imported createClient directly
+                console.log('Creating Supabase client with imported createClient...');
+                const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase client created');
+
+                // Try simple auth check
+                const { data: { user } } = await supabase.auth.getUser();
+                console.log('User check result:', user);
+
+                if (user && requestedEvaluationId) {
+                    console.log('Attempting to load evaluation data...');
+                    // Load full evaluation data
+                    const { data: evalData, error: evalError } = await supabase
+                        .from('evaluation')
+                        .select(`
+                            id,
+                            correctness,
+                            line_code,
+                            time_taken,
+                            runtime,
+                            error_made,
+                            created_at,
+                            question(title, difficulty, category)
+                        `)
+                        .eq('id', requestedEvaluationId)
+                        .eq('profile_id', user.id)
+                        .single();
+
+                    console.log('Evaluation data loaded:', evalData);
+                    console.log('Evaluation error:', evalError);
+
+                    console.log('evalData exists, proceeding with result and level data loading...');
+                    if (evalData) {
+                        console.log('Inside evalData if block - evalData:', evalData);
+
+                        // Load result data
+                        console.log('Loading result data for evaluation_id:', requestedEvaluationId);
+                        const { data: resultData, error: resultError } = await supabase
+                            .from('result')
+                            .select('score, cart_eval')
+                            .eq('evaluation_id', requestedEvaluationId)
+                            .single();
+
+                        console.log('Result query completed. Data:', resultData, 'Error:', resultError);
+
+                        // Load level data
+                        const { data: levelData, error: levelError } = await supabase
+                            .from('level')
+                            .select('level_status, progress')
+                            .eq('profile_id', user.id)
+                            .single();
+
+                        console.log('Level data loaded:', levelData);
+
+                        // Attach result to evaluation
+                        if (resultData) {
+                            evalData.result = resultData;
+                        }
+
+                        console.log('=== FINAL DATA FOR DISPLAY ===');
+                        console.log('Evaluation Data:', evalData);
+                        console.log('Result Data:', resultData);
+                        console.log('Level Data:', levelData);
+                        console.log('============================');
+
+                        // Update UI elements
+                        updateTestSummary(evalData, levelData);
+                        updatePreliminaryScore(evalData, levelData);
+                        updateLevelProgress(evalData, levelData);
+
+                        console.log('All UI elements updated successfully');
+
+                        // Also update with result data if available
+                        if (resultData) {
+                            updateScoreFromResult(evalData, resultData);
+                        }
+                    }
+                } else if (!user) {
+                    console.log('No user logged in - cannot load data');
+                } else if (!requestedEvaluationId) {
+                    console.log('No evaluation ID provided - cannot load specific data');
+                }
+
+            } catch (error) {
+                console.error('Test function error:', error);
+            }
         }
 
-        console.log('Updated level card for:', currentLevel, 'with progress:', currentProgress);
-    };
+        // Main initialization function
+        async function initializeCompletionPage() {
+            console.log('initializeCompletionPage function called');
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                console.error('Supabase configuration not found');
+                document.body.innerHTML = `
+                    <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                        <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                            <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77-.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
+                        <p class="text-gray-300 mb-4 leading-relaxed">Supabase credentials not found.</p>
+                    </div>
+                </div>`;
+                return;
+            }
+            // Wait for supabase to be available before proceeding
+            function waitForSupabase() {
+                return new Promise((resolve) => {
+                    function checkSupabase() {
+                        if (window.supabase && window.supabase.createClient) {
+                            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                            resolve(supabase);
+                        } else {
+                            setTimeout(checkSupabase, 10);
+                        }
+                    }
+                    checkSupabase();
+                });
+            }
 
-    const getNextLevel = (currentLevel) => {
-        const levels = ['Beginner', 'Novice', 'Intermediate', 'Advanced', 'Expert'];
-        const currentIndex = levels.indexOf(currentLevel);
-        return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : 'Master';
-    };
+            const supabase = await waitForSupabase();
+            console.log('Supabase is ready');
 
-    const updateDefaultData = () => {
-        // Default fallback data
-        const prelimScoreEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-4xl');
-        if (prelimScoreEl) {
-            prelimScoreEl.textContent = '87%';
+            console.log('About to import modules...');
+
+            // Now dynamically import the guard and auth modules
+            let protectPage, logout;
+            try {
+                const guardModule = await import('../js/guard.js');
+                const authModule = await import('../js/auth.js');
+                protectPage = guardModule.protectPage;
+                logout = authModule.logout;
+                console.log('Modules imported successfully');
+            } catch (importError) {
+                console.error('Failed to import modules:', importError);
+                // Try inline authentication instead
+                console.log('Trying inline authentication...');
+                await tryInlineAuth(supabase);
+                return;
+            }
+
+            console.log('About to call protectPage...');
+
+            // Protect this page, only 'candidate' role is authorized
+            protectPage(['candidate']).then(({ user, profile }) => {
+                console.log('protectPage resolved with user:', user, 'profile:', profile);
+                if (user && profile) {
+                    console.log('User authorized, proceeding with completion page...');
+                    // User is authorized, proceed with rendering the completion page
+                    lucide.createIcons();
+
+                    // Confetti effect
+                    function createConfetti() {
+                        const colors = ['#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899'];
+                        for (let i = 0; i < 50; i++) {
+                            setTimeout(() => {
+                                const confetti = document.createElement('div');
+                                confetti.className = 'confetti';
+                                confetti.style.left = Math.random() * 100 + '%';
+                                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                                document.body.appendChild(confetti);
+
+                                setTimeout(() => confetti.remove(), 3500);
+                            }, i * 30);
+                        }
+                    }
+
+                    // Trigger confetti on load
+                    window.addEventListener('load', createConfetti);
+
+                    // Load completion data after authentication
+                    console.log('Calling loadCompletionData...');
+                    loadCompletionData(supabase, user.user.id);
+                } else {
+                    console.log('User not authorized or no profile');
+                }
+            }).catch(error => {
+                console.error('protectPage failed:', error);
+            });
+
+            // Load user's latest test results
+            const loadCompletionData = async (supabaseInstance, userId) => {
+                try {
+                    console.log('Loading completion data for user:', userId);
+
+                    // Get user's profile data for name
+                    const { data: profile, error: profileError } = await supabaseInstance
+                        .from('profiles')
+                        .select('first_name, last_name')
+                        .eq('id', userId)
+                        .single();
+
+                    if (profileError) {
+                        console.log('Profile data not available:', profileError);
+                    }
+
+                    // Update user welcome message
+                    updateWelcomeMessage(profile);
+
+                    // Check if a specific evaluation ID is requested via URL parameter
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const requestedEvaluationId = urlParams.get('evaluation_id');
+                    console.log('Requested evaluation ID:', requestedEvaluationId);
+
+                    let evaluationData, evalError;
+
+                    if (requestedEvaluationId) {
+                        // Load specific evaluation by ID
+                        const { data: specificEval, error: specificError } = await supabaseInstance
+                            .from('evaluation')
+                            .select(`
+                                id,
+                                correctness,
+                                line_code,
+                                time_taken,
+                                runtime,
+                                error_made,
+                                created_at,
+                                question (
+                                    title,
+                                    difficulty,
+                                    category
+                                )
+                            `)
+                            .eq('id', requestedEvaluationId)
+                            .eq('profile_id', userId)
+                            .single();
+
+                        evaluationData = specificEval;
+                        evalError = specificError;
+                        console.log('Loaded specific evaluation data:', evaluationData);
+                        console.log('Evaluation error:', evalError);
+                        if (evalError) {
+                            console.error('Error loading evaluation:', evalError);
+                            console.error('Requested evaluation ID:', requestedEvaluationId);
+                            console.error('User ID:', userId);
+                        }
+
+                        // Load corresponding result data
+                        if (evaluationData) {
+                            const { data: resultData, error: resultError } = await supabaseInstance
+                                .from('result')
+                                .select('score, cart_eval')
+                                .eq('evaluation_id', requestedEvaluationId)
+                                .single();
+
+                            console.log('Loaded result data:', resultData);
+                            console.log('Result error:', resultError);
+
+                            if (!resultError && resultData) {
+                                evaluationData.result = resultData;
+                                console.log('Attached result to evaluation:', evaluationData);
+                            }
+                        }
+                    } else {
+                        // Get the user's most recent evaluation
+                        const { data: recentEval, error: recentError } = await supabaseInstance
+                            .from('evaluation')
+                            .select(`
+                                id,
+                                correctness,
+                                line_code,
+                                time_taken,
+                                runtime,
+                                error_made,
+                                created_at,
+                                question (
+                                    title,
+                                    difficulty,
+                                    category
+                                )
+                            `)
+                            .eq('profile_id', userId)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+
+                        evaluationData = recentEval;
+                        evalError = recentError;
+
+                        // Load corresponding result data
+                        if (evaluationData) {
+                            const { data: resultData, error: resultError } = await supabaseInstance
+                                .from('result')
+                                .select('score, cart_eval')
+                                .eq('evaluation_id', evaluationData.id)
+                                .single();
+
+                            if (!resultError && resultData) {
+                                evaluationData.result = resultData;
+                            }
+                        }
+                    }
+
+                    if (evalError || !evaluationData) {
+                        console.error('Failed to load evaluation data:', evalError);
+                        return;
+                    }
+
+                    // Get user's current level
+                    const { data: levelData, error: levelError } = await supabaseInstance
+                        .from('level')
+                        .select('level_status, progress')
+                        .eq('profile_id', userId)
+                        .single();
+
+                    if (levelError) {
+                        console.log('Level data not available:', levelError);
+                    }
+
+                    console.log('=== FINAL DATA FOR DISPLAY ===');
+                    console.log('Evaluation Data:', evaluationData);
+                    console.log('Level Data:', levelData);
+                    console.log('============================');
+
+                    // Update test summary
+                    updateTestSummary(evaluationData, levelData);
+
+                    // Update preliminary score
+                    updatePreliminaryScore(evaluationData, levelData);
+
+                    // Update level progress
+                    updateLevelProgress(evaluationData, levelData);
+
+                    // Debug: Check if elements exist and have content
+                    console.log('=== DOM ELEMENTS CHECK ===');
+                    const testTitleEl = document.getElementById('test-title');
+                    const testTimeEl = document.getElementById('completion-time');
+                    const prelimScoreEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-4xl.font-bold.text-emerald-400');
+                    const prelimDetailsEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .flex-1 p.text-sm.text-gray-300');
+                    const levelTitleEl = document.querySelector('.bg-gradient-to-br.from-purple-500\\/10 h3.text-2xl.font-bold.text-white');
+
+                    console.log('Test title element:', testTitleEl, 'content:', testTitleEl?.textContent);
+                    console.log('Test time element:', testTimeEl, 'content:', testTimeEl?.textContent);
+                    console.log('Preliminary score element:', prelimScoreEl, 'content:', prelimScoreEl?.textContent);
+                    console.log('Preliminary details element:', prelimDetailsEl, 'content:', prelimDetailsEl?.textContent);
+                    console.log('Level title element:', levelTitleEl, 'content:', levelTitleEl?.textContent);
+                    console.log('==========================');
+
+                } catch (error) {
+                    console.error('Error loading completion data:', error);
+                    // Fallback to default values
+                    updateDefaultData();
+                }
+            };
+
+            const updateWelcomeMessage = (profile) => {
+                const welcomeEl = document.querySelector('.text-center.mb-8 p.text-xl.text-gray-400');
+                if (welcomeEl && profile) {
+                    const firstName = profile.first_name || '';
+                    const lastName = profile.last_name || '';
+                    const fullName = `${firstName} ${lastName}`.trim() || 'User';
+                    welcomeEl.textContent = `Excellent work, ${fullName}! Your responses have been submitted successfully.`;
+                }
+            };
+
+            const updateTestSummary = (evaluationData, levelData) => {
+                console.log('Updating test summary with data:', evaluationData);
+                const testTitleEl = document.getElementById('test-title');
+                const testDetailsEl = document.getElementById('completion-time');
+
+                // Try localStorage first (from test submission)
+                const storedData = localStorage.getItem('lastEvaluationData');
+                let evaluationInfo = null;
+
+                if (storedData) {
+                    try {
+                        evaluationInfo = JSON.parse(storedData);
+                        console.log('Using stored evaluation data:', evaluationInfo);
+                    } catch (error) {
+                        console.error('Error parsing stored data:', error);
+                    }
+                }
+
+                // Use stored data or fall back to database data
+                const questionTitle = evaluationInfo?.questionTitle ||
+                            localStorage.getItem('lastTestQuestionTitle') ||
+                            (evaluationData?.question ? evaluationData.question.title : 'Test Completed');
+
+                if (testTitleEl) {
+                    testTitleEl.textContent = questionTitle;
+                    console.log('Updated title to:', testTitleEl.textContent);
+                }
+
+                const createdAt = evaluationInfo?.created_at || evaluationData?.created_at;
+                if (testDetailsEl && createdAt) {
+                    const completionDate = new Date(createdAt);
+                    const formattedDate = completionDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    testDetailsEl.textContent = `Test taken on ${formattedDate}`;
+                    console.log('Updated time to:', testDetailsEl.textContent);
+                }
+
+                // Clear localStorage after use
+                localStorage.removeItem('lastEvaluationData');
+                localStorage.removeItem('lastTestQuestionTitle');
+                localStorage.removeItem('lastTestQuestionId');
+            };
+
+            const updatePreliminaryScore = (evaluationData, levelData) => {
+                console.log('Updating preliminary score with data:', evaluationData, levelData);
+
+                // Find the preliminary results container
+                const prelimContainer = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10');
+                console.log('Found preliminary container:', prelimContainer);
+
+                // Find the percentage element (large green number) within the container
+                const prelimScoreEl = prelimContainer?.querySelector('.text-4xl.font-bold.text-emerald-400');
+
+                // Find the factor count element (the first small gray text under the percentage within the flex-1 container)
+                const prelimDetailsEl = prelimContainer?.querySelector('.flex-1 p.text-sm.text-gray-300');
+
+                // Try localStorage first (from test submission)
+                const storedData = localStorage.getItem('lastEvaluationData');
+                let evaluationInfo = null;
+
+                if (storedData) {
+                    try {
+                        evaluationInfo = JSON.parse(storedData);
+                        console.log('Using stored evaluation data for score:', evaluationInfo);
+                    } catch (error) {
+                        console.error('Error parsing stored data for score:', error);
+                    }
+                }
+
+                // Use stored data or fall back to database data
+                const dataToUse = evaluationInfo || evaluationData;
+
+                if (prelimDetailsEl && dataToUse && levelData) {
+                    // Get user's level to determine which factors were evaluated
+                    const userLevel = evaluationInfo?.userLevel || levelData.level_status || 'Beginner';
+                    const levelMapping = { 'Beginner': 1, 'Novice': 2, 'Intermediate': 3, 'Advanced': 4, 'Expert': 5 };
+                    const numericLevel = levelMapping[userLevel] || 1;
+
+                    // Initialize factors array and count of total possible factors
+                    let factors = [];
+                    let totalFactors = 0;
+
+                    // Always include correctness (all levels)
+                    if (dataToUse.correctness !== null && dataToUse.correctness !== undefined) {
+                        factors.push(dataToUse.correctness >= 7 ? 1 : 0);
+                        totalFactors++;
+                    }
+
+                    // Time efficiency (Novice and above)
+                    if (numericLevel >= 2 && dataToUse.time_taken !== null && dataToUse.time_taken !== undefined) {
+                        factors.push(dataToUse.time_taken >= 7 ? 1 : 0); // Higher score = better (less time)
+                        totalFactors++;
+                    }
+
+                    // Code quality (Intermediate and above)
+                    if (numericLevel >= 3 && dataToUse.line_code !== null && dataToUse.line_code !== undefined) {
+                        factors.push(dataToUse.line_code >= 7 ? 1 : 0);
+                        totalFactors++;
+                    }
+
+                    // Runtime performance (Advanced and above)
+                    if (numericLevel >= 4 && dataToUse.runtime !== null && dataToUse.runtime !== undefined) {
+                        factors.push(dataToUse.runtime >= 7 ? 1 : 0); // Higher score = better (faster)
+                        totalFactors++;
+                    }
+
+                    // Error handling (Expert level)
+                    if (numericLevel >= 5 && dataToUse.error_made !== null && dataToUse.error_made !== undefined) {
+                        factors.push(dataToUse.error_made >= 7 ? 1 : 0); // Higher score = better (fewer errors)
+                        totalFactors++;
+                    }
+
+                    const factorsCorrect = factors.filter(Boolean).length;
+
+                    // Calculate percentage as factors correct / total factors evaluated for level
+                    const percentage = totalFactors > 0 ? Math.round((factorsCorrect / totalFactors) * 100) : 0;
+
+                    // Update percentage display
+                    if (prelimScoreEl) {
+                        prelimScoreEl.textContent = `${percentage}%`;
+                        console.log('Updated percentage to:', prelimScoreEl.textContent);
+                    }
+
+                    // Update factor count text
+                    prelimDetailsEl.textContent = `${factorsCorrect} out of ${totalFactors} factors correct`;
+                    console.log('Updated factors to:', prelimDetailsEl.textContent);
+                }
+            };
+
+            const updateLevelProgress = (evaluationData, levelData) => {
+                console.log('Updating level progress with data:', levelData);
+
+                // Level configuration
+                const levelConfig = {
+                    'Beginner': {
+                        title: 'Welcome to Coding!',
+                        color: 'from-green-500/10 to-emerald-500/10',
+                        border: 'border-green-500/30',
+                        iconBg: 'bg-green-500',
+                        progressMsg: 'Keep going, you\'re building the foundation! 🌱',
+                        nextLevelThreshold: 100
+                    },
+                    'Novice': {
+                        title: 'Building Momentum!',
+                        color: 'from-blue-500/10 to-cyan-500/10',
+                        border: 'border-blue-500/30',
+                        iconBg: 'bg-blue-500',
+                        progressMsg: 'You\'re learning fast! Keep it up! 💪',
+                        nextLevelThreshold: 150
+                    },
+                    'Intermediate': {
+                        title: 'Level Progress Updated!',
+                        color: 'from-purple-500/10 to-pink-500/10',
+                        border: 'border-purple-500/30',
+                        iconBg: 'bg-purple-500',
+                        progressMsg: 'Only few points to reach Advanced level! 🚀',
+                        nextLevelThreshold: 200
+                    },
+                    'Advanced': {
+                        title: 'Advanced Skills Achieved!',
+                        color: 'from-orange-500/10 to-red-500/10',
+                        border: 'border-orange-500/30',
+                        iconBg: 'bg-orange-500',
+                        progressMsg: 'Push further to reach Expert level! 🔥',
+                        nextLevelThreshold: 300
+                    },
+                    'Expert': {
+                        title: 'Expert Level Reached!',
+                        color: 'from-red-500/10 to-pink-500/10',
+                        border: 'border-red-500/30',
+                        iconBg: 'bg-red-500',
+                        progressMsg: 'Congratulations! You\'re at the top! 👑',
+                        nextLevelThreshold: 500
+                    }
+                };
+
+                // Get current level config
+                const currentLevel = levelData?.level_status || 'Beginner';
+                const config = levelConfig[currentLevel] || levelConfig['Beginner'];
+                const currentProgress = Math.round(levelData?.progress || 0);
+
+                // Keep card styling consistent (purple theme)
+                // Card container styling and icon background remain the same
+
+                // Update card title and subtitle (level progress card only)
+                const levelCardTitle = document.querySelector('.bg-gradient-to-br.from-purple-500\\/10 h3.text-2xl.font-bold.text-white');
+
+                if (levelCardTitle) levelCardTitle.textContent = config.title;
+
+
+                // Update progress section
+                const levelContainer = document.querySelector('.bg-gray-900\\/50.rounded-lg');
+                const levelNameEl = levelContainer ? levelContainer.querySelector('span.text-emerald-400') : null;
+                const levelScoreEl = levelContainer ? levelContainer.querySelector('span.text-white.font-bold') : null;
+                const progressBar = levelContainer ? levelContainer.querySelector('.h-full') : null;
+                const progressMsgEl = levelContainer ? levelContainer.querySelector('.text-sm.text-gray-400') : null;
+
+                if (levelNameEl) {
+                    levelNameEl.textContent = currentLevel.toUpperCase();
+                }
+
+                if (levelScoreEl) {
+                    levelScoreEl.textContent = `${currentProgress} / ${config.nextLevelThreshold} pts`;
+                }
+
+                if (progressBar) {
+                    const widthPercent = Math.min(100, (currentProgress / config.nextLevelThreshold) * 100);
+                    progressBar.style.width = `${widthPercent}%`;
+                }
+
+                if (progressMsgEl) {
+                    // Calculate remaining points
+                    const remaining = Math.max(0, config.nextLevelThreshold - currentProgress);
+                    let message = config.progressMsg;
+
+                    if (remaining > 0 && currentLevel !== 'Beginner') {
+                        message = `Only ${remaining} points to reach ${getNextLevel(currentLevel)} level! 🚀`;
+                    }
+
+                    progressMsgEl.textContent = message;
+                }
+
+                console.log('Updated level card for:', currentLevel, 'with progress:', currentProgress);
+            };
+
+            const getNextLevel = (currentLevel) => {
+                const levels = ['Beginner', 'Novice', 'Intermediate', 'Advanced', 'Expert'];
+                const currentIndex = levels.indexOf(currentLevel);
+                return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : 'Master';
+            };
+
+            const updateScoreFromResult = (evaluationData, resultData) => {
+                console.log('Updating score directly from result data:', resultData);
+
+                // Update the preliminary score display with the actual score from result table
+                const prelimScoreEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-4xl.font-bold.text-emerald-400');
+                const prelimDetailsEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .flex-1 p.text-sm.text-gray-300');
+
+                if (prelimScoreEl && resultData?.score !== undefined) {
+                    // Display the actual score from result table
+                    const scoreValue = Math.round(resultData.score * 10); // Assuming score is 0-10, convert to percentage
+                    prelimScoreEl.textContent = `${scoreValue}%`;
+                    console.log('Updated score display to:', prelimScoreEl.textContent);
+                }
+
+                if (prelimDetailsEl && resultData?.cart_eval) {
+                    // Display the CART evaluation from result table
+                    prelimDetailsEl.textContent = `CART Evaluation: ${resultData.cart_eval}`;
+                    console.log('Updated details to:', prelimDetailsEl.textContent);
+                }
+            };
+
+            const updateDefaultData = () => {
+                // Default fallback data
+                const prelimScoreEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-4xl');
+                if (prelimScoreEl) {
+                    prelimScoreEl.textContent = '87%';
+                }
+
+                const prelimDetailsEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-sm');
+                if (prelimDetailsEl) {
+                    prelimDetailsEl.textContent = '4 out of 5 factors correct';
+                }
+
+                const levelScoreEl = document.querySelector('.bg-gray-900\\/50 span.text-white');
+                if (levelScoreEl) {
+                    levelScoreEl.textContent = '100 / 100 pts';
+                }
+            };
+
+            // Inline authentication function as fallback
+            async function tryInlineAuth(supabase) {
+                try {
+                    console.log('Trying inline authentication...');
+
+                    // Simple authentication check
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    if (!user) {
+                        console.log('No user found, redirecting to login...');
+                        window.location.href = '/jsat/app/auth/login.html';
+                        return;
+                    }
+
+                    console.log('User found:', user.id);
+
+                    // Check profile
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('role, is_role_finalized')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (error || !profile) {
+                        console.error('Profile error:', error);
+                        window.location.href = '/jsat/app/auth/login.html';
+                        return;
+                    }
+
+                    if (!profile.is_role_finalized) {
+                        window.location.href = '/jsat/app/auth/role_selection.html';
+                        return;
+                    }
+
+                    if (profile.role !== 'candidate') {
+                        console.error('Unauthorized role:', profile.role);
+                        window.location.href = '/jsat/app/auth/login.html';
+                        return;
+                    }
+
+                    console.log('Authentication successful, loading data...');
+                    loadCompletionData(supabase, user.id);
+
+                } catch (error) {
+                    console.error('Inline auth failed:', error);
+                    window.location.href = '/jsat/app/auth/login.html';
+                }
+            }
+
+            // Logout functionality with proper Supabase instance
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                if (logout) {
+                    await logout();
+                } else {
+                    await supabase.auth.signOut();
+                }
+                window.location.href = '/jsat/app/auth/login.html';
+            });
         }
 
-        const prelimDetailsEl = document.querySelector('.bg-gradient-to-r.from-emerald-500\\/10.to-blue-500\\/10 .text-sm');
-        if (prelimDetailsEl) {
-            prelimDetailsEl.textContent = '4 out of 5 factors correct';
-        }
+        // Call the simple test function
+        testCompletionPage();
+    </script>
+      <script>lucide.createIcons();</script>
 
-        const levelScoreEl = document.querySelector('.bg-gray-900\\/50 span.text-white');
-        if (levelScoreEl) {
-            levelScoreEl.textContent = '183 / 200 pts';
-        }
-    };
 
-    // Load data when page loads
-    document.addEventListener('DOMContentLoaded', loadCompletionData);
-</script>
 
 </body>
 </html>

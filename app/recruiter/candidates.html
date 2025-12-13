@@ -82,6 +82,14 @@
                             <option>Advanced</option>
                             <option>Expert</option>
                         </select>
+                        <select id="sortOrder" class="px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:border-emerald-500">
+                            <option value="name_asc">Name A-Z</option>
+                            <option value="name_desc">Name Z-A</option>
+                            <option value="score_desc">Highest Score</option>
+                            <option value="score_asc">Lowest Score</option>
+                            <option value="last_test_desc">Latest Test</option>
+                            <option value="last_test_asc">Oldest Test</option>
+                        </select>
 
                     </div>
                 </div>
@@ -161,9 +169,107 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.js"></script>
     <script type="module">
-        import { protectPage } from '../js/guard.js';
-        import { logout, supabase } from '../js/auth.js';
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
+
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.error('Supabase configuration not found');
+            document.body.innerHTML = `
+                <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                    <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                        <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
+                        <p class="text-gray-300 mb-4 leading-relaxed">Supabase credentials not found.</p>
+                    </div>
+                </div>`;
+        } else {
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Helper functions
+        function redirectUser(role) {
+            const rolePaths = {
+                admin: '/jsat/app/admin/users.html',
+                recruiter: '/jsat/app/recruiter/dashboard.html',
+                candidate: '/jsat/app/candidate/dashboard.html',
+            };
+            const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
+            window.location.href = redirectPath;
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+        }
+
+        async function protectPage(authorizedRoles = []) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = '/jsat/app/auth/login.html';
+                return null;
+            }
+
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('role, is_role_finalized')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !profile) {
+                console.error('Error fetching profile or profile not found. Redirecting to login.');
+                window.location.href = '/jsat/app/auth/login.html';
+                return null;
+            }
+
+            if (!profile.is_role_finalized) {
+                window.location.href = '/jsat/app/auth/role_selection.html';
+                return null;
+            }
+
+            if (authorizedRoles.length > 0 && !authorizedRoles.includes(profile.role)) {
+                document.body.innerHTML = `
+                    <div class="fixed inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-sans z-50">
+                        <div class="text-center text-white max-w-md mx-4 p-8 bg-gray-900/90 backdrop-blur-sm rounded-2xl border border-red-500/30 shadow-2xl">
+                            <div class="w-16 h-16 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-red-400 mb-2">Access Denied</h1>
+                        <p class="text-gray-300 mb-4 leading-relaxed">
+                            You don't have permission to access this page.
+                        </p>
+                        <div class="bg-gray-800/50 rounded-lg p-4 mb-6">
+                            <div class="text-sm text-gray-400 mb-1">Your current role:</div>
+                            <div class="text-lg font-semibold text-blue-400 capitalize">${profile.role}</div>
+                            <div class="text-sm text-gray-400 mt-2 mb-1">Required role(s):</div>
+                            <div class="text-lg font-semibold text-yellow-400">${authorizedRoles.join(', ')}</div>
+                        </div>
+                        <p class="text-gray-500 text-sm">
+                            Redirecting you to your dashboard in <span id="countdown" class="text-blue-400 font-semibold">3</span> seconds...
+                        </p>
+                    </div>
+                `;
+
+                let countdown = 3;
+                const countdownEl = document.getElementById('countdown');
+                const timer = setInterval(() => {
+                    countdown--;
+                    if (countdownEl) countdownEl.textContent = countdown;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        redirectUser(profile.role);
+                    }
+                }, 1000);
+
+                return null;
+            }
+
+            return { user, profile };
+        }
 
         // Pagination state
         let currentPage = 1;
@@ -178,6 +284,7 @@
         // Filter state
         let searchTerm = '';
         let selectedSkillLevel = 'All Skill Levels';
+        let sortOrder = 'name_asc';
 
         let recruiterUser = null;
 
@@ -211,8 +318,8 @@
                             if (candidateEmail) {
                                 const subject = 'Regarding Your J-SAT Application';
                                 const body = `Dear Candidate,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
-                                const mailtoUrl = `mailto:${candidateEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
-                                window.open(mailtoUrl, '_blank');
+                                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(candidateEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
+                                window.open(gmailUrl, '_blank');
                             } else {
                                 alert('Candidate email not available');
                             }
@@ -269,8 +376,8 @@
                     if (emails.length > 0 && recruiterUser && recruiterUser.email) {
                         const subject = 'Regarding Your J-SAT Application';
                         const body = `Dear Candidates,\n\nI hope this email finds you well.\n\nBest regards,\n${recruiterUser.email}`;
-                        const mailtoUrl = `mailto:${emails.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
-                        window.open(mailtoUrl, '_blank');
+                        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emails.join(','))}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(recruiterUser.email)}`;
+                        window.open(gmailUrl, '_blank');
                     } else {
                         alert('No candidates selected or recruiter email not available');
                     }
@@ -438,6 +545,40 @@
                 return matchesSearch && matchesSkill;
             });
 
+            // Sort filtered candidates
+            filteredCandidates.sort((a, b) => {
+                if (sortOrder === 'name_asc') {
+                    const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+                    const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+                    return nameA.localeCompare(nameB);
+                } else if (sortOrder === 'name_desc') {
+                    const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+                    const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+                    return nameB.localeCompare(nameA);
+                } else if (sortOrder === 'score_desc') {
+                    const scoreA = averageScoreMapGlobal[a.id] || 0;
+                    const scoreB = averageScoreMapGlobal[b.id] || 0;
+                    return scoreB - scoreA;
+                } else if (sortOrder === 'score_asc') {
+                    const scoreA = averageScoreMapGlobal[a.id] || 0;
+                    const scoreB = averageScoreMapGlobal[b.id] || 0;
+                    return scoreA - scoreB;
+                } else if (sortOrder === 'last_test_desc') {
+                    const evalA = evalMapGlobal[a.id];
+                    const evalB = evalMapGlobal[b.id];
+                    const dateA = evalA ? new Date(evalA.created_at) : new Date(0);
+                    const dateB = evalB ? new Date(evalB.created_at) : new Date(0);
+                    return dateB - dateA;
+                } else if (sortOrder === 'last_test_asc') {
+                    const evalA = evalMapGlobal[a.id];
+                    const evalB = evalMapGlobal[b.id];
+                    const dateA = evalA ? new Date(evalA.created_at) : new Date(0);
+                    const dateB = evalB ? new Date(evalB.created_at) : new Date(0);
+                    return dateA - dateB;
+                }
+                return 0;
+            });
+
             // Update total candidates count for pagination
             totalCandidates = filteredCandidates.length;
             updatePaginationVisibility();
@@ -588,6 +729,17 @@
                     renderCandidates();
                 }
             });
+
+            // Set up event listener for sort order select
+            const sortOrderSelect = document.getElementById('sortOrder');
+            sortOrderSelect.value = sortOrder;
+            sortOrderSelect.addEventListener('change', function() {
+                sortOrder = this.value;
+                currentPage = 1; // Reset to first page
+                if (allCandidates.length > 0) {
+                    renderCandidates();
+                }
+            });
         }
 
         function generatePaginationButtons() {
@@ -674,6 +826,7 @@
             await logout();
             window.location.href = '/jsat/app/auth/login.html';
         });
+        }
     </script>
 </body>
 </html>
