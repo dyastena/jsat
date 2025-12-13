@@ -5,6 +5,28 @@
   "installCommand": "npm install",
   "framework": null,
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/auth/login", "destination": "/auth/login.html" },
+    { "source": "/auth/role_selection", "destination": "/auth/role_selection.html" },
+    { "source": "/auth/signup", "destination": "/auth/signup.html" },
+    { "source": "/candidate/completion", "destination": "/candidate/completion.html" },
+    { "source": "/candidate/dashboard", "destination": "/candidate/dashboard.html" },
+    { "source": "/candidate/db-viewer", "destination": "/candidate/db-viewer.html" },
+    { "source": "/candidate/leaderboard", "destination": "/candidate/leaderboard.html" },
+    { "source": "/candidate/practice", "destination": "/candidate/practice.html" },
+    { "source": "/candidate/results", "destination": "/candidate/results.html" },
+    { "source": "/candidate/settings", "destination": "/candidate/settings.html" },
+    { "source": "/candidate/test-runner", "destination": "/candidate/test-runner.html" },
+    { "source": "/recruiter/assign-test", "destination": "/recruiter/assign-test.html" },
+    { "source": "/recruiter/candidate-detail", "destination": "/recruiter/candidate-detail.html" },
+    { "source": "/recruiter/candidates", "destination": "/recruiter/candidates.html" },
+    { "source": "/recruiter/dashboard", "destination": "/recruiter/dashboard.html" },
+    { "source": "/recruiter/employability-exams", "destination": "/recruiter/employability-exams.html" },
+    { "source": "/recruiter/exams", "destination": "/recruiter/exams.html" },
+    { "source": "/recruiter/reports-analytics", "destination": "/recruiter/reports-analytics.html" },
+    { "source": "/recruiter/settings", "destination": "/recruiter/settings.html" },
+    { "source": "/index", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/dist/(.*)",
