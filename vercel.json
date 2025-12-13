@@ -5,12 +5,6 @@
   "installCommand": "npm install",
   "framework": null,
   "cleanUrls": true,
-  "routes": [
-    {
-      "src": "/dist/output.css",
-      "headers": { "Content-Type": "text/css; charset=utf-8" }
-    }
-  ],
   "headers": [
     {
       "source": "/dist/(.*)",
