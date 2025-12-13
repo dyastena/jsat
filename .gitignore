@@ -36,3 +36,4 @@ gha-creds-*.json
 
 # Vercel (keep vercel.json and .vercelignore - they're needed in root)
 .vercel
+.env*.local
