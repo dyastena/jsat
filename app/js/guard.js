@@ -13,7 +13,7 @@ export async function protectPage(authorizedRoles = []) {
 
     // If no user is logged in, redirect to the login page
     if (!user) {
-        window.location.href = '/jsat/app/auth/login.html';
+        window.location.href = '/auth/login.html';
         return null;
     }
 
@@ -28,14 +28,14 @@ export async function protectPage(authorizedRoles = []) {
     // Redirect to login for safety.
     if (error || !profile) {
         console.error('Error fetching profile or profile not found. Redirecting to login.');
-        window.location.href = '/jsat/app/auth/login.html';
+        window.location.href = '/auth/login.html';
         return null;
     }
 
     // 3. Check if the user's role has been finalized
     // If not, they must be sent to the role selection page.
     if (!profile.is_role_finalized) {
-        window.location.href = '/jsat/app/auth/role_selection.html';
+        window.location.href = '/auth/role_selection.html';
         return null;
     }
 

@@ -31,7 +31,7 @@ async function login(email, password) {
         // 3. The Gatekeeper Check
         if (profileData && !profileData.is_role_finalized) {
             // Gate is closed, redirect to role selection.
-            window.location.href = '/jsat/app/auth/role_selection.html';
+            window.location.href = '/auth/role_selection.html';
             return { data: profileData, error: null }; // Return to prevent further execution
         } else if (profileData) {
             // Gate is open, redirect to the role-specific dashboard
@@ -86,12 +86,12 @@ async function getSession() {
  */
 function redirectUser(role) {
     const rolePaths = {
-        admin: '/jsat/app/admin/users.html',
-        recruiter: '/jsat/app/recruiter/dashboard.html',
-        candidate: '/jsat/app/candidate/dashboard.html',
+        admin: '/admin/users.html',
+        recruiter: '/recruiter/dashboard.html',
+        candidate: '/candidate/dashboard.html',
     };
     // Use lowercase role from DB
-    const redirectPath = rolePaths[role] || '/jsat/app/auth/login.html';
+    const redirectPath = rolePaths[role] || '/auth/login.html';
     window.location.href = redirectPath;
 }
 
